@@ -1,0 +1,502 @@
+<div class="sites-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">Gestion des Sites</h1>
+      <p class="page-subtitle">Administrer les magasins et entrepôts</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" (click)="openTransferModal()">
+        <span class="material-icons">swap_horiz</span>
+        Nouveau Transfert
+      </button>
+      <button class="btn btn-primary" (click)="openAddModal()">
+        <span class="material-icons">add</span>
+        Nouveau Site
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon total">
+        <span class="material-icons">location_on</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ siteStats().total }}</span>
+        <span class="stat-label">Total Sites</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon active">
+        <span class="material-icons">check_circle</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ siteStats().active }}</span>
+        <span class="stat-label">Actifs</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon warehouse">
+        <span class="material-icons">warehouse</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ siteStats().warehouses }}</span>
+        <span class="stat-label">Entrepôts</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon store">
+        <span class="material-icons">store</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ siteStats().stores }}</span>
+        <span class="stat-label">Magasins</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-section">
+    <div class="tabs">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'sites'"
+        (click)="setActiveTab('sites')"
+      >
+        <span class="material-icons">location_on</span>
+        Sites
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'transfers'"
+        (click)="setActiveTab('transfers')"
+      >
+        <span class="material-icons">swap_horiz</span>
+        Transferts
+        @if (pendingTransfers().length > 0) {
+          <span class="badge">{{ pendingTransfers().length }}</span>
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (activeTab() === 'sites') {
+    <!-- Filters -->
+    <div class="filters-section">
+      <div class="search-box">
+        <span class="material-icons">search</span>
+        <input 
+          type="text" 
+          placeholder="Rechercher par nom, code, ville..."
+          [value]="searchTerm()"
+          (input)="onSearch($event)"
+        >
+      </div>
+      
+      <div class="filter-chips">
+        <button 
+          class="chip" 
+          [class.active]="selectedType() === 'all'"
+          (click)="onTypeChange('all')"
+        >Tous</button>
+        @for (type of siteTypes; track type.value) {
+          <button 
+            class="chip" 
+            [class.active]="selectedType() === type.value"
+            (click)="onTypeChange(type.value)"
+          >
+            <span class="material-icons">{{ type.icon }}</span>
+            {{ type.label }}
+          </button>
+        }
+      </div>
+      
+      <label class="checkbox-label">
+        <input 
+          type="checkbox" 
+          [checked]="showInactive()"
+          (change)="showInactive.set(!showInactive())"
+        >
+        Afficher inactifs
+      </label>
+      
+      <button class="view-toggle" (click)="toggleViewMode()">
+        <span class="material-icons">
+          {{ viewMode() === 'grid' ? 'view_list' : 'grid_view' }}
+        </span>
+      </button>
+    </div>
+
+    <!-- Sites Grid/List -->
+    <div class="sites-container" [class]="viewMode()">
+      @for (site of sites(); track site.id) {
+        <div class="site-card" [class.inactive]="!site.isActive">
+          <div class="card-header">
+            <div class="site-icon" [class]="site.type">
+              <span class="material-icons">{{ getSiteTypeIcon(site.type) }}</span>
+            </div>
+            <div class="site-info">
+              <h3 class="site-name">{{ site.name }}</h3>
+              <span class="site-code">{{ site.code }}</span>
+            </div>
+            <div class="card-actions">
+              <button class="action-btn" (click)="openViewModal(site)" title="Voir">
+                <span class="material-icons">visibility</span>
+              </button>
+              <button class="action-btn" (click)="openEditModal(site)" title="Modifier">
+                <span class="material-icons">edit</span>
+              </button>
+              @if (!site.isMain) {
+                <button class="action-btn delete" (click)="deleteSite(site)" title="Supprimer">
+                  <span class="material-icons">delete</span>
+                </button>
+              }
+            </div>
+          </div>
+          
+          <div class="card-body">
+            <div class="site-type-badge" [class]="site.type">
+              {{ getSiteTypeLabel(site.type) }}
+            </div>
+            
+            <div class="site-location">
+              <span class="material-icons">location_on</span>
+              {{ site.address.city }}, {{ site.address.country }}
+            </div>
+            
+            @if (site.capacity) {
+              <div class="occupancy-section">
+                <div class="occupancy-header">
+                  <span>Occupation</span>
+                  <span class="occupancy-value" [class]="getOccupancyStatus(site)">
+                    {{ getOccupancyPercent(site) }}%
+                  </span>
+                </div>
+                <div class="occupancy-bar">
+                  <div 
+                    class="occupancy-fill" 
+                    [class]="getOccupancyStatus(site)"
+                    [style.width.%]="getOccupancyPercent(site)"
+                  ></div>
+                </div>
+                <div class="occupancy-info">
+                  {{ site.currentOccupancy || 0 }} / {{ site.capacity }} unités
+                </div>
+              </div>
+            }
+            
+            @if (site.zones.length > 0) {
+              <div class="zones-section">
+                <span class="zones-label">{{ site.zones.length }} zone(s)</span>
+              </div>
+            }
+          </div>
+          
+          <div class="card-footer">
+            <span class="status-badge" [class.active]="site.isActive">
+              {{ site.isActive ? 'Actif' : 'Inactif' }}
+            </span>
+            @if (site.isMain) {
+              <span class="main-badge">Principal</span>
+            }
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state">
+          <span class="material-icons">location_off</span>
+          <p>Aucun site trouvé</p>
+        </div>
+      }
+    </div>
+  } @else {
+    <!-- Transfers List -->
+    <div class="transfers-container">
+      <div class="table-container">
+        <table class="transfers-table">
+          <thead>
+            <tr>
+              <th>N° Transfert</th>
+              <th>De</th>
+              <th>Vers</th>
+              <th>Articles</th>
+              <th>Statut</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (transfer of transfers(); track transfer.id) {
+              <tr>
+                <td class="transfer-number">{{ transfer.transferNumber }}</td>
+                <td>{{ transfer.fromSiteName }}</td>
+                <td>{{ transfer.toSiteName }}</td>
+                <td>{{ transfer.items.length }} article(s)</td>
+                <td>
+                  <span class="status-tag" [class]="transfer.status">
+                    {{ getTransferStatusLabel(transfer.status) }}
+                  </span>
+                </td>
+                <td>{{ transfer.requestedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>
+                  <div class="action-buttons">
+                    @if (transfer.status === 'pending') {
+                      <button 
+                        class="action-btn primary"
+                        (click)="updateTransferStatus(transfer, 'in_transit')"
+                        title="Marquer en transit"
+                      >
+                        <span class="material-icons">local_shipping</span>
+                      </button>
+                      <button 
+                        class="action-btn danger"
+                        (click)="updateTransferStatus(transfer, 'cancelled')"
+                        title="Annuler"
+                      >
+                        <span class="material-icons">close</span>
+                      </button>
+                    }
+                    @if (transfer.status === 'in_transit') {
+                      <button 
+                        class="action-btn success"
+                        (click)="updateTransferStatus(transfer, 'completed')"
+                        title="Marquer comme terminé"
+                      >
+                        <span class="material-icons">check</span>
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="empty-state">
+                  <span class="material-icons">swap_horiz</span>
+                  <p>Aucun transfert</p>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Site Modal -->
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>
+          @if (modalMode() === 'add') {
+            Nouveau Site
+          } @else if (modalMode() === 'edit') {
+            Modifier le Site
+          } @else {
+            Détails du Site
+          }
+        </h2>
+        <button class="close-btn" (click)="closeModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        @if (modalMode() === 'view' && selectedSite(); as site) {
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>Code</label>
+              <span>{{ site.code }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Nom</label>
+              <span>{{ site.name }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Type</label>
+              <span>{{ getSiteTypeLabel(site.type) }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Statut</label>
+              <span class="status-badge" [class.active]="site.isActive">
+                {{ site.isActive ? 'Actif' : 'Inactif' }}
+              </span>
+            </div>
+            <div class="detail-item full-width">
+              <label>Adresse</label>
+              <span>{{ site.address.street }}, {{ site.address.city }} {{ site.address.postalCode }}, {{ site.address.country }}</span>
+            </div>
+            @if (site.phone) {
+              <div class="detail-item">
+                <label>Téléphone</label>
+                <span>{{ site.phone }}</span>
+              </div>
+            }
+            @if (site.email) {
+              <div class="detail-item">
+                <label>Email</label>
+                <span>{{ site.email }}</span>
+              </div>
+            }
+            @if (site.manager) {
+              <div class="detail-item">
+                <label>Responsable</label>
+                <span>{{ site.manager }}</span>
+              </div>
+            }
+            @if (site.capacity) {
+              <div class="detail-item">
+                <label>Capacité</label>
+                <span>{{ site.currentOccupancy }} / {{ site.capacity }} unités</span>
+              </div>
+            }
+            @if (site.zones.length > 0) {
+              <div class="detail-item full-width">
+                <label>Zones</label>
+                <div class="zones-list">
+                  @for (zone of site.zones; track zone.id) {
+                    <span class="zone-tag">{{ zone.name }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Code *</label>
+              <input 
+                type="text" 
+                placeholder="Ex: WH-001"
+                [value]="formData().code"
+                (input)="updateFormField('code', $any($event.target).value)"
+              >
+            </div>
+            
+            <div class="form-group">
+              <label>Nom *</label>
+              <input 
+                type="text" 
+                placeholder="Nom du site"
+                [value]="formData().name"
+                (input)="updateFormField('name', $any($event.target).value)"
+              >
+            </div>
+            
+            <div class="form-group">
+              <label>Type *</label>
+              <select 
+                [value]="formData().type"
+                (change)="updateFormField('type', $any($event.target).value)"
+              >
+                @for (type of siteTypes; track type.value) {
+                  <option [value]="type.value">{{ type.label }}</option>
+                }
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>Capacité</label>
+              <input 
+                type="number" 
+                min="0"
+                placeholder="Capacité en unités"
+                [value]="formData().capacity"
+                (input)="updateFormField('capacity', +$any($event.target).value)"
+              >
+            </div>
+            
+            <div class="form-group full-width">
+              <label>Adresse</label>
+              <input 
+                type="text" 
+                placeholder="Rue, numéro"
+                [value]="formData().street"
+                (input)="updateFormField('street', $any($event.target).value)"
+              >
+            </div>
+            
+            <div class="form-group">
+              <label>Ville *</label>
+              <input 
+                type="text" 
+                placeholder="Ville"
+                [value]="formData().city"
+                (input)="updateFormField('city', $any($event.target).value)"
+              >
+            </div>
+            
+            <div class="form-group">
+              <label>Code Postal</label>
+              <input 
+                type="text" 
+                placeholder="Code postal"
+                [value]="formData().postalCode"
+                (input)="updateFormField('postalCode', $any($event.target).value)"
+              >
+            </div>
+            
+            <div class="form-group">
+              <label>Téléphone</label>
+              <input 
+                type="tel" 
+                placeholder="+212 5XX XXX XXX"
+                [value]="formData().phone"
+                (input)="updateFormField('phone', $any($event.target).value)"
+              >
+            </div>
+            
+            <div class="form-group">
+              <label>Email</label>
+              <input 
+                type="email" 
+                placeholder="email@example.com"
+                [value]="formData().email"
+                (input)="updateFormField('email', $any($event.target).value)"
+              >
+            </div>
+            
+            <div class="form-group">
+              <label>Responsable</label>
+              <input 
+                type="text" 
+                placeholder="Nom du responsable"
+                [value]="formData().manager"
+                (input)="updateFormField('manager', $any($event.target).value)"
+              >
+            </div>
+            
+            <div class="form-group">
+              <label class="checkbox-wrapper">
+                <input 
+                  type="checkbox"
+                  [checked]="formData().isActive"
+                  (change)="updateFormField('isActive', $any($event.target).checked)"
+                >
+                <span>Site actif</span>
+              </label>
+            </div>
+          </div>
+        }
+      </div>
+      
+      <div class="modal-footer">
+        @if (modalMode() === 'view') {
+          <button class="btn btn-secondary" (click)="closeModal()">Fermer</button>
+          <button class="btn btn-primary" (click)="openEditModal(selectedSite()!)">
+            <span class="material-icons">edit</span>
+            Modifier
+          </button>
+        } @else {
+          <button class="btn btn-secondary" (click)="closeModal()">Annuler</button>
+          <button class="btn btn-primary" (click)="saveSite()">
+            <span class="material-icons">save</span>
+            Enregistrer
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}

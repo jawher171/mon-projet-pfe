@@ -1,0 +1,362 @@
+<div class="alerts-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">Centre d'Alertes</h1>
+      <p class="page-subtitle">Gérer les alertes et notifications automatiques</p>
+    </div>
+    <div class="header-actions">
+      @if (unreadCount() > 0) {
+        <button class="btn btn-outline" (click)="markAllAsRead()">
+          <span class="material-icons">done_all</span>
+          Tout marquer comme lu
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card critical">
+      <div class="stat-icon">
+        <span class="material-icons">error</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats().critical }}</span>
+        <span class="stat-label">Critiques</span>
+      </div>
+    </div>
+    <div class="stat-card high">
+      <div class="stat-icon">
+        <span class="material-icons">warning</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats().high }}</span>
+        <span class="stat-label">Élevées</span>
+      </div>
+    </div>
+    <div class="stat-card medium">
+      <div class="stat-icon">
+        <span class="material-icons">info</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats().medium }}</span>
+        <span class="stat-label">Moyennes</span>
+      </div>
+    </div>
+    <div class="stat-card unread">
+      <div class="stat-icon">
+        <span class="material-icons">mark_email_unread</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats().unread }}</span>
+        <span class="stat-label">Non lues</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-section">
+    <div class="tabs">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'alerts'"
+        (click)="setActiveTab('alerts')"
+      >
+        <span class="material-icons">notifications</span>
+        Alertes
+        @if (unreadCount() > 0) {
+          <span class="badge">{{ unreadCount() }}</span>
+        }
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'rules'"
+        (click)="setActiveTab('rules')"
+      >
+        <span class="material-icons">rule</span>
+        Règles
+      </button>
+    </div>
+  </div>
+
+  @if (activeTab() === 'alerts') {
+    <!-- Filters -->
+    <div class="filters-section">
+      <div class="severity-filters">
+        <button 
+          class="severity-btn all" 
+          [class.active]="selectedSeverity() === 'all'"
+          (click)="onSeverityChange('all')"
+        >Toutes</button>
+        <button 
+          class="severity-btn critical" 
+          [class.active]="selectedSeverity() === 'critical'"
+          (click)="onSeverityChange('critical')"
+        >Critiques</button>
+        <button 
+          class="severity-btn high" 
+          [class.active]="selectedSeverity() === 'high'"
+          (click)="onSeverityChange('high')"
+        >Élevées</button>
+        <button 
+          class="severity-btn medium" 
+          [class.active]="selectedSeverity() === 'medium'"
+          (click)="onSeverityChange('medium')"
+        >Moyennes</button>
+        <button 
+          class="severity-btn low" 
+          [class.active]="selectedSeverity() === 'low'"
+          (click)="onSeverityChange('low')"
+        >Basses</button>
+      </div>
+      
+      <select class="filter-select" (change)="onSiteChange($event)">
+        <option value="">Tous les sites</option>
+        @for (site of sites(); track site.id) {
+          <option [value]="site.id">{{ site.name }}</option>
+        }
+      </select>
+      
+      <label class="checkbox-label">
+        <input 
+          type="checkbox" 
+          [checked]="showResolved()"
+          (change)="showResolved.set(!showResolved())"
+        >
+        Afficher résolues
+      </label>
+    </div>
+
+    <!-- Alerts List -->
+    <div class="alerts-list">
+      @for (alert of alerts(); track alert.id) {
+        <div 
+          class="alert-card" 
+          [class]="alert.severity"
+          [class.unread]="!alert.isRead"
+          [class.resolved]="alert.isResolved"
+          (click)="openAlertModal(alert)"
+        >
+          <div class="alert-indicator"></div>
+          
+          <div class="alert-icon">
+            <span class="material-icons">{{ getAlertTypeConfig(alert.type)?.icon }}</span>
+          </div>
+          
+          <div class="alert-content">
+            <div class="alert-header">
+              <h3 class="alert-title">{{ alert.title }}</h3>
+              <div class="alert-badges">
+                <span class="severity-badge" [class]="alert.severity">
+                  {{ getSeverityConfig(alert.severity).label }}
+                </span>
+                @if (alert.isResolved) {
+                  <span class="resolved-badge">Résolu</span>
+                }
+              </div>
+            </div>
+            <p class="alert-message">{{ alert.message }}</p>
+            <div class="alert-meta">
+              @if (alert.siteName) {
+                <span class="meta-item">
+                  <span class="material-icons">location_on</span>
+                  {{ alert.siteName }}
+                </span>
+              }
+              @if (alert.productName) {
+                <span class="meta-item">
+                  <span class="material-icons">inventory_2</span>
+                  {{ alert.productName }}
+                </span>
+              }
+              <span class="meta-item time">
+                <span class="material-icons">schedule</span>
+                {{ getTimeAgo(alert.createdAt) }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="alert-actions" (click)="$event.stopPropagation()">
+            @if (!alert.isResolved) {
+              <button 
+                class="action-btn resolve"
+                (click)="openAlertModal(alert)"
+                title="Résoudre"
+              >
+                <span class="material-icons">check_circle</span>
+              </button>
+            }
+            <button 
+              class="action-btn delete"
+              (click)="deleteAlert(alert)"
+              title="Supprimer"
+            >
+              <span class="material-icons">delete</span>
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state">
+          <span class="material-icons">notifications_off</span>
+          <p>Aucune alerte</p>
+          <span class="empty-hint">Les alertes apparaîtront ici lorsque des conditions seront détectées</span>
+        </div>
+      }
+    </div>
+  } @else {
+    <!-- Rules List -->
+    <div class="rules-container">
+      <div class="rules-header">
+        <h2>Règles d'Alertes Automatiques</h2>
+        <p>Configurez les conditions qui déclenchent les alertes</p>
+      </div>
+      
+      <div class="rules-list">
+        @for (rule of rules(); track rule.id) {
+          <div class="rule-card" [class.disabled]="!rule.isEnabled">
+            <div class="rule-toggle">
+              <label class="switch">
+                <input 
+                  type="checkbox" 
+                  [checked]="rule.isEnabled"
+                  (change)="toggleRule(rule.id)"
+                >
+                <span class="slider"></span>
+              </label>
+            </div>
+            
+            <div class="rule-icon">
+              <span class="material-icons">{{ getAlertTypeConfig(rule.type)?.icon }}</span>
+            </div>
+            
+            <div class="rule-content">
+              <h3 class="rule-name">{{ rule.name }}</h3>
+              <p class="rule-type">{{ getAlertTypeConfig(rule.type)?.label }}</p>
+              <div class="rule-meta">
+                <span class="meta-item">
+                  <span class="material-icons">filter_list</span>
+                  {{ rule.conditions.length }} condition(s)
+                </span>
+                <span class="meta-item">
+                  <span class="material-icons">flash_on</span>
+                  {{ rule.actions.length }} action(s)
+                </span>
+                <span class="meta-item">
+                  <span class="material-icons">category</span>
+                  {{ rule.appliesTo === 'all' ? 'Tous les produits' : 'Sélection' }}
+                </span>
+              </div>
+            </div>
+            
+            <div class="rule-status">
+              <span class="status-indicator" [class.active]="rule.isEnabled"></span>
+              {{ rule.isEnabled ? 'Active' : 'Inactive' }}
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Alert Detail Modal -->
+@if (showModal() && selectedAlert(); as alert) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" [class]="alert.severity" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-section">
+          <div class="alert-type-icon" [style.background]="getSeverityConfig(alert.severity).bgColor">
+            <span class="material-icons" [style.color]="getSeverityConfig(alert.severity).color">
+              {{ getAlertTypeConfig(alert.type)?.icon }}
+            </span>
+          </div>
+          <div>
+            <h2>{{ alert.title }}</h2>
+            <span class="severity-label" [class]="alert.severity">
+              {{ getSeverityConfig(alert.severity).label }}
+            </span>
+          </div>
+        </div>
+        <button class="close-btn" (click)="closeModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="alert-detail-section">
+          <h4>Description</h4>
+          <p>{{ alert.message }}</p>
+        </div>
+        
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>Type</label>
+            <span>{{ getAlertTypeConfig(alert.type)?.label }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Créée</label>
+            <span>{{ formatDate(alert.createdAt) }}</span>
+          </div>
+          @if (alert.productName) {
+            <div class="detail-item">
+              <label>Produit</label>
+              <span>{{ alert.productName }} ({{ alert.productSku }})</span>
+            </div>
+          }
+          @if (alert.siteName) {
+            <div class="detail-item">
+              <label>Site</label>
+              <span>{{ alert.siteName }}</span>
+            </div>
+          }
+          @if (alert.currentValue !== undefined) {
+            <div class="detail-item">
+              <label>Valeur Actuelle</label>
+              <span class="highlight">{{ alert.currentValue }}</span>
+            </div>
+          }
+          @if (alert.thresholdValue !== undefined) {
+            <div class="detail-item">
+              <label>Seuil</label>
+              <span>{{ alert.thresholdValue }}</span>
+            </div>
+          }
+        </div>
+        
+        @if (alert.isResolved) {
+          <div class="resolution-section">
+            <h4>Résolution</h4>
+            <div class="resolution-info">
+              <p><strong>Résolu par:</strong> {{ alert.resolvedBy }}</p>
+              <p><strong>Date:</strong> {{ formatDate(alert.resolvedAt!) }}</p>
+              @if (alert.resolutionNotes) {
+                <p><strong>Notes:</strong> {{ alert.resolutionNotes }}</p>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="resolve-section">
+            <h4>Résoudre cette alerte</h4>
+            <textarea 
+              placeholder="Notes de résolution (optionnel)..."
+              [value]="resolveNotes()"
+              (input)="resolveNotes.set($any($event.target).value)"
+              rows="3"
+            ></textarea>
+          </div>
+        }
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModal()">Fermer</button>
+        @if (!alert.isResolved) {
+          <button class="btn btn-success" (click)="resolveAlert()">
+            <span class="material-icons">check_circle</span>
+            Marquer comme résolu
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}

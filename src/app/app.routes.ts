@@ -22,21 +22,22 @@ export const routes: Routes = [
         path: 'products',
         loadComponent: () => import('./features/products/products.component').then(m => m.ProductsComponent)
       },
+      
       {
-        path: 'categories',
-        loadComponent: () => import('./features/categories/categories.component').then(m => m.CategoriesComponent)
+        path: 'movements',
+        loadComponent: () => import('./features/movements/movements.component').then(m => m.MovementsComponent)
       },
       {
-        path: 'suppliers',
-        loadComponent: () => import('./features/suppliers/suppliers.component').then(m => m.SuppliersComponent)
+        path: 'sites',
+        loadComponent: () => import('./features/sites/sites.component').then(m => m.SitesComponent)
       },
       {
-        path: 'orders',
-        loadComponent: () => import('./features/orders/orders.component').then(m => m.OrdersComponent)
+        path: 'alerts',
+        loadComponent: () => import('./features/alerts/alerts.component').then(m => m.AlertsComponent)
       },
       {
-        path: 'reports',
-        loadComponent: () => import('./features/reports/reports.component').then(m => m.ReportsComponent)
+        path: 'scanner',
+        loadComponent: () => import('./features/scanner/scanner.component').then(m => m.ScannerComponent)
       }
     ]
   },

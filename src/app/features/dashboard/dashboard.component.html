@@ -1,17 +1,17 @@
 <div class="dashboard">
   <div class="dashboard-header">
     <div>
-      <h1 class="page-title">Dashboard</h1>
-      <p class="page-subtitle">Welcome back! Here's your inventory overview</p>
+      <h1 class="page-title">Tableau de Bord</h1>
+      <p class="page-subtitle">Vue d'ensemble de votre inventaire intelligent</p>
     </div>
     <div class="header-actions">
-      <button class="btn btn-outline">
-        <span class="material-icons">download</span>
-        Export Report
+      <button class="btn btn-outline" routerLink="/scanner">
+        <span class="material-icons">qr_code_scanner</span>
+        Scanner
       </button>
-      <button class="btn btn-primary">
-        <span class="material-icons">add</span>
-        New Product
+      <button class="btn btn-primary" routerLink="/movements">
+        <span class="material-icons">swap_vert</span>
+        Nouveau Mouvement
       </button>
     </div>
   </div>
@@ -28,19 +28,136 @@
           <div class="stat-value">{{ stat.value }}</div>
           <div class="stat-change" [class.positive]="stat.trend === 'up'" [class.negative]="stat.trend === 'down'">
             <span class="material-icons">{{ stat.trend === 'up' ? 'trending_up' : 'trending_down' }}</span>
-            <span>{{ stat.change }}% from last month</span>
+            <span>{{ stat.change }}% ce mois</span>
           </div>
         </div>
       </div>
     }
   </div>
 
-  <div class="content-grid">
+  <!-- Movement Summary Cards -->
+  <div class="movement-summary">
+    <div class="summary-card entries">
+      <div class="summary-icon">
+        <span class="material-icons">arrow_downward</span>
+      </div>
+      <div class="summary-content">
+        <span class="summary-value">{{ movementSummary().totalEntries }}</span>
+        <span class="summary-label">Entrées</span>
+      </div>
+      <span class="summary-qty">+{{ movementSummary().entriesQuantity }} unités</span>
+    </div>
+    <div class="summary-card exits">
+      <div class="summary-icon">
+        <span class="material-icons">arrow_upward</span>
+      </div>
+      <div class="summary-content">
+        <span class="summary-value">{{ movementSummary().totalExits }}</span>
+        <span class="summary-label">Sorties</span>
+      </div>
+      <span class="summary-qty">-{{ movementSummary().exitsQuantity }} unités</span>
+    </div>
+    <div class="summary-card sites">
+      <div class="summary-icon">
+        <span class="material-icons">location_on</span>
+      </div>
+      <div class="summary-content">
+        <span class="summary-value">{{ siteStats().active }}</span>
+        <span class="summary-label">Sites Actifs</span>
+      </div>
+      <span class="summary-info">{{ siteStats().total }} total</span>
+    </div>
+    <div class="summary-card alerts-count">
+      <div class="summary-icon">
+        <span class="material-icons">notifications_active</span>
+      </div>
+      <div class="summary-content">
+        <span class="summary-value">{{ alertStats().unread }}</span>
+        <span class="summary-label">Alertes Non Lues</span>
+      </div>
+      <span class="summary-critical">{{ alertStats().critical }} critiques</span>
+    </div>
+  </div>
+
+  <div class="content-grid-3">
+    <!-- Critical Alerts Section -->
+    <div class="card alerts-card">
+      <div class="card-header">
+        <h2 class="card-title">
+          <span class="material-icons title-icon">warning</span>
+          Alertes Critiques
+        </h2>
+        <a routerLink="/alerts" class="btn-text">Voir tout</a>
+      </div>
+      <div class="card-body">
+        <div class="alerts-list">
+          @for (alert of criticalAlerts(); track alert.id) {
+            <div class="alert-item" [class]="alert.severity">
+              <div class="alert-icon">
+                <span class="material-icons">{{ getAlertIcon(alert.type) }}</span>
+              </div>
+              <div class="alert-content">
+                <p class="alert-title">{{ alert.title }}</p>
+                <p class="alert-message">{{ alert.message }}</p>
+              </div>
+              <span class="alert-badge" [class]="alert.severity">
+                {{ severityConfig[alert.severity].label }}
+              </span>
+            </div>
+          } @empty {
+            <div class="empty-alerts">
+              <span class="material-icons">check_circle</span>
+              <p>Aucune alerte critique</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Low Stock / Replenishment Section -->
+    <div class="card replenishment-card">
+      <div class="card-header">
+        <h2 class="card-title">
+          <span class="material-icons title-icon">inventory_2</span>
+          Réapprovisionnement
+        </h2>
+        <a routerLink="/products" class="btn-text">Voir tout</a>
+      </div>
+      <div class="card-body">
+        <div class="stock-list">
+          @for (item of lowStockItems(); track item.id) {
+            <div class="stock-item">
+              <div class="stock-info">
+                <span class="stock-name">{{ item.name }}</span>
+                <span class="stock-sku">{{ item.sku }}</span>
+              </div>
+              <div class="stock-level">
+                <div class="level-bar">
+                  <div 
+                    class="level-fill" 
+                    [class]="item.status"
+                    [style.width.%]="(item.currentStock / item.minStock) * 100"
+                  ></div>
+                </div>
+                <span class="level-text">{{ item.currentStock }} / {{ item.minStock }}</span>
+              </div>
+              <span class="stock-badge" [class]="item.status">
+                {{ getStockStatusLabel(item.status) }}
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
     <!-- Recent Activities -->
     <div class="card recent-activities-card">
       <div class="card-header">
-        <h2 class="card-title">Recent Activities</h2>
-        <button class="btn-text">View All</button>
+        <h2 class="card-title">
+          <span class="material-icons title-icon">history</span>
+          Activités Récentes
+        </h2>
+        <a routerLink="/movements" class="btn-text">Voir tout</a>
       </div>
       <div class="card-body">
         <div class="activities-list">
@@ -58,12 +175,14 @@
         </div>
       </div>
     </div>
+  </div>
 
+  <div class="content-grid">
     <!-- Top Products -->
     <div class="card top-products-card">
       <div class="card-header">
-        <h2 class="card-title">Top Products</h2>
-        <button class="btn-text">View All</button>
+        <h2 class="card-title">Top Produits</h2>
+        <button class="btn-text">Voir tout</button>
       </div>
       <div class="card-body">
         <div class="products-list">
@@ -71,7 +190,7 @@
             <div class="product-item">
               <div class="product-info">
                 <div class="product-name">{{ product.name }}</div>
-                <div class="product-sales">{{ product.sales }} sales</div>
+                <div class="product-sales">{{ product.sales }} ventes</div>
               </div>
               <div class="product-revenue">
                 <div class="revenue-value">{{ product.revenue }}</div>
@@ -84,23 +203,51 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Inventory Status Chart -->
-  <div class="card chart-card">
-    <div class="card-header">
-      <h2 class="card-title">Inventory Status</h2>
-      <div class="chart-filters">
-        <button class="filter-btn active">Week</button>
-        <button class="filter-btn">Month</button>
-        <button class="filter-btn">Year</button>
+    <!-- Quick Actions -->
+    <div class="card quick-actions-card">
+      <div class="card-header">
+        <h2 class="card-title">Actions Rapides</h2>
       </div>
-    </div>
-    <div class="card-body">
-      <div class="chart-placeholder">
-        <span class="material-icons">bar_chart</span>
-        <p>Chart visualization will be displayed here</p>
-        <p class="chart-note">Integrate with Chart.js or any preferred charting library</p>
+      <div class="card-body">
+        <div class="quick-actions-grid">
+          <a routerLink="/scanner" class="quick-action">
+            <div class="action-icon scanner">
+              <span class="material-icons">qr_code_scanner</span>
+            </div>
+            <span class="action-label">Scanner</span>
+          </a>
+          <a routerLink="/movements" class="quick-action">
+            <div class="action-icon entry">
+              <span class="material-icons">add_circle</span>
+            </div>
+            <span class="action-label">Entrée Stock</span>
+          </a>
+          <a routerLink="/movements" class="quick-action">
+            <div class="action-icon exit">
+              <span class="material-icons">remove_circle</span>
+            </div>
+            <span class="action-label">Sortie Stock</span>
+          </a>
+          <a routerLink="/sites" class="quick-action">
+            <div class="action-icon transfer">
+              <span class="material-icons">swap_horiz</span>
+            </div>
+            <span class="action-label">Transfert</span>
+          </a>
+          <a routerLink="/alerts" class="quick-action">
+            <div class="action-icon alerts">
+              <span class="material-icons">notifications</span>
+            </div>
+            <span class="action-label">Alertes</span>
+          </a>
+          <a routerLink="/reports" class="quick-action">
+            <div class="action-icon reports">
+              <span class="material-icons">bar_chart</span>
+            </div>
+            <span class="action-label">Rapports</span>
+          </a>
+        </div>
       </div>
     </div>
   </div>

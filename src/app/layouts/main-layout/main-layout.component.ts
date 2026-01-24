@@ -23,12 +23,12 @@ export class MainLayoutComponent {
   currentUser = computed(() => this.authService.currentUser());
 
   menuItems: MenuItem[] = [
-    { icon: 'dashboard', label: 'Dashboard', route: '/dashboard' },
-    { icon: 'inventory_2', label: 'Products', route: '/products', badge: 125 },
-    { icon: 'category', label: 'Categories', route: '/categories' },
-    { icon: 'local_shipping', label: 'Suppliers', route: '/suppliers' },
-    { icon: 'shopping_cart', label: 'Orders', route: '/orders', badge: 8 },
-    { icon: 'bar_chart', label: 'Reports', route: '/reports' },
+    { icon: 'dashboard', label: 'Tableau de Bord', route: '/dashboard' },
+    { icon: 'inventory_2', label: 'Produits', route: '/products', badge: 125 },
+    { icon: 'swap_vert', label: 'Mouvements', route: '/movements', badge: 12 },
+    { icon: 'qr_code_scanner', label: 'Scanner', route: '/scanner' },
+    { icon: 'store', label: 'Sites', route: '/sites' },
+    { icon: 'notifications', label: 'Alertes', route: '/alerts', badge: 5 },
   ];
 
   userMenuItems = [

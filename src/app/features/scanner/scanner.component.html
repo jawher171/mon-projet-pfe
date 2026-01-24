@@ -1,0 +1,290 @@
+<div class="scanner-page" [class.embedded]="mode === 'embedded'">
+  <!-- Header -->
+  @if (mode === 'standalone') {
+    <div class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">Scanner de Code-barres</h1>
+        <p class="page-subtitle">Scanner QR/Barcode pour gérer les stocks</p>
+      </div>
+    </div>
+  }
+
+  <div class="scanner-container">
+    <!-- Main Scanner Area -->
+    <div class="scanner-main">
+      <!-- Camera View -->
+      <div class="camera-section">
+        <div class="camera-view" [class.active]="cameraActive()">
+          @if (cameraActive()) {
+            <div class="camera-overlay">
+              <div class="scan-frame">
+                <div class="corner top-left"></div>
+                <div class="corner top-right"></div>
+                <div class="corner bottom-left"></div>
+                <div class="corner bottom-right"></div>
+                <div class="scan-line"></div>
+              </div>
+              <p class="camera-hint">Positionnez le code-barres dans le cadre</p>
+            </div>
+            <div class="camera-placeholder">
+              <span class="material-icons">videocam</span>
+              <p>Caméra simulée active</p>
+              <button class="btn btn-sm" (click)="simulateScan()">
+                Simuler un scan
+              </button>
+            </div>
+          } @else {
+            <div class="camera-inactive">
+              <span class="material-icons">qr_code_scanner</span>
+              <p>Caméra inactive</p>
+              <button class="btn btn-primary" (click)="toggleCamera()">
+                <span class="material-icons">videocam</span>
+                Activer la caméra
+              </button>
+            </div>
+          }
+        </div>
+        
+        <div class="camera-controls">
+          <button 
+            class="control-btn" 
+            [class.active]="cameraActive()"
+            (click)="toggleCamera()"
+          >
+            <span class="material-icons">{{ cameraActive() ? 'videocam_off' : 'videocam' }}</span>
+            {{ cameraActive() ? 'Désactiver' : 'Activer' }} Caméra
+          </button>
+        </div>
+      </div>
+
+      <!-- Manual Input -->
+      <div class="manual-input-section">
+        <h3>Saisie manuelle</h3>
+        <div class="input-group">
+          <span class="material-icons">keyboard</span>
+          <input 
+            type="text" 
+            placeholder="Entrez le code-barres..."
+            [value]="manualInput()"
+            (input)="manualInput.set($any($event.target).value)"
+            (keypress)="onInputKeypress($event)"
+          >
+          <button 
+            class="submit-btn" 
+            (click)="onManualSubmit()"
+            [disabled]="!manualInput() || isScanning()"
+          >
+            <span class="material-icons">{{ isScanning() ? 'hourglass_empty' : 'search' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions-section">
+        <h3>Actions rapides</h3>
+        <div class="action-buttons">
+          <button 
+            class="action-btn entry" 
+            [class.active]="quickActionMode() === 'entry'"
+            (click)="setQuickActionMode(quickActionMode() === 'entry' ? null : 'entry')"
+          >
+            <span class="material-icons">add_circle</span>
+            Entrée rapide
+          </button>
+          <button 
+            class="action-btn exit" 
+            [class.active]="quickActionMode() === 'exit'"
+            (click)="setQuickActionMode(quickActionMode() === 'exit' ? null : 'exit')"
+          >
+            <span class="material-icons">remove_circle</span>
+            Sortie rapide
+          </button>
+          <button 
+            class="action-btn view" 
+            [class.active]="quickActionMode() === 'view'"
+            (click)="setQuickActionMode(quickActionMode() === 'view' ? null : 'view')"
+          >
+            <span class="material-icons">visibility</span>
+            Consulter
+          </button>
+        </div>
+
+        @if (quickActionMode() && quickActionMode() !== 'view') {
+          <div class="quick-action-config">
+            <div class="config-row">
+              <select 
+                [value]="selectedSite()"
+                (change)="selectedSite.set($any($event.target).value)"
+              >
+                <option value="">Sélectionner un site</option>
+                @for (site of sites(); track site.id) {
+                  <option [value]="site.id">{{ site.name }}</option>
+                }
+              </select>
+              
+              <select 
+                [value]="selectedReason()"
+                (change)="selectedReason.set($any($event.target).value)"
+              >
+                <option value="">Sélectionner une raison</option>
+                @for (reason of getReasonsByMode(); track reason.value) {
+                  <option [value]="reason.value">{{ reason.label }}</option>
+                }
+              </select>
+              
+              <input 
+                type="number" 
+                min="1"
+                placeholder="Qté"
+                [value]="quantity()"
+                (input)="quantity.set(+$any($event.target).value)"
+              >
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Last Scan Result -->
+      @if (lastScan(); as scan) {
+        <div class="last-scan-section">
+          <h3>Dernier scan</h3>
+          <div class="scan-result" [class]="scan.status">
+            <div class="result-icon">
+              @if (scan.status === 'found') {
+                <span class="material-icons">check_circle</span>
+              } @else {
+                <span class="material-icons">error</span>
+              }
+            </div>
+            <div class="result-content">
+              <div class="barcode">{{ scan.barcode }}</div>
+              @if (scan.product) {
+                <div class="product-name">{{ scan.product.name }}</div>
+                <div class="product-details">
+                  <span>SKU: {{ scan.product.sku }}</span>
+                  <span>Stock: {{ scan.product.quantity }}</span>
+                </div>
+              } @else {
+                <div class="not-found">Produit non trouvé</div>
+              }
+            </div>
+            <div class="result-time">{{ formatTime(scan.timestamp) }}</div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Scan History -->
+    <div class="scanner-sidebar">
+      <div class="history-header">
+        <h3>Historique des scans</h3>
+        @if (scanHistory().length > 0) {
+          <button class="clear-btn" (click)="clearHistory()">
+            <span class="material-icons">delete_sweep</span>
+          </button>
+        }
+      </div>
+      
+      <div class="history-list">
+        @for (scan of scanHistory(); track scan.timestamp) {
+          <div class="history-item" [class]="scan.status">
+            <div class="item-status">
+              <span class="material-icons">
+                {{ scan.status === 'found' ? 'check_circle' : 'error' }}
+              </span>
+            </div>
+            <div class="item-content">
+              <div class="item-barcode">{{ scan.barcode }}</div>
+              <div class="item-product">
+                {{ scan.product?.name || 'Non trouvé' }}
+              </div>
+            </div>
+            <div class="item-time">{{ formatTime(scan.timestamp) }}</div>
+          </div>
+        } @empty {
+          <div class="history-empty">
+            <span class="material-icons">history</span>
+            <p>Aucun scan récent</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Result Modal for Quick Actions -->
+@if (showResultModal() && lastScan()?.product; as product) {
+  <div class="modal-overlay" (click)="closeResultModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ quickActionMode() === 'entry' ? 'Entrée de Stock' : 'Sortie de Stock' }}</h2>
+        <button class="close-btn" (click)="closeResultModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="product-card">
+          <div class="product-icon">
+            <span class="material-icons">inventory_2</span>
+          </div>
+          <div class="product-info">
+            <h3>{{ product.name }}</h3>
+            <p>SKU: {{ product.sku }}</p>
+            <p>Code-barres: {{ lastScan()?.barcode }}</p>
+          </div>
+        </div>
+        
+        <div class="stock-info">
+          <div class="current-stock">
+            <span class="label">Stock actuel</span>
+            <span class="value">{{ product.quantity }}</span>
+          </div>
+          <div class="arrow">
+            <span class="material-icons">arrow_forward</span>
+          </div>
+          <div class="new-stock" [class]="quickActionMode()">
+            <span class="label">Nouveau stock</span>
+            <span class="value">
+              {{ quickActionMode() === 'entry' 
+                ? product.quantity + quantity() 
+                : product.quantity - quantity() 
+              }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="action-summary">
+          <div class="summary-row">
+            <span>Site:</span>
+            <span>{{ getSelectedSiteName() }}</span>
+          </div>
+          <div class="summary-row">
+            <span>Raison:</span>
+            <span>{{ getSelectedReasonLabel() }}</span>
+          </div>
+          <div class="summary-row">
+            <span>Quantité:</span>
+            <span class="quantity" [class]="quickActionMode()">
+              {{ quickActionMode() === 'entry' ? '+' : '-' }}{{ quantity() }}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeResultModal()">Annuler</button>
+        <button 
+          class="btn" 
+          [class.btn-success]="quickActionMode() === 'entry'"
+          [class.btn-danger]="quickActionMode() === 'exit'"
+          [disabled]="!selectedSite() || !selectedReason()"
+          (click)="executeQuickAction()"
+        >
+          <span class="material-icons">{{ quickActionMode() === 'entry' ? 'add' : 'remove' }}</span>
+          Confirmer
+        </button>
+      </div>
+    </div>
+  </div>
+}
