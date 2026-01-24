@@ -1,0 +1,118 @@
+<div class="products-page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Products</h1>
+      <p class="page-subtitle">Manage your inventory items</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline">
+        <span class="material-icons">download</span>
+        Export
+      </button>
+      <button class="btn btn-primary" [routerLink]="['/products/new']">
+        <span class="material-icons">add</span>
+        Add Product
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <span class="material-icons search-icon">search</span>
+      <input 
+        type="text" 
+        placeholder="Search products by name or SKU..." 
+        class="search-input"
+        (input)="onSearch($event)"
+      >
+    </div>
+
+    <div class="filter-controls">
+      <select class="filter-select" (change)="onStatusChange($event)">
+        <option value="all">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+        <option value="discontinued">Discontinued</option>
+      </select>
+
+      <button class="view-toggle-btn" (click)="toggleViewMode()">
+        <span class="material-icons">
+          {{ viewMode() === 'grid' ? 'view_list' : 'grid_view' }}
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Products Count -->
+  <div class="results-info">
+    <span class="results-count">{{ filteredProducts().length }} products found</span>
+  </div>
+
+  <!-- Products Grid/List -->
+  <div class="products-container" [class.list-view]="viewMode() === 'list'">
+    @if (filteredProducts().length === 0) {
+      <div class="empty-state">
+        <span class="material-icons empty-icon">inventory_2</span>
+        <h3>No products found</h3>
+        <p>Try adjusting your search or filters</p>
+      </div>
+    } @else {
+      @for (product of filteredProducts(); track product.id) {
+        <div class="product-card">
+          <div class="product-image">
+            @if (product.imageUrl) {
+              <img [src]="product.imageUrl" [alt]="product.name">
+            } @else {
+              <div class="image-placeholder">
+                <span class="material-icons">image</span>
+              </div>
+            }
+            <span class="stock-badge" [class]="getStockStatus(product)">
+              {{ getStockLabel(product) }}
+            </span>
+          </div>
+
+          <div class="product-info">
+            <div class="product-header">
+              <h3 class="product-name">{{ product.name }}</h3>
+              <span class="product-sku">{{ product.sku }}</span>
+            </div>
+
+            <p class="product-description">{{ product.description }}</p>
+
+            <div class="product-meta">
+              <div class="meta-item">
+                <span class="material-icons meta-icon">category</span>
+                <span>{{ product.category }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="material-icons meta-icon">inventory</span>
+                <span>{{ product.quantity }} {{ product.unit }}</span>
+              </div>
+            </div>
+
+            <div class="product-footer">
+              <div class="product-price">
+                <span class="price-label">Price:</span>
+                <span class="price-value">${{ product.price.toFixed(2) }}</span>
+              </div>
+
+              <div class="product-actions">
+                <button class="icon-btn" title="View">
+                  <span class="material-icons">visibility</span>
+                </button>
+                <button class="icon-btn" title="Edit">
+                  <span class="material-icons">edit</span>
+                </button>
+                <button class="icon-btn danger" title="Delete">
+                  <span class="material-icons">delete</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

@@ -1,0 +1,107 @@
+<div class="dashboard">
+  <div class="dashboard-header">
+    <div>
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-subtitle">Welcome back! Here's your inventory overview</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline">
+        <span class="material-icons">download</span>
+        Export Report
+      </button>
+      <button class="btn btn-primary">
+        <span class="material-icons">add</span>
+        New Product
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    @for (stat of stats(); track stat.title) {
+      <div class="stat-card">
+        <div class="stat-icon" [style.background]="stat.color + '20'">
+          <span class="material-icons" [style.color]="stat.color">{{ stat.icon }}</span>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">{{ stat.title }}</div>
+          <div class="stat-value">{{ stat.value }}</div>
+          <div class="stat-change" [class.positive]="stat.trend === 'up'" [class.negative]="stat.trend === 'down'">
+            <span class="material-icons">{{ stat.trend === 'up' ? 'trending_up' : 'trending_down' }}</span>
+            <span>{{ stat.change }}% from last month</span>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="content-grid">
+    <!-- Recent Activities -->
+    <div class="card recent-activities-card">
+      <div class="card-header">
+        <h2 class="card-title">Recent Activities</h2>
+        <button class="btn-text">View All</button>
+      </div>
+      <div class="card-body">
+        <div class="activities-list">
+          @for (activity of recentActivities(); track activity.id) {
+            <div class="activity-item">
+              <div class="activity-icon" [style.background]="activity.color + '20'">
+                <span class="material-icons" [style.color]="activity.color">{{ activity.icon }}</span>
+              </div>
+              <div class="activity-content">
+                <p class="activity-message">{{ activity.message }}</p>
+                <span class="activity-time">{{ getTimeAgo(activity.timestamp) }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Products -->
+    <div class="card top-products-card">
+      <div class="card-header">
+        <h2 class="card-title">Top Products</h2>
+        <button class="btn-text">View All</button>
+      </div>
+      <div class="card-body">
+        <div class="products-list">
+          @for (product of topProducts(); track product.name) {
+            <div class="product-item">
+              <div class="product-info">
+                <div class="product-name">{{ product.name }}</div>
+                <div class="product-sales">{{ product.sales }} sales</div>
+              </div>
+              <div class="product-revenue">
+                <div class="revenue-value">{{ product.revenue }}</div>
+                <span class="material-icons trend-icon" [class.trend-up]="product.trend === 'up'" [class.trend-down]="product.trend === 'down'">
+                  {{ product.trend === 'up' ? 'trending_up' : 'trending_down' }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventory Status Chart -->
+  <div class="card chart-card">
+    <div class="card-header">
+      <h2 class="card-title">Inventory Status</h2>
+      <div class="chart-filters">
+        <button class="filter-btn active">Week</button>
+        <button class="filter-btn">Month</button>
+        <button class="filter-btn">Year</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="chart-placeholder">
+        <span class="material-icons">bar_chart</span>
+        <p>Chart visualization will be displayed here</p>
+        <p class="chart-note">Integrate with Chart.js or any preferred charting library</p>
+      </div>
+    </div>
+  </div>
+</div>

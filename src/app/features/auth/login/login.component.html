@@ -1,0 +1,89 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo">
+        <span class="material-icons logo-icon">inventory</span>
+        <h1 class="logo-text">Inventory Pro</h1>
+      </div>
+      <p class="welcome-text">Welcome back! Please login to your account.</p>
+    </div>
+
+    <form class="login-form" (ngSubmit)="onSubmit()">
+      @if (errorMessage()) {
+        <div class="error-message">
+          <span class="material-icons">error</span>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <div class="form-group">
+        <label class="form-label">
+          <span class="material-icons label-icon">email</span>
+          Email Address
+        </label>
+        <input
+          type="email"
+          class="form-input"
+          placeholder="Enter your email"
+          [value]="email()"
+          (input)="onEmailChange($event)"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">
+          <span class="material-icons label-icon">lock</span>
+          Password
+        </label>
+        <div class="password-input-wrapper">
+          <input
+            [type]="showPassword() ? 'text' : 'password'"
+            class="form-input"
+            placeholder="Enter your password"
+            [value]="password()"
+            (input)="onPasswordChange($event)"
+            required
+          >
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+          >
+            <span class="material-icons">
+              {{ showPassword() ? 'visibility_off' : 'visibility' }}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-options">
+        <label class="checkbox-label">
+          <input type="checkbox" class="checkbox">
+          <span>Remember me</span>
+        </label>
+        <a href="#" class="forgot-link">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="btn-login" [disabled]="isLoading()">
+        @if (isLoading()) {
+          <span class="spinner"></span>
+          <span>Logging in...</span>
+        } @else {
+          <span>Login</span>
+          <span class="material-icons">arrow_forward</span>
+        }
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <p>Demo Credentials: Any email/password combination will work</p>
+    </div>
+  </div>
+
+  <div class="login-background">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+  </div>
+</div>
