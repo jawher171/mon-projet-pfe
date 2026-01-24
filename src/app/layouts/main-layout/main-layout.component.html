@@ -1,0 +1,93 @@
+<div class="layout-container">
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.collapsed]="isSidebarCollapsed()">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="material-icons logo-icon">inventory</span>
+        @if (!isSidebarCollapsed()) {
+          <span class="logo-text">Inventory Pro</span>
+        }
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul class="nav-list">
+        @for (item of menuItems; track item.route) {
+          <li class="nav-item">
+            <a [routerLink]="item.route" routerLinkActive="active" class="nav-link">
+              <span class="material-icons nav-icon">{{ item.icon }}</span>
+              @if (!isSidebarCollapsed()) {
+                <span class="nav-label">{{ item.label }}</span>
+                @if (item.badge) {
+                  <span class="nav-badge">{{ item.badge }}</span>
+                }
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="collapse-btn" (click)="toggleSidebar()">
+        <span class="material-icons">
+          {{ isSidebarCollapsed() ? 'chevron_right' : 'chevron_left' }}
+        </span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <button class="mobile-menu-btn" (click)="toggleSidebar()">
+          <span class="material-icons">menu</span>
+        </button>
+        <div class="search-bar">
+          <span class="material-icons search-icon">search</span>
+          <input type="text" placeholder="Search products, orders..." class="search-input">
+        </div>
+      </div>
+
+      <div class="header-right">
+        <button class="icon-btn">
+          <span class="material-icons">notifications</span>
+          <span class="notification-badge">3</span>
+        </button>
+        
+        <div class="user-menu-container">
+          <button class="user-avatar" (click)="toggleUserMenu()">
+            <span class="avatar-text">{{ userName.charAt(0) }}{{ userName.split(' ')[1]?.charAt(0) || '' }}</span>
+          </button>
+          
+          @if (showUserMenu()) {
+            <div class="user-dropdown">
+              <div class="user-info">
+                <div class="user-name">{{ userName }}</div>
+                <div class="user-email">{{ userEmail }}</div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <ul class="dropdown-menu">
+                @for (item of userMenuItems; track item.label) {
+                  <li>
+                    <button class="dropdown-item" (click)="item.action()">
+                      <span class="material-icons">{{ item.icon }}</span>
+                      <span>{{ item.label }}</span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
