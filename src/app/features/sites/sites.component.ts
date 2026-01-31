@@ -1,3 +1,9 @@
+/**
+ * Sites Component
+ * Manages physical inventory locations (warehouses, stores, distribution centers).
+ * Handles site information, warehouse zones, and inventory transfers.
+ */
+
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -12,24 +18,39 @@ import { Site, SiteFilter, SiteType, SITE_TYPES, TransferRequest } from '../../c
   styleUrls: ['./sites.component.scss']
 })
 export class SitesComponent implements OnInit {
-  // Filters
+  // Filter signals
+  /** Search term for site name, code, or city */
   searchTerm = signal('');
+  
+  /** Filter by site type */
   selectedType = signal<SiteType | 'all'>('all');
+  
+  /** Show inactive sites */
   showInactive = signal(false);
 
-  // View mode
+  // View controls
+  /** Toggle between grid and list view */
   viewMode = signal<'grid' | 'list'>('grid');
+  
+  /** Active tab (sites or transfers) */
   activeTab = signal<'sites' | 'transfers'>('sites');
 
   // Modal states
+  /** Show site form modal */
   showModal = signal(false);
+  
+  /** Modal mode: add, edit, or view */
   modalMode = signal<'add' | 'edit' | 'view'>('add');
+  
+  /** Currently selected site */
   selectedSite = signal<Site | null>(null);
   
   // Transfer modal
+  /** Show transfer request modal */
   showTransferModal = signal(false);
   
   // Form data
+  /** Site form fields */
   formData = signal({
     code: '',
     name: '',
@@ -63,12 +84,27 @@ export class SitesComponent implements OnInit {
 
   ngOnInit(): void {}
 
+  /**
+   * Handle search input changes
+   * @param event Input change event
+   */
   onSearch(event: Event) {
+  /**
+   * Filter by site type
+   * @param type Selected site type
+   */
     const input = event.target as HTMLInputElement;
     this.searchTerm.set(input.value);
   }
 
+  /**
+   * Toggle between grid and list view modes
+   */
   onTypeChange(type: SiteType | 'all') {
+  /**
+   * Switch active tab
+   * @param tab Tab to activate (sites or transfers)
+   */
     this.selectedType.set(type);
   }
 

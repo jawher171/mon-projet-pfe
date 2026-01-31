@@ -1,3 +1,9 @@
+/**
+ * Dashboard Component
+ * Main overview page showing key metrics, alerts, and recent activities.
+ * Displays inventory statistics and critical alerts at a glance.
+ */
+
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -6,6 +12,7 @@ import { MovementService } from '../../core/services/movement.service';
 import { SiteService } from '../../core/services/site.service';
 import { Alert, SEVERITY_CONFIG } from '../../core/models/alert.model';
 
+/** Statistics card structure */
 interface StatCard {
   title: string;
   value: number | string;
@@ -15,6 +22,7 @@ interface StatCard {
   trend: 'up' | 'down';
 }
 
+/** Recent activity structure */
 interface RecentActivity {
   id: string;
   type: 'order' | 'stock' | 'alert';
@@ -24,6 +32,7 @@ interface RecentActivity {
   color: string;
 }
 
+/** Low stock item structure */
 interface LowStockItem {
   id: string;
   name: string;
@@ -41,17 +50,28 @@ interface LowStockItem {
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
-  // Services data
+  // Computed signals from services
+  /** All active (unresolved) alerts */
   activeAlerts = computed(() => this.alertService.getActiveAlerts()());
+  
+  /** Alert statistics */
   alertStats = computed(() => this.alertService.getAlertStats());
+  
+  /** Movement summary data */
   movementSummary = computed(() => this.movementService.getMovementSummary());
+  
+  /** Site statistics */
   siteStats = computed(() => this.siteService.getSiteStats()());
   
+  /** Top 5 critical and high-severity alerts */
   criticalAlerts = computed(() => 
     this.activeAlerts().filter(a => a.severity === 'critical' || a.severity === 'high').slice(0, 5)
   );
 
+  /** Severity configuration for alert styling */
   severityConfig = SEVERITY_CONFIG;
+  
+  /** Dashboard statistics cards */
   stats = signal<StatCard[]>([
     {
       title: 'Total Products',
@@ -87,6 +107,7 @@ export class DashboardComponent implements OnInit {
     }
   ]);
 
+  /** Recent activities timeline */
   recentActivities = signal<RecentActivity[]>([
     {
       id: '1',

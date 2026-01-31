@@ -1,3 +1,10 @@
+/**
+ * Stock Movement Model
+ * Tracks all inventory movements (entries and exits) including purchases,
+ * transfers, adjustments, sales, and damage logs.
+ */
+
+/** Stock movement record - logs all inventory transactions */
 export interface StockMovement {
   id: string;
   movementNumber: string;

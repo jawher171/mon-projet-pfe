@@ -1,3 +1,10 @@
+/**
+ * Order Model
+ * Represents purchase and sales orders.
+ * Tracks order status, payment information, and ordered items.
+ */
+
+/** Order interface - purchase or sales orders */
 export interface Order {
   id: string;
   orderNumber: string;

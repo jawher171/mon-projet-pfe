@@ -1,3 +1,9 @@
+/**
+ * Stock Movement Service
+ * Tracks all inventory movements including purchases, sales, transfers, and adjustments.
+ * Provides filtering and summary statistics for stock movements.
+ */
+
 import { Injectable, signal, computed } from '@angular/core';
 import { StockMovement, MovementFilter, MovementSummary, MovementReason, MOVEMENT_REASONS } from '../models/movement.model';
 
@@ -5,12 +11,23 @@ import { StockMovement, MovementFilter, MovementSummary, MovementReason, MOVEMEN
   providedIn: 'root'
 })
 export class MovementService {
+  /** All stock movements */
   private movementsSignal = signal<StockMovement[]>(this.getMockMovements());
 
+  /**
+   * Get all movements signal
+   * @returns Signal containing all stock movements
+   */
   getMovements() {
     return this.movementsSignal;
   }
 
+  /**
+   * Get movements filtered by multiple criteria
+   * Sorts by most recent date first
+   * @param filter Movement filter criteria
+   * @returns Computed signal of filtered and sorted movements
+   */
   getFilteredMovements(filter: MovementFilter) {
     return computed(() => {
       let movements = this.movementsSignal();
@@ -54,10 +71,20 @@ export class MovementService {
     });
   }
 
+  /**
+   * Get a specific movement by ID
+   * @param id Movement identifier
+   * @returns Movement object or undefined if not found
+   */
   getMovementById(id: string): StockMovement | undefined {
     return this.movementsSignal().find(m => m.id === id);
   }
 
+  /**
+   * Record a new stock movement
+   * @param movement Movement data without auto-generated fields
+   * @returns Created movement object
+   */
   addMovement(movement: Omit<StockMovement, 'id' | 'movementNumber' | 'createdAt' | 'updatedAt'>): StockMovement {
     const newMovement: StockMovement = {
       ...movement,
@@ -71,12 +98,23 @@ export class MovementService {
     return newMovement;
   }
 
+  /**
+   * Update an existing movement
+   * @param id Movement identifier
+   * @param updates Partial movement data to update
+   * @returns true if successful, false if movement not found
+   */
   updateMovement(id: string, updates: Partial<StockMovement>): boolean {
     const index = this.movementsSignal().findIndex(m => m.id === id);
     if (index === -1) return false;
 
     this.movementsSignal.update(movements => {
       const updated = [...movements];
+  /**
+   * Delete a movement record
+   * @param id Movement identifier
+   * @returns true if successful, false if movement not found
+   */
       updated[index] = { ...updated[index], ...updates, updatedAt: new Date() };
       return updated;
     });
@@ -86,7 +124,15 @@ export class MovementService {
   deleteMovement(id: string): boolean {
     const index = this.movementsSignal().findIndex(m => m.id === id);
     if (index === -1) return false;
-
+/**
+   * Get movement summary statistics
+   * Includes entries/exits counts and top moving products
+   * @param siteId Optional site filter
+   * @param startDate Optional start date filter
+   * @param endDate Optional end date filter
+   * @returns Movement summary object
+   */
+  
     this.movementsSignal.update(movements => movements.filter(m => m.id !== id));
     return true;
   }
@@ -127,10 +173,20 @@ export class MovementService {
         entries: data.entries,
         exits: data.exits
       }))
+  /**
+   * Get user-friendly label for movement reason
+   * @param reason Movement reason enum value
+   * @returns Label string or reason if not found
+   */
       .sort((a, b) => (b.entries + b.exits) - (a.entries + a.exits))
       .slice(0, 5);
 
     return {
+  /**
+   * Get movement reasons filtered by type
+   * @param type Movement type (entry or exit)
+   * @returns Array of reasons for the specified type
+   */
       totalEntries: entries.length,
       totalExits: exits.length,
       entriesQuantity: entries.reduce((sum, m) => sum + m.quantity, 0),

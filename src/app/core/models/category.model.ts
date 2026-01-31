@@ -1,3 +1,10 @@
+/**
+ * Category Model
+ * Represents product categories for organizing inventory.
+ * Supports hierarchical category structures.
+ */
+
+/** Category interface - product categorization */
 export interface Category {
   id: string;
   name: string;

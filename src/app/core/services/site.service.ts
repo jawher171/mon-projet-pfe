@@ -1,3 +1,9 @@
+/**
+ * Site Service
+ * Manages physical inventory locations (warehouses, stores, distribution centers).
+ * Handles site information, warehouse zones, stock transfers, and location management.
+ */
+
 import { Injectable, signal, computed } from '@angular/core';
 import { Site, SiteFilter, SiteType, SiteStock, TransferRequest, SITE_TYPES } from '../models/site.model';
 
@@ -5,17 +11,33 @@ import { Site, SiteFilter, SiteType, SiteStock, TransferRequest, SITE_TYPES } fr
   providedIn: 'root'
 })
 export class SiteService {
+  /** All physical sites/locations */
   private sitesSignal = signal<Site[]>(this.getMockSites());
+  
+  /** Stock transfer requests between sites */
   private transfersSignal = signal<TransferRequest[]>(this.getMockTransfers());
 
+  /**
+   * Get all sites signal
+   * @returns Signal containing all sites
+   */
   getSites() {
     return this.sitesSignal;
   }
 
+  /**
+   * Get only active sites
+   * @returns Computed signal of active sites
+   */
   getActiveSites() {
     return computed(() => this.sitesSignal().filter(s => s.isActive));
   }
 
+  /**
+   * Get sites filtered by multiple criteria
+   * @param filter Site filter criteria (search, type, status)
+   * @returns Computed signal of filtered sites
+   */
   getFilteredSites(filter: SiteFilter) {
     return computed(() => {
       let sites = this.sitesSignal();
@@ -36,17 +58,33 @@ export class SiteService {
       if (filter.isActive !== undefined) {
         sites = sites.filter(s => s.isActive === filter.isActive);
       }
-
+/**
+   * Get a specific site by ID
+   * @param id Site identifier
+   * @returns Site object or undefined if not found
+   */
+  
       return sites;
     });
   }
-
+/**
+   * Add a new site location
+   * @param site Site data without auto-generated fields
+   * @returns Created site object
+   */
+  
   getSiteById(id: string): Site | undefined {
     return this.sitesSignal().find(s => s.id === id);
   }
 
   addSite(site: Omit<Site, 'id' | 'createdAt' | 'updatedAt'>): Site {
     const newSite: Site = {
+  /**
+   * Update an existing site
+   * @param id Site identifier
+   * @param updates Partial site data to update
+   * @returns true if successful, false if site not found
+   */
       ...site,
       id: this.generateId(),
       createdAt: new Date(),
@@ -58,6 +96,11 @@ export class SiteService {
   }
 
   updateSite(id: string, updates: Partial<Site>): boolean {
+  /**
+   * Delete a site (cannot delete main site)
+   * @param id Site identifier
+   * @returns true if successful, false if site not found or is main site
+   */
     const index = this.sitesSignal().findIndex(s => s.id === id);
     if (index === -1) return false;
 
@@ -66,6 +109,11 @@ export class SiteService {
       updated[index] = { ...updated[index], ...updates, updatedAt: new Date() };
       return updated;
     });
+  /**
+   * Toggle site active/inactive status
+   * @param id Site identifier
+   * @returns true if successful, false if site not found
+   */
     return true;
   }
 
@@ -74,16 +122,29 @@ export class SiteService {
     if (!site || site.isMain) return false;
 
     this.sitesSignal.update(sites => sites.filter(s => s.id !== id));
+  /**
+   * Get all transfer requests signal
+   * @returns Signal containing all transfers
+   */
     return true;
   }
 
   toggleSiteStatus(id: string): boolean {
     const site = this.getSiteById(id);
+  /**
+   * Get pending and in-transit transfer requests
+   * @returns Computed signal of active transfers
+   */
     if (!site) return false;
 
     return this.updateSite(id, { isActive: !site.isActive });
   }
 
+  /**
+   * Create a new transfer request between sites
+   * @param transfer Transfer data without auto-generated fields
+   * @returns Created transfer request object
+   */
   getTransfers() {
     return this.transfersSignal;
   }
@@ -92,6 +153,12 @@ export class SiteService {
     return computed(() => this.transfersSignal().filter(t => t.status === 'pending' || t.status === 'in_transit'));
   }
 
+  /**
+   * Update transfer request status
+   * @param id Transfer identifier
+   * @param status New transfer status
+   * @returns true if successful, false if transfer not found
+   */
   createTransfer(transfer: Omit<TransferRequest, 'id' | 'transferNumber' | 'status' | 'requestedAt'>): TransferRequest {
     const newTransfer: TransferRequest = {
       ...transfer,
@@ -110,9 +177,24 @@ export class SiteService {
     if (index === -1) return false;
 
     this.transfersSignal.update(transfers => {
+  /**
+   * Get human-readable label for site type
+   * @param type Site type
+   * @returns Label string
+  /**
+   * Get icon name for site type
+   * @param type Site type
+   * @returns Material icon name
+   */
+   */
       const updated = [...transfers];
       updated[index] = {
         ...updated[index],
+  /**
+   * Get statistics about all sites
+   * Counts by type and active status
+   * @returns Computed signal with site statistics
+   */
         status,
         completedAt: status === 'completed' ? new Date() : undefined
       };

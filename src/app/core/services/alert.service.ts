@@ -1,3 +1,9 @@
+/**
+ * Alert Service
+ * Manages system alerts and notifications for inventory management.
+ * Handles alert creation, filtering, resolution, and alert rules.
+ */
+
 import { Injectable, signal, computed } from '@angular/core';
 import { Alert, AlertFilter, AlertStats, AlertType, AlertSeverity, AlertRule, ALERT_TYPES, SEVERITY_CONFIG } from '../models/alert.model';
 
@@ -5,17 +11,38 @@ import { Alert, AlertFilter, AlertStats, AlertType, AlertSeverity, AlertRule, AL
   providedIn: 'root'
 })
 export class AlertService {
+  /** All system alerts */
   private alertsSignal = signal<Alert[]>(this.getMockAlerts());
+  
+  /** Alert rules for automatic alert generation */
   private rulesSignal = signal<AlertRule[]>(this.getMockRules());
 
+  /**
+   * Get all alerts signal
+   * @returns Signal containing all alerts
+   */
   getAlerts() {
     return this.alertsSignal;
   }
 
+  /**
+   * Get unread alerts that are not yet resolved
+   * @returns Computed signal of unread active alerts
+   */
   getUnreadAlerts() {
     return computed(() => this.alertsSignal().filter(a => !a.isRead && !a.isResolved));
   }
 
+  /**
+   * Get all unresolved alerts
+   * @returns Computed signal of active (unresolved) alerts
+   */
+  /**
+   * Get alerts filtered by multiple criteria
+   * Sorts by severity (critical first) and then by date
+   * @param filter Alert filter criteria
+   * @returns Computed signal of filtered and sorted alerts
+   */
   getActiveAlerts() {
     return computed(() => this.alertsSignal().filter(a => !a.isResolved));
   }
@@ -56,12 +83,22 @@ export class AlertService {
         // Sort by severity first, then by date
         const severityOrder = ['critical', 'high', 'medium', 'low', 'info'];
         const severityDiff = severityOrder.indexOf(a.severity) - severityOrder.indexOf(b.severity);
+  /**
+   * Get specific alert by ID
+   * @param id Alert identifier
+   * @returns Alert object or undefined if not found
+   */
         if (severityDiff !== 0) return severityDiff;
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
     });
   }
-
+/**
+   * Get summary statistics of active alerts
+   * Counts by severity and type
+   * @returns Alert statistics object
+   */
+  
   getAlertById(id: string): Alert | undefined {
     return this.alertsSignal().find(a => a.id === id);
   }
@@ -75,6 +112,11 @@ export class AlertService {
     });
 
     return {
+  /**
+   * Create a new alert
+   * @param alert Alert data without auto-generated fields
+   * @returns Created alert object
+   */
       total: alerts.length,
       unread: alerts.filter(a => !a.isRead).length,
       critical: alerts.filter(a => a.severity === 'critical').length,
@@ -88,6 +130,11 @@ export class AlertService {
   createAlert(alert: Omit<Alert, 'id' | 'createdAt' | 'isRead' | 'isResolved'>): Alert {
     const newAlert: Alert = {
       ...alert,
+  /**
+   * Mark alert as read
+   * @param id Alert identifier
+   * @returns true if successful, false if alert not found
+   */
       id: this.generateId(),
       isRead: false,
       isResolved: false,
@@ -100,9 +147,19 @@ export class AlertService {
 
   markAsRead(id: string): boolean {
     const index = this.alertsSignal().findIndex(a => a.id === id);
+  /**
+   * Mark all alerts as read
+   */
     if (index === -1) return false;
 
     this.alertsSignal.update(alerts => {
+  /**
+   * Resolve an alert with resolution details
+   * @param id Alert identifier
+   * @param resolvedBy User who resolved the alert
+   * @param notes Optional resolution notes
+   * @returns true if successful, false if alert not found
+   */
       const updated = [...alerts];
       updated[index] = { ...updated[index], isRead: true };
       return updated;
@@ -120,14 +177,29 @@ export class AlertService {
     const index = this.alertsSignal().findIndex(a => a.id === id);
     if (index === -1) return false;
 
+  /**
+   * Delete an alert
+   * @param id Alert identifier
+   * @returns true if successful, false if alert not found
+   */
     this.alertsSignal.update(alerts => {
       const updated = [...alerts];
       updated[index] = {
+  /**
+   * Get all alert rules signal
+   * @returns Signal containing all alert rules
+   */
         ...updated[index],
         isResolved: true,
         isRead: true,
         resolvedBy,
         resolvedAt: new Date(),
+  /**
+   * Update an alert rule
+   * @param id Rule identifier
+   * @param updates Partial rule data to update
+   * @returns true if successful, false if rule not found
+   */
         resolutionNotes: notes
       };
       return updated;
@@ -137,6 +209,11 @@ export class AlertService {
 
   deleteAlert(id: string): boolean {
     const index = this.alertsSignal().findIndex(a => a.id === id);
+  /**
+   * Toggle rule enabled/disabled status
+   * @param id Rule identifier
+   * @returns true if successful, false if rule not found
+   */
     if (index === -1) return false;
 
     this.alertsSignal.update(alerts => alerts.filter(a => a.id !== id));
@@ -145,10 +222,20 @@ export class AlertService {
 
   getRules() {
     return this.rulesSignal;
+  /**
+   * Get configuration for a specific alert type
+   * @param type Alert type
+   * @returns Alert type configuration with label and severity
+   */
   }
 
   updateRule(id: string, updates: Partial<AlertRule>): boolean {
     const index = this.rulesSignal().findIndex(r => r.id === id);
+  /**
+   * Get UI configuration for a severity level
+   * @param severity Alert severity
+   * @returns Severity configuration with colors and labels
+   */
     if (index === -1) return false;
 
     this.rulesSignal.update(rules => {

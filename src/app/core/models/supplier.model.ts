@@ -1,3 +1,10 @@
+/**
+ * Supplier Model
+ * Represents supplier/vendor information for purchase orders.
+ * Includes contact details, ratings, and order history.
+ */
+
+/** Supplier interface - vendor information */
 export interface Supplier {
   id: string;
   name: string;

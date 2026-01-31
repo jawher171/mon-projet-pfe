@@ -1,3 +1,10 @@
+/**
+ * Alert Model
+ * Represents system alerts and notifications for inventory management.
+ * Covers low stock, expiration, movements, and other critical events.
+ */
+
+/** Main alert interface - represents an individual alert notification */
 export interface Alert {
   id: string;
   type: AlertType;

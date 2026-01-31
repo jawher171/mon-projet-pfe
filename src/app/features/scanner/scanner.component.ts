@@ -1,3 +1,9 @@
+/**
+ * Scanner Component
+ * Barcode/QR code scanning feature for inventory management.
+ * Supports manual entry and simulated scanning with quick action modes.
+ */
+
 import { Component, OnInit, signal, computed, EventEmitter, Output, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,6 +13,7 @@ import { SiteService } from '../../core/services/site.service';
 import { Product } from '../../core/models/product.model';
 import { MovementReason, MOVEMENT_REASONS } from '../../core/models/movement.model';
 
+/** Result structure for a barcode scan */
 interface ScanResult {
   barcode: string;
   product: Product | null;
@@ -22,33 +29,60 @@ interface ScanResult {
   styleUrls: ['./scanner.component.scss']
 })
 export class ScannerComponent implements OnInit {
+  // Component mode
   @Input() mode: 'standalone' | 'embedded' = 'standalone';
+  
+  // Output events
   @Output() productScanned = new EventEmitter<Product>();
   @Output() barcodeScanned = new EventEmitter<string>();
 
   // Scanner state
+  /** Is scanning active */
   isScanning = signal(false);
+  
+  /** Manual barcode input */
   manualInput = signal('');
+  
+  /** History of scanned items */
   scanHistory = signal<ScanResult[]>([]);
   
   // Quick action mode
+  /** Current quick action mode */
   quickActionMode = signal<'entry' | 'exit' | 'view' | null>(null);
+  
+  /** Selected site for quick action */
   selectedSite = signal('');
+  
+  /** Selected movement reason */
   selectedReason = signal<MovementReason | ''>('');
+  
+  /** Quantity for quick action */
   quantity = signal(1);
   
   // Camera state (simulated for now)
+  /** Camera device active */
   cameraActive = signal(false);
+  
+  /** Camera error message */
   cameraError = signal('');
   
   // Last scan result
+  /** Most recent scan result */
   lastScan = signal<ScanResult | null>(null);
+  
+  /** Show result modal */
   showResultModal = signal(false);
 
+  /** Available sites */
   sites = computed(() => this.siteService.getActiveSites()());
+  
+  /** All products */
   products = computed(() => this.productService.getProducts()());
   
+  /** Entry movement reasons */
   entryReasons = MOVEMENT_REASONS.filter(r => r.type === 'entry');
+  
+  /** Exit movement reasons */
   exitReasons = MOVEMENT_REASONS.filter(r => r.type === 'exit');
 
   constructor(
@@ -60,6 +94,9 @@ export class ScannerComponent implements OnInit {
   ngOnInit(): void {}
 
   // Simulate barcode scanning
+  /**
+   * Simulate a random barcode scan
+   */
   simulateScan() {
     const barcodes = ['1234567890123', '2345678901234', '3456789012345', '9999999999999'];
     const randomBarcode = barcodes[Math.floor(Math.random() * barcodes.length)];
@@ -67,11 +104,18 @@ export class ScannerComponent implements OnInit {
   }
 
   // Manual barcode entry
+  /**
+   * Process manually entered barcode
+   */
   onManualSubmit() {
     const barcode = this.manualInput().trim();
     if (barcode) {
       this.processBarcode(barcode);
       this.manualInput.set('');
+  /**
+   * Handle enter key press in manual input field
+   * @param event Keyboard event
+   */
     }
   }
 

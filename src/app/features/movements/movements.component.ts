@@ -1,3 +1,9 @@
+/**
+ * Movements Component
+ * Manages stock movements (entries and exits).
+ * Allows recording, viewing, and filtering inventory transactions.
+ */
+
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,19 +19,34 @@ import { StockMovement, MovementFilter, MovementReason, MOVEMENT_REASONS } from 
   styleUrls: ['./movements.component.scss']
 })
 export class MovementsComponent implements OnInit {
-  // Filters
+  // Filter signals
+  /** Search term for movement number, product name, or SKU */
   searchTerm = signal('');
+  
+  /** Filter by movement type (entry/exit) */
   selectedType = signal<'all' | 'entry' | 'exit'>('all');
+  
+  /** Filter by site location */
   selectedSite = signal('');
+  
+  /** Filter by movement reason */
   selectedReason = signal<MovementReason | ''>('');
   
   // Modal states
+  /** Show/hide new movement modal */
   showModal = signal(false);
+  
+  /** Modal mode: add new or view existing */
   modalMode = signal<'add' | 'view'>('add');
+  
+  /** Currently selected movement */
   selectedMovement = signal<StockMovement | null>(null);
+  
+  /** Type for new movement */
   movementType = signal<'entry' | 'exit'>('entry');
   
   // Form data
+  /** Form fields for new movement */
   formData = signal({
     productId: '',
     productName: '',
@@ -64,11 +85,23 @@ export class MovementsComponent implements OnInit {
 
   ngOnInit(): void {}
 
+  /**
+   * Handle search input changes
+   * @param event Input change event
+   */
   onSearch(event: Event) {
     const input = event.target as HTMLInputElement;
     this.searchTerm.set(input.value);
   }
 
+  /**
+   * Filter by movement type (entry/exit)
+   * @param type Selected movement type
+   */
+  /**
+   * Handle site filter change
+   * @param event Select change event
+   */
   onTypeChange(type: 'all' | 'entry' | 'exit') {
     this.selectedType.set(type);
   }

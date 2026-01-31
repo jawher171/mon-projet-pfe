@@ -1,3 +1,10 @@
+/**
+ * Product Model
+ * Represents products in the inventory management system.
+ * Includes product details, pricing, stock levels, and status information.
+ */
+
+/** Product interface - core product data */
 export interface Product {
   id: string;
   name: string;

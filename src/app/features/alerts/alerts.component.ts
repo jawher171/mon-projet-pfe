@@ -1,3 +1,9 @@
+/**
+ * Alerts Component
+ * Manages system alerts and alert rules.
+ * Displays alerts with filtering, allows resolution, and manages alert generation rules.
+ */
+
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,25 +19,43 @@ import { Alert, AlertFilter, AlertType, AlertSeverity, ALERT_TYPES, SEVERITY_CON
   styleUrls: ['./alerts.component.scss']
 })
 export class AlertsComponent implements OnInit {
-  // Filters
+  // Filter signals
+  /** Filter by alert type */
   selectedType = signal<AlertType | 'all'>('all');
+  
+  /** Filter by severity level */
   selectedSeverity = signal<AlertSeverity | 'all'>('all');
+  
+  /** Filter by site location */
   selectedSite = signal('');
+  
+  /** Show resolved alerts */
   showResolved = signal(false);
 
-  // Tabs
+  // View controls
+  /** Active tab (alerts or rules) */
   activeTab = signal<'alerts' | 'rules'>('alerts');
 
-  // Modal
+  // Modal state
+  /** Show alert detail modal */
   showModal = signal(false);
+  
+  /** Currently selected alert */
   selectedAlert = signal<Alert | null>(null);
+  
+  /** Resolution notes for closing alert */
   resolveNotes = signal('');
 
+  /** Alert type configuration */
   alertTypes = ALERT_TYPES;
+  
+  /** Severity level configuration */
   severityConfig = SEVERITY_CONFIG;
 
+  /** Available sites */
   sites = computed(() => this.siteService.getActiveSites()());
 
+  /** Computed filter object */
   filter = computed<AlertFilter>(() => ({
     type: this.selectedType() === 'all' ? undefined : this.selectedType(),
     severity: this.selectedSeverity() === 'all' ? undefined : this.selectedSeverity(),
@@ -39,9 +63,16 @@ export class AlertsComponent implements OnInit {
     isResolved: this.showResolved() ? undefined : false
   }));
 
+  /** Filtered alerts */
   alerts = computed(() => this.alertService.getFilteredAlerts(this.filter())());
+  
+  /** Alert statistics */
   stats = computed(() => this.alertService.getAlertStats());
+  
+  /** Alert rules */
   rules = computed(() => this.alertService.getRules()());
+  
+  /** Count of unread alerts */
   unreadCount = computed(() => this.alertService.getUnreadAlerts()().length);
 
   constructor(
@@ -51,19 +82,39 @@ export class AlertsComponent implements OnInit {
 
   ngOnInit(): void {}
 
+  /**
+   * Filter by alert type
+   * @param type Selected alert type
+   */
   onTypeChange(type: AlertType | 'all') {
     this.selectedType.set(type);
   }
 
+  /**
+   * Filter by severity level
+   * @param severity Selected severity
+   */
+  /**
+   * Handle site filter change
+   * @param event Select change event
+   */
   onSeverityChange(severity: AlertSeverity | 'all') {
     this.selectedSeverity.set(severity);
   }
 
   onSiteChange(event: Event) {
+  /**
+   * Switch active tab
+   * @param tab Tab to activate (alerts or rules)
+   */
     const select = event.target as HTMLSelectElement;
     this.selectedSite.set(select.value);
   }
 
+  /**
+   * Open alert modal and mark as read
+   * @param alert Alert to display
+   */
   setActiveTab(tab: 'alerts' | 'rules') {
     this.activeTab.set(tab);
   }

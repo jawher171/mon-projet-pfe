@@ -1,3 +1,9 @@
+/**
+ * Products Component
+ * Displays and manages the product inventory.
+ * Allows searching, filtering by status, and switching between grid and list views.
+ */
+
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,12 +19,19 @@ import { Product } from '../../core/models/product.model';
   styleUrls: ['./products.component.scss']
 })
 export class ProductsComponent implements OnInit {
+  /** Search input value */
   searchTerm = signal('');
+  
+  /** Selected status filter */
   selectedStatus = signal('all');
+  
+  /** Current view mode (grid or list) */
   viewMode = signal<'grid' | 'list'>('grid');
   
+  /** All products from service */
   products = computed(() => this.productService.getProducts()());
   
+  /** Filtered and searched products */
   filteredProducts = computed(() => {
     let filtered = this.products();
     
@@ -42,21 +55,42 @@ export class ProductsComponent implements OnInit {
 
   ngOnInit(): void {}
 
+  /**
+   * Handle search input changes
+   * @param event Input change event
+   */
   onSearch(event: Event) {
+  /**
+   * Handle status filter change
+   * @param event Select change event
+   */
     const input = event.target as HTMLInputElement;
     this.searchTerm.set(input.value);
   }
 
   onStatusChange(event: Event) {
+  /**
+   * Toggle between grid and list view modes
+   */
     const select = event.target as HTMLSelectElement;
     this.selectedStatus.set(select.value);
   }
 
   toggleViewMode() {
+  /**
+   * Determine stock status based on quantity vs min/max thresholds
+   * @param product Product to check
+   * @returns Stock status: 'low', 'medium', or 'good'
+   */
     this.viewMode.update(mode => mode === 'grid' ? 'list' : 'grid');
   }
 
   getStockStatus(product: Product): 'low' | 'medium' | 'good' {
+  /**
+   * Get user-friendly label for stock status
+   * @param product Product to check
+   * @returns Stock status label
+   */
     if (product.quantity <= product.minQuantity) return 'low';
     if (product.quantity <= product.minQuantity * 1.5) return 'medium';
     return 'good';

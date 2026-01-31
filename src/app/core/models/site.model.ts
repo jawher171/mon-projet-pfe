@@ -1,3 +1,10 @@
+/**
+ * Site Model
+ * Represents physical locations like warehouses, stores, and distribution centers.
+ * Manages site information, zones, and inventory locations.
+ */
+
+/** Site interface - warehouse or store location */
 export interface Site {
   id: string;
   code: string;
