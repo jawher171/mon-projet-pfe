@@ -15,7 +15,7 @@
 .page-title {
   font-size: 2rem;
   font-weight: 700;
-  color: #1a237e;
+  color: #0f172a;
   margin: 0 0 0.5rem 0;
 }
 
@@ -48,12 +48,13 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #3b82f6;
   color: white;
 
   &:hover {
+    background: #2563eb;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
   }
 }
 
@@ -88,8 +89,8 @@
   gap: 0.5rem;
 
   &:focus-within {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
   }
 }
 

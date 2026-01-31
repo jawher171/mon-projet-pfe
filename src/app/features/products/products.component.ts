@@ -60,37 +60,32 @@ export class ProductsComponent implements OnInit {
    * @param event Input change event
    */
   onSearch(event: Event) {
-  /**
-   * Handle status filter change
-   * @param event Select change event
-   */
     const input = event.target as HTMLInputElement;
     this.searchTerm.set(input.value);
   }
 
-  onStatusChange(event: Event) {
   /**
-   * Toggle between grid and list view modes
+   * Handle status filter change
+   * @param event Select change event
    */
+  onStatusChange(event: Event) {
     const select = event.target as HTMLSelectElement;
     this.selectedStatus.set(select.value);
   }
 
+  /**
+   * Toggle between grid and list view modes
+   */
   toggleViewMode() {
+    this.viewMode.update(mode => mode === 'grid' ? 'list' : 'grid');
+  }
+
   /**
    * Determine stock status based on quantity vs min/max thresholds
    * @param product Product to check
    * @returns Stock status: 'low', 'medium', or 'good'
    */
-    this.viewMode.update(mode => mode === 'grid' ? 'list' : 'grid');
-  }
-
   getStockStatus(product: Product): 'low' | 'medium' | 'good' {
-  /**
-   * Get user-friendly label for stock status
-   * @param product Product to check
-   * @returns Stock status label
-   */
     if (product.quantity <= product.minQuantity) return 'low';
     if (product.quantity <= product.minQuantity * 1.5) return 'medium';
     return 'good';

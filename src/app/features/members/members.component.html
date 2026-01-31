@@ -1,0 +1,87 @@
+<div class="members-container">
+  <div class="members-header">
+    <h2>Team Members Management</h2>
+    <button class="btn-add-member" (click)="openAddMemberDialog()">+ Add Member</button>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon" style="background-color: #f3f3f3;">👥</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats().total }}</div>
+        <div class="stat-label">Total Members</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background-color: #f44336; color: white;">⚙️</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats().admins }}</div>
+        <div class="stat-label">Administrators</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background-color: #2196f3; color: white;">📦</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats().stockManagers }}</div>
+        <div class="stat-label">Stock Managers</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background-color: #4caf50; color: white;">🔨</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats().operators }}</div>
+        <div class="stat-label">Operators</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Members Table -->
+  <div class="members-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Last Login</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let member of members()" [class.inactive]="member.status === 'inactive'">
+          <td>
+            <div class="member-info">
+              <img [src]="member.avatar || defaultAvatar" [alt]="member.firstName" class="member-avatar">
+              <div>
+                <div class="member-name">{{ member.firstName }} {{ member.lastName }}</div>
+                <div class="member-dept">{{ member.department || 'N/A' }}</div>
+              </div>
+            </div>
+          </td>
+          <td>{{ member.email }}</td>
+          <td>
+            <span class="role-badge" [style.backgroundColor]="getRoleColor(member.role)">
+              {{ getRoleLabel(member.role) }}
+            </span>
+          </td>
+          <td>
+            <span class="status-badge" [class.active]="member.status === 'active'" [class.inactive]="member.status === 'inactive'">
+              {{ member.status | titlecase }}
+            </span>
+          </td>
+          <td>{{ (member.lastLogin | date: 'short') || 'Never' }}</td>
+          <td>
+            <div class="actions">
+              <button class="btn-icon" title="Edit" (click)="editMember(member)">✎</button>
+              <button class="btn-icon" title="Change Role" (click)="openRoleDialog(member)">🔄</button>
+              <button class="btn-icon" title="Toggle Status" (click)="toggleStatus(member)">👁️</button>
+              <button class="btn-icon delete" title="Delete" (click)="deleteMember(member)">🗑️</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

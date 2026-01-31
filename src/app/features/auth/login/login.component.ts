@@ -2,6 +2,7 @@
  * Login Component
  * Handles user authentication.
  * Collects email and password credentials and authenticates with the auth service.
+ * Displays mock test accounts for development and testing.
  */
 
 import { Component, signal } from '@angular/core';
@@ -57,35 +58,35 @@ export class LoginComponent {
       if (success) {
         this.router.navigate(['/dashboard']);
       } else {
-        this.errorMessage.set('Invalid email or password');
+        this.errorMessage.set('Invalid email or password. Check the credentials below.');
       }
     } catch (error) {
       this.errorMessage.set('An error occurred. Please try again.');
     } finally {
-  /**
-   * Toggle password visibility in input field
-   */
       this.isLoading.set(false);
     }
   }
 
+  /**
+   * Toggle password visibility in input field
+   */
   togglePasswordVisibility() {
+    this.showPassword.update(show => !show);
+  }
+
   /**
    * Handle email input changes
    * @param event Input change event
    */
-    this.showPassword.update(show => !show);
-  }
-
   onEmailChange(event: Event) {
-  /**
-   * Handle password input changes
-   * @param event Input change event
-   */
     const input = event.target as HTMLInputElement;
     this.email.set(input.value);
   }
 
+  /**
+   * Handle password input changes
+   * @param event Input change event
+   */
   onPasswordChange(event: Event) {
     const input = event.target as HTMLInputElement;
     this.password.set(input.value);

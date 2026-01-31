@@ -1,8 +1,10 @@
 /**
  * User Model
  * Represents application users with authentication and role information.
- * Supports different user roles: admin, manager, and regular users.
+ * Supports different user roles: admin, gestionnaire_de_stock, and operateur.
  */
+
+import { UserRole } from './role.model';
 
 /** User interface - application user profile */
 export interface User {
@@ -10,17 +12,11 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'manager' | 'user';
+  role: UserRole;
   avatar?: string;
   department?: string;
   phone?: string;
   status: 'active' | 'inactive';
   createdAt: Date;
   lastLogin?: Date;
-}
-
-export interface AuthResponse {
-  user: User;
-  token: string;
-  refreshToken: string;
 }

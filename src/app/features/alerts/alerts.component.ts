@@ -94,30 +94,31 @@ export class AlertsComponent implements OnInit {
    * Filter by severity level
    * @param severity Selected severity
    */
-  /**
-   * Handle site filter change
-   * @param event Select change event
-   */
   onSeverityChange(severity: AlertSeverity | 'all') {
     this.selectedSeverity.set(severity);
   }
 
+  /**
+   * Handle site filter change
+   * @param event Select change event
+   */
   onSiteChange(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.selectedSite.set(select.value);
+  }
+
   /**
    * Switch active tab
    * @param tab Tab to activate (alerts or rules)
    */
-    const select = event.target as HTMLSelectElement;
-    this.selectedSite.set(select.value);
+  setActiveTab(tab: 'alerts' | 'rules') {
+    this.activeTab.set(tab);
   }
 
   /**
    * Open alert modal and mark as read
    * @param alert Alert to display
    */
-  setActiveTab(tab: 'alerts' | 'rules') {
-    this.activeTab.set(tab);
-  }
 
   openAlertModal(alert: Alert) {
     this.selectedAlert.set(alert);

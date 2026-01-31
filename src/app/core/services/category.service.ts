@@ -12,7 +12,7 @@ import { Category, CategoryTree } from '../models/category.model';
 })
 export class CategoryService {
   /** All product categories */
-  private categories = signal<Category[]>(this.getMockCategories());
+  private categories = signal<Category[]>([]);
 
   constructor() {}
 
@@ -73,40 +73,5 @@ export class CategoryService {
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  private getMockCategories(): Category[] {
-    return [
-      {
-        id: '1',
-        name: 'Electronics',
-        description: 'Electronic devices and accessories',
-        icon: 'devices',
-        color: '#2196F3',
-        productCount: 45,
-        createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-01-15')
-      },
-      {
-        id: '2',
-        name: 'Furniture',
-        description: 'Office and home furniture',
-        icon: 'chair',
-        color: '#4CAF50',
-        productCount: 23,
-        createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-01-15')
-      },
-      {
-        id: '3',
-        name: 'Office Supplies',
-        description: 'Stationery and office materials',
-        icon: 'inventory',
-        color: '#FF9800',
-        productCount: 67,
-        createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-01-15')
-      }
-    ];
   }
 }

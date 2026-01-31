@@ -1,6 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 
+/**
+ * App component unit tests
+ */
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -8,12 +11,14 @@ describe('App', () => {
     }).compileComponents();
   });
 
+  /** Ensure the app component is created */
   it('should create the app', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
     expect(app).toBeTruthy();
   });
 
+  /** Ensure the app renders the expected title */
   it('should render title', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();

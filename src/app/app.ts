@@ -4,7 +4,7 @@
  * It provides the RouterOutlet where all routed components are rendered.
  */
 
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
@@ -13,7 +13,4 @@ import { RouterOutlet } from '@angular/router';
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {
-  /** Application title/name */
-  protected readonly title = signal('inventory-app');
-}
+export class App {}

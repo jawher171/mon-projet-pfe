@@ -8,12 +8,12 @@
 // Sidebar Styles
 .sidebar {
   width: 280px;
-  background: linear-gradient(180deg, #1a237e 0%, #283593 100%);
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
   color: white;
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
   position: relative;
   z-index: 1000;
 
@@ -44,13 +44,22 @@
   font-size: 1.5rem;
   font-weight: 700;
 
+  .logo-img {
+    height: 32px;
+    width: auto;
+    max-width: 120px;
+    object-fit: contain;
+  }
+
   .logo-icon {
     font-size: 2rem;
-    color: #64b5f6;
+    color: #3b82f6;
   }
 
   .logo-text {
     white-space: nowrap;
+    font-size: 1.6rem;
+    font-weight: 800;
   }
 }
 
@@ -106,7 +115,7 @@
       top: 0;
       bottom: 0;
       width: 4px;
-      background: #64b5f6;
+      background: #3b82f6;
     }
   }
 }

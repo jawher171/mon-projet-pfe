@@ -6,7 +6,7 @@
   padding: 2rem;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
 }
 
 .login-card {
@@ -45,9 +45,16 @@
   margin-bottom: 1rem;
 }
 
+.logo-img {
+  height: 110px;
+  width: auto;
+  max-width: 360px;
+  object-fit: contain;
+}
+
 .logo-icon {
   font-size: 3rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -56,7 +63,7 @@
 .logo-text {
   font-size: 2rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -106,7 +113,7 @@
 
   .label-icon {
     font-size: 1.125rem;
-    color: #667eea;
+    color: #3b82f6;
   }
 }
 
@@ -120,8 +127,8 @@
   width: 100%;
 
   &:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
   }
 
   &::placeholder {
@@ -150,7 +157,7 @@
   transition: color 0.2s ease;
 
   &:hover {
-    color: #667eea;
+    color: #3b82f6;
   }
 
   .material-icons {
@@ -178,7 +185,7 @@
 }
 
 .forgot-link {
-  color: #667eea;
+  color: #3b82f6;
   text-decoration: none;
   font-weight: 600;
 
@@ -189,7 +196,7 @@
 
 .btn-login {
   padding: 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #3b82f6;
   color: white;
   border: none;
   border-radius: 8px;

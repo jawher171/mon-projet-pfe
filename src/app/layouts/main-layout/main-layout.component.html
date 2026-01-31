@@ -3,16 +3,13 @@
   <aside class="sidebar" [class.collapsed]="isSidebarCollapsed()">
     <div class="sidebar-header">
       <div class="logo">
-        <span class="material-icons logo-icon">inventory</span>
-        @if (!isSidebarCollapsed()) {
-          <span class="logo-text">Inventory Pro</span>
-        }
+        <span class="logo-text">Inventory Pro</span>
       </div>
     </div>
 
     <nav class="sidebar-nav">
       <ul class="nav-list">
-        @for (item of menuItems; track item.route) {
+        @for (item of menuItems(); track item.route) {
           <li class="nav-item">
             <a [routerLink]="item.route" routerLinkActive="active" class="nav-link">
               <span class="material-icons nav-icon">{{ item.icon }}</span>
