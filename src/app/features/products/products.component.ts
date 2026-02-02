@@ -6,15 +6,17 @@
 
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
+import { CategoryService } from '../../core/services/category.service';
 import { Product } from '../../core/models/product.model';
+import { Category } from '../../core/models/category.model';
 
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
   templateUrl: './products.component.html',
   styleUrls: ['./products.component.scss']
 })
@@ -28,6 +30,18 @@ export class ProductsComponent implements OnInit {
   /** Current view mode (grid or list) */
   viewMode = signal<'grid' | 'list'>('grid');
   
+  /** Modal state */
+  showModal = signal(false);
+  
+  /** Edit mode flag */
+  isEditMode = signal(false);
+  
+  /** Product form */
+  productForm!: FormGroup;
+  
+  /** All categories */
+  categories = computed(() => this.categoryService.getCategories()());
+  
   /** All products from service */
   products = computed(() => this.productService.getProducts()());
   
@@ -38,8 +52,7 @@ export class ProductsComponent implements OnInit {
     const search = this.searchTerm().toLowerCase();
     if (search) {
       filtered = filtered.filter(p => 
-        p.name.toLowerCase().includes(search) || 
-        p.sku.toLowerCase().includes(search)
+        p.name.toLowerCase().includes(search)
       );
     }
     
@@ -51,9 +64,40 @@ export class ProductsComponent implements OnInit {
     return filtered;
   });
 
-  constructor(private productService: ProductService) {}
+  constructor(
+    private productService: ProductService,
+    private categoryService: CategoryService,
+    private fb: FormBuilder
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.initForm();
+  }
+
+  /**
+   * Initialize product form
+   */
+  initForm() {
+    this.productForm = this.fb.group({
+      id: [''],
+      name: ['', Validators.required],
+      description: [''],
+      categoryId: ['', Validators.required],
+      category: [''],
+      supplier: [''],
+      supplierId: [''],
+      quantity: [0, [Validators.required, Validators.min(0)]],
+      minQuantity: [0, [Validators.required, Validators.min(0)]],
+      maxQuantity: [100, [Validators.required, Validators.min(0)]],
+      price: [0, [Validators.required, Validators.min(0)]],
+      cost: [0, [Validators.required, Validators.min(0)]],
+      unit: ['pcs', Validators.required],
+      location: [''],
+      barcode: [''],
+      imageUrl: [''],
+      status: ['active', Validators.required]
+    });
+  }
 
   /**
    * Handle search input changes
@@ -96,5 +140,91 @@ export class ProductsComponent implements OnInit {
     if (status === 'low') return 'Low Stock';
     if (status === 'medium') return 'Medium Stock';
     return 'In Stock';
+  }
+
+  /**
+   * Open modal to add new product
+   */
+  openAddModal() {
+    this.isEditMode.set(false);
+    this.productForm.reset({
+      quantity: 0,
+      minQuantity: 0,
+      maxQuantity: 100,
+      price: 0,
+      cost: 0,
+      unit: 'pcs',
+      status: 'active'
+    });
+    this.showModal.set(true);
+  }
+
+  /**
+   * Open modal to edit existing product
+   * @param product Product to edit
+   */
+  openEditModal(product: Product) {
+    this.isEditMode.set(true);
+    this.productForm.patchValue(product);
+    this.showModal.set(true);
+  }
+
+  /**
+   * Close modal
+   */
+  closeModal() {
+    this.showModal.set(false);
+    this.productForm.reset();
+  }
+
+  /**
+   * Handle form submission
+   */
+  onSubmit() {
+    if (this.productForm.invalid) {
+      this.productForm.markAllAsTouched();
+      return;
+    }
+
+    const formValue = this.productForm.value;
+    
+    // Get category name from categoryId
+    const category = this.categories().find(c => c.id === formValue.categoryId);
+    if (category) {
+      formValue.category = category.name;
+    }
+
+    if (this.isEditMode()) {
+      // Update existing product
+      this.productService.updateProductSync(formValue.id, formValue);
+    } else {
+      // Add new product
+      const newProduct: Product = {
+        ...formValue,
+        id: this.generateId(),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      this.productService.addProduct(newProduct);
+    }
+
+    this.closeModal();
+  }
+
+  /**
+   * Delete product
+   * @param productId Product ID to delete
+   */
+  deleteProduct(productId: string) {
+    if (confirm('Are you sure you want to delete this product?')) {
+      this.productService.deleteProductSync(productId);
+    }
+  }
+
+  /**
+   * Generate unique ID for new product
+   */
+  private generateId(): string {
+    return 'prod_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 }

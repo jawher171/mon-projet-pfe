@@ -14,7 +14,35 @@ export class CategoryService {
   /** All product categories */
   private categories = signal<Category[]>([]);
 
-  constructor() {}
+  constructor() {
+    const now = new Date();
+    this.categories.set([
+      {
+        id: 'cat_electronics',
+        name: 'Électronique',
+        description: 'Matériel et équipements électroniques',
+        productCount: 0,
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: 'cat_consumables',
+        name: 'Consommables',
+        description: 'Articles consommables et fournitures',
+        productCount: 0,
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: 'cat_spare_parts',
+        name: 'Pièces de rechange',
+        description: 'Pièces de rechange et maintenance',
+        productCount: 0,
+        createdAt: now,
+        updatedAt: now
+      }
+    ]);
+  }
 
   /**
    * Get all categories signal

@@ -36,8 +36,7 @@ export class MovementService {
         const search = filter.search.toLowerCase();
         movements = movements.filter(m =>
           m.movementNumber.toLowerCase().includes(search) ||
-          m.productName.toLowerCase().includes(search) ||
-          m.productSku.toLowerCase().includes(search)
+          m.productName.toLowerCase().includes(search)
         );
       }
 

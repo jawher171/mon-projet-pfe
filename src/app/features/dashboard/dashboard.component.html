@@ -129,7 +129,9 @@
             <div class="stock-item">
               <div class="stock-info">
                 <span class="stock-name">{{ item.name }}</span>
-                <span class="stock-sku">{{ item.sku }}</span>
+                @if (item.sku) {
+                  <span class="stock-sku">{{ item.sku }}</span>
+                }
               </div>
               <div class="stock-level">
                 <div class="level-bar">

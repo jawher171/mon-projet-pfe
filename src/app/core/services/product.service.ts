@@ -22,7 +22,7 @@ export class ProductService {
       const search = filter.search.toLowerCase();
       filtered = filtered.filter(p => 
         p.name.toLowerCase().includes(search) || 
-        p.sku.toLowerCase().includes(search)
+        (p.sku ? p.sku.toLowerCase().includes(search) : false)
       );
     }
     
@@ -64,6 +64,21 @@ export class ProductService {
 
   async deleteProduct(id: string): Promise<void> {
     await this.delay(500);
+    this.products.update(products => products.filter(p => p.id !== id));
+  }
+
+  // Synchronous methods for immediate updates
+  addProduct(product: Product): void {
+    this.products.update(products => [...products, product]);
+  }
+
+  updateProductSync(id: string, updates: Partial<Product>): void {
+    this.products.update(products => 
+      products.map(p => p.id === id ? { ...p, ...updates, updatedAt: new Date() } : p)
+    );
+  }
+
+  deleteProductSync(id: string): void {
     this.products.update(products => products.filter(p => p.id !== id));
   }
 

@@ -189,7 +189,6 @@ export class ScannerComponent implements OnInit {
       reason: this.selectedReason() as MovementReason,
       productId: scan.product.id,
       productName: scan.product.name,
-      productSku: scan.product.sku,
       quantity: this.quantity(),
       previousStock: scan.product.quantity,
       newStock: mode === 'entry' 

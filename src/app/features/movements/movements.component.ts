@@ -20,7 +20,7 @@ import { StockMovement, MovementFilter, MovementReason, MOVEMENT_REASONS } from 
 })
 export class MovementsComponent implements OnInit {
   // Filter signals
-  /** Search term for movement number, product name, or SKU */
+  /** Search term for movement number or product name */
   searchTerm = signal('');
   
   /** Filter by movement type (entry/exit) */
@@ -50,14 +50,10 @@ export class MovementsComponent implements OnInit {
   formData = signal({
     productId: '',
     productName: '',
-    productSku: '',
     quantity: 0,
     reason: '' as MovementReason | '',
     siteId: '',
-    warehouseZone: '',
     reference: '',
-    supplierId: '',
-    supplierName: '',
     barcode: '',
     notes: ''
   });
@@ -134,14 +130,10 @@ export class MovementsComponent implements OnInit {
     this.formData.set({
       productId: '',
       productName: '',
-      productSku: '',
       quantity: 0,
       reason: '',
       siteId: '',
-      warehouseZone: '',
       reference: '',
-      supplierId: '',
-      supplierName: '',
       barcode: '',
       notes: ''
     });
@@ -164,16 +156,12 @@ export class MovementsComponent implements OnInit {
       reason: form.reason as MovementReason,
       productId: form.productId || 'prod_' + Math.random().toString(36).substring(2, 8),
       productName: form.productName,
-      productSku: form.productSku,
       quantity: form.quantity,
       previousStock: 100, // Mock value
       newStock: this.movementType() === 'entry' ? 100 + form.quantity : 100 - form.quantity,
       siteId: form.siteId,
       siteName: site?.name || '',
-      warehouseZone: form.warehouseZone,
       reference: form.reference,
-      supplierId: form.supplierId,
-      supplierName: form.supplierName,
       barcode: form.barcode,
       notes: form.notes,
       performedBy: 'Current User',

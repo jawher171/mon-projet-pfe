@@ -36,7 +36,7 @@ interface RecentActivity {
 interface LowStockItem {
   id: string;
   name: string;
-  sku: string;
+  sku?: string;
   currentStock: number;
   minStock: number;
   status: 'critical' | 'warning' | 'reorder';

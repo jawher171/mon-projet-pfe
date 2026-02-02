@@ -161,7 +161,9 @@
               @if (scan.product) {
                 <div class="product-name">{{ scan.product.name }}</div>
                 <div class="product-details">
-                  <span>SKU: {{ scan.product.sku }}</span>
+                  @if (scan.product.sku) {
+                    <span>SKU: {{ scan.product.sku }}</span>
+                  }
                   <span>Stock: {{ scan.product.quantity }}</span>
                 </div>
               } @else {
@@ -230,7 +232,9 @@
           </div>
           <div class="product-info">
             <h3>{{ product.name }}</h3>
-            <p>SKU: {{ product.sku }}</p>
+            @if (product.sku) {
+              <p>SKU: {{ product.sku }}</p>
+            }
             <p>Code-barres: {{ lastScan()?.barcode }}</p>
           </div>
         </div>

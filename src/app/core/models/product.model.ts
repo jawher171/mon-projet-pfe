@@ -9,7 +9,7 @@ export interface Product {
   id: string;
   name: string;
   description: string;
-  sku: string;
+  sku?: string;
   category: string;
   categoryId: string;
   supplier: string;
