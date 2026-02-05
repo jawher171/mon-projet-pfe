@@ -86,12 +86,8 @@ export class ProductsComponent implements OnInit {
       category: [''],
       supplier: [''],
       supplierId: [''],
-      quantity: [0, [Validators.required, Validators.min(0)]],
-      minQuantity: [0, [Validators.required, Validators.min(0)]],
-      maxQuantity: [100, [Validators.required, Validators.min(0)]],
       price: [0, [Validators.required, Validators.min(0)]],
       cost: [0, [Validators.required, Validators.min(0)]],
-      unit: ['pcs', Validators.required],
       location: [''],
       barcode: [''],
       imageUrl: [''],
@@ -125,35 +121,13 @@ export class ProductsComponent implements OnInit {
   }
 
   /**
-   * Determine stock status based on quantity vs min/max thresholds
-   * @param product Product to check
-   * @returns Stock status: 'low', 'medium', or 'good'
-   */
-  getStockStatus(product: Product): 'low' | 'medium' | 'good' {
-    if (product.quantity <= product.minQuantity) return 'low';
-    if (product.quantity <= product.minQuantity * 1.5) return 'medium';
-    return 'good';
-  }
-
-  getStockLabel(product: Product): string {
-    const status = this.getStockStatus(product);
-    if (status === 'low') return 'Low Stock';
-    if (status === 'medium') return 'Medium Stock';
-    return 'In Stock';
-  }
-
-  /**
    * Open modal to add new product
    */
   openAddModal() {
     this.isEditMode.set(false);
     this.productForm.reset({
-      quantity: 0,
-      minQuantity: 0,
-      maxQuantity: 100,
       price: 0,
       cost: 0,
-      unit: 'pcs',
       status: 'active'
     });
     this.showModal.set(true);

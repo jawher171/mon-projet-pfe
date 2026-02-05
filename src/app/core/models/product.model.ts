@@ -14,12 +14,8 @@ export interface Product {
   categoryId: string;
   supplier: string;
   supplierId: string;
-  quantity: number;
-  minQuantity: number;
-  maxQuantity: number;
   price: number;
   cost: number;
-  unit: string;
   location: string;
   barcode?: string;
   imageUrl?: string;

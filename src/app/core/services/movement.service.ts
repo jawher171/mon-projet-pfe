@@ -13,6 +13,9 @@ import { StockMovement, MovementFilter, MovementSummary, MovementReason, MOVEMEN
 export class MovementService {
   /** All stock movements */
   private movementsSignal = signal<StockMovement[]>([]);
+  
+  /** Custom reasons added by users */
+  private customReasonsSignal = signal<{ value: string; label: string; type: 'entry' | 'exit' }[]>([]);
 
   /**
    * Get all movements signal
@@ -196,11 +199,99 @@ export class MovementService {
   }
 
   getReasonLabel(reason: MovementReason): string {
-    return MOVEMENT_REASONS.find(r => r.value === reason)?.label || reason;
+    const baseReason = MOVEMENT_REASONS.find(r => r.value === reason);
+    if (baseReason) return baseReason.label;
+    
+    const customReason = this.customReasonsSignal().find(r => r.value === reason);
+    return customReason?.label || reason;
   }
 
   getReasonsByType(type: 'entry' | 'exit') {
-    return MOVEMENT_REASONS.filter(r => r.type === type);
+    const baseReasons = MOVEMENT_REASONS.filter(r => r.type === type);
+    const customReasons = this.customReasonsSignal().filter(r => r.type === type);
+    
+    return [...baseReasons, ...customReasons];
+  }
+  
+  /**
+   * Add a custom reason to the list
+   * @param label Custom reason label
+   * @param type Movement type (entry or exit)
+   * @returns Generated reason value
+   */
+  addCustomReason(label: string, type: 'entry' | 'exit'): string {
+    const value = `custom_${type}_${Date.now()}`;
+    this.customReasonsSignal.update(reasons => [
+      ...reasons,
+      { value, label, type }
+    ]);
+    return value;
+  }
+  
+  /**
+   * Get all custom reasons
+   * @returns Signal of custom reasons
+   */
+  getCustomReasons() {
+    return this.customReasonsSignal;
+  }
+
+  /**
+   * Calculate current stock quantity for a product at a specific site
+   * Based on movement history only (entries - exits)
+   * @param productId Product identifier
+   * @param siteId Site identifier
+   * @returns Current stock quantity
+   */
+  getCurrentStock(productId: string, siteId: string): number {
+    const movements = this.movementsSignal().filter(
+      m => m.productId === productId && m.siteId === siteId
+    );
+
+    return movements.reduce((total, movement) => {
+      return movement.type === 'entry' 
+        ? total + movement.quantity 
+        : total - movement.quantity;
+    }, 0);
+  }
+
+  /**
+   * Calculate total stock quantity for a product across all sites
+   * @param productId Product identifier
+   * @returns Total stock quantity
+   */
+  getTotalStock(productId: string): number {
+    const movements = this.movementsSignal().filter(m => m.productId === productId);
+
+    return movements.reduce((total, movement) => {
+      return movement.type === 'entry' 
+        ? total + movement.quantity 
+        : total - movement.quantity;
+    }, 0);
+  }
+
+  /**
+   * Get stock breakdown by site for a product
+   * @param productId Product identifier
+   * @returns Array of stock by site
+   */
+  getStockBySite(productId: string): { siteId: string; siteName: string; quantity: number }[] {
+    const movements = this.movementsSignal().filter(m => m.productId === productId);
+    const siteMap = new Map<string, { siteName: string; quantity: number }>();
+
+    movements.forEach(movement => {
+      const existing = siteMap.get(movement.siteId) || { siteName: movement.siteName, quantity: 0 };
+      existing.quantity = movement.type === 'entry' 
+        ? existing.quantity + movement.quantity 
+        : existing.quantity - movement.quantity;
+      siteMap.set(movement.siteId, existing);
+    });
+
+    return Array.from(siteMap.entries()).map(([siteId, data]) => ({
+      siteId,
+      siteName: data.siteName,
+      quantity: data.quantity
+    }));
   }
 
   private generateId(): string {

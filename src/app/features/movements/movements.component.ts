@@ -4,12 +4,12 @@
  * Allows recording, viewing, and filtering inventory transactions.
  */
 
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MovementService } from '../../core/services/movement.service';
 import { SiteService } from '../../core/services/site.service';
-import { StockMovement, MovementFilter, MovementReason, MOVEMENT_REASONS } from '../../core/models/movement.model';
+import { StockMovement, MovementFilter, MovementReason } from '../../core/models/movement.model';
 
 @Component({
   selector: 'app-movements',
@@ -18,7 +18,7 @@ import { StockMovement, MovementFilter, MovementReason, MOVEMENT_REASONS } from 
   templateUrl: './movements.component.html',
   styleUrls: ['./movements.component.scss']
 })
-export class MovementsComponent implements OnInit {
+export class MovementsComponent {
   // Filter signals
   /** Search term for movement number or product name */
   searchTerm = signal('');
@@ -57,6 +57,15 @@ export class MovementsComponent implements OnInit {
     barcode: '',
     notes: ''
   });
+  
+  /** Show add custom reason modal */
+  showAddReasonModal = signal(false);
+  
+  /** Type of reason being added */
+  reasonType = signal<'entry' | 'exit'>('entry');
+  
+  /** New custom reason input */
+  newCustomReason = signal('');
 
   // Get data from services
   sites = computed(() => this.siteService.getActiveSites()());
@@ -70,16 +79,11 @@ export class MovementsComponent implements OnInit {
 
   movements = computed(() => this.movementService.getFilteredMovements(this.filter())());
   summary = computed(() => this.movementService.getMovementSummary());
-  
-  entryReasons = MOVEMENT_REASONS.filter(r => r.type === 'entry');
-  exitReasons = MOVEMENT_REASONS.filter(r => r.type === 'exit');
 
   constructor(
     private movementService: MovementService,
     private siteService: SiteService
   ) {}
-
-  ngOnInit(): void {}
 
   /**
    * Handle search input changes
@@ -142,6 +146,25 @@ export class MovementsComponent implements OnInit {
   updateFormField(field: string, value: string | number) {
     this.formData.update(data => ({ ...data, [field]: value }));
   }
+  
+  openAddReasonModal(type?: 'entry' | 'exit') {
+    this.reasonType.set(type || this.movementType());
+    this.newCustomReason.set('');
+    this.showAddReasonModal.set(true);
+  }
+  
+  closeAddReasonModal() {
+    this.showAddReasonModal.set(false);
+    this.newCustomReason.set('');
+  }
+  
+  saveCustomReason() {
+    const reason = this.newCustomReason().trim();
+    if (!reason) return;
+    
+    this.movementService.addCustomReason(reason, this.reasonType());
+    this.closeAddReasonModal();
+  }
 
   saveMovement() {
     const form = this.formData();
@@ -151,14 +174,25 @@ export class MovementsComponent implements OnInit {
       return;
     }
 
+    // Generate or use existing product ID
+    const productId = form.productId || 'prod_' + Math.random().toString(36).substring(2, 8);
+    
+    // Calculate current stock from movement history
+    const previousStock = this.movementService.getCurrentStock(productId, form.siteId);
+    
+    // Calculate new stock after this movement
+    const newStock = this.movementType() === 'entry' 
+      ? previousStock + form.quantity 
+      : previousStock - form.quantity;
+
     this.movementService.addMovement({
       type: this.movementType(),
       reason: form.reason as MovementReason,
-      productId: form.productId || 'prod_' + Math.random().toString(36).substring(2, 8),
+      productId: productId,
       productName: form.productName,
       quantity: form.quantity,
-      previousStock: 100, // Mock value
-      newStock: this.movementType() === 'entry' ? 100 + form.quantity : 100 - form.quantity,
+      previousStock: previousStock,
+      newStock: newStock,
       siteId: form.siteId,
       siteName: site?.name || '',
       reference: form.reference,
@@ -176,7 +210,7 @@ export class MovementsComponent implements OnInit {
   }
 
   getReasonsByType(type: 'entry' | 'exit') {
-    return type === 'entry' ? this.entryReasons : this.exitReasons;
+    return this.movementService.getReasonsByType(type);
   }
 
   getTimeAgo(date: Date): string {

@@ -164,7 +164,6 @@
                   @if (scan.product.sku) {
                     <span>SKU: {{ scan.product.sku }}</span>
                   }
-                  <span>Stock: {{ scan.product.quantity }}</span>
                 </div>
               } @else {
                 <div class="not-found">Produit non trouvé</div>
@@ -236,25 +235,6 @@
               <p>SKU: {{ product.sku }}</p>
             }
             <p>Code-barres: {{ lastScan()?.barcode }}</p>
-          </div>
-        </div>
-        
-        <div class="stock-info">
-          <div class="current-stock">
-            <span class="label">Stock actuel</span>
-            <span class="value">{{ product.quantity }}</span>
-          </div>
-          <div class="arrow">
-            <span class="material-icons">arrow_forward</span>
-          </div>
-          <div class="new-stock" [class]="quickActionMode()">
-            <span class="label">Nouveau stock</span>
-            <span class="value">
-              {{ quickActionMode() === 'entry' 
-                ? product.quantity + quantity() 
-                : product.quantity - quantity() 
-              }}
-            </span>
           </div>
         </div>
         

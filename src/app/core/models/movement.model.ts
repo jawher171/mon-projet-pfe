@@ -30,6 +30,7 @@ export type MovementReason =
   | 'return_supplier'    // Entrée - Retour fournisseur
   | 'return_customer'    // Sortie - Retour client (négatif)
   | 'transfer_out'       // Sortie - Transfert sortant
+  | string              // Custom reasons
 
 export interface MovementFilter {
   search?: string;
@@ -59,6 +60,4 @@ export const MOVEMENT_REASONS: { value: MovementReason; label: string; type: 'en
   { value: 'return_supplier', label: 'livraison Fournisseur', type: 'entry' },
   { value: 'return_customer', label: 'retour de site', type: 'entry' },
   { value: 'transfer_out', label: 'Transfert Sortant', type: 'exit' },
-
-  
 ];

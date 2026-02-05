@@ -88,6 +88,5 @@ export interface TransferItem {
 export const SITE_TYPES: { value: SiteType; label: string; icon: string }[] = [
   { value: 'warehouse', label: 'Entrepôt', icon: 'warehouse' },
   { value: 'store', label: 'Magasin', icon: 'store' },
-  { value: 'distribution_center', label: 'Centre de Distribution', icon: 'local_shipping' },
-  { value: 'production', label: 'Site de Production', icon: 'factory' }
+
 ];

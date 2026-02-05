@@ -72,6 +72,15 @@
     color: #333;
     &:hover { background: #d5d5d5; }
   }
+  
+  &.btn-outline {
+    background: white;
+    color: #1a237e;
+    border: 2px solid #1a237e;
+    &:hover { 
+      background: #f5f5f5;
+    }
+  }
 }
 
 // Summary Cards
@@ -409,6 +418,10 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  
+  &.small {
+    max-width: 450px;
+  }
 }
 
 .modal-header {
@@ -497,6 +510,37 @@
 
       &:hover {
         background: #c5cae9;
+      }
+    }
+  }
+  
+  .input-with-button {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+
+    select {
+      flex: 1;
+    }
+
+    .add-reason-btn {
+      background: #1a237e;
+      border: none;
+      padding: 0 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #283593;
+      }
+
+      .material-icons {
+        font-size: 1.25rem;
       }
     }
   }

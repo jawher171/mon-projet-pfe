@@ -68,9 +68,6 @@
                 <span class="material-icons">image</span>
               </div>
             }
-            <span class="stock-badge" [class]="getStockStatus(product)">
-              {{ getStockLabel(product) }}
-            </span>
           </div>
 
           <div class="product-info">
@@ -84,10 +81,6 @@
               <div class="meta-item">
                 <span class="material-icons meta-icon">category</span>
                 <span>{{ product.category }}</span>
-              </div>
-              <div class="meta-item">
-                <span class="material-icons meta-icon">inventory</span>
-                <span>{{ product.quantity }} {{ product.unit }}</span>
               </div>
             </div>
 
@@ -185,33 +178,6 @@
                 rows="3"
                 placeholder="Product description"
               ></textarea>
-            </div>
-
-            <!-- Quantity -->
-            <div class="form-group">
-              <label for="quantity" class="form-label">Quantity *</label>
-              <input 
-                type="number" 
-                id="quantity" 
-                formControlName="quantity" 
-                class="form-input"
-                min="0"
-              >
-              @if (productForm.get('quantity')?.touched && productForm.get('quantity')?.errors?.['required']) {
-                <span class="form-error">Quantity is required</span>
-              }
-            </div>
-
-            <!-- Unit -->
-            <div class="form-group">
-              <label for="unit" class="form-label">Unit *</label>
-              <select id="unit" formControlName="unit" class="form-select">
-                <option value="pcs">Pieces</option>
-                <option value="kg">Kilograms</option>
-                <option value="liter">Liters</option>
-                <option value="box">Boxes</option>
-                <option value="pack">Packs</option>
-              </select>
             </div>
 
             <!-- Price -->

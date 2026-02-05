@@ -21,7 +21,7 @@ export type Permission =
   | 'view_reports';
 
 /** User role types */
-export type UserRole = 'admin' | 'gestionnaire_de_stock' | 'operateur';
+export type UserRole = 'admin' | 'gestionnaire_de_stock' | 'operateur' | string;
 
 /** Role definition with permissions */
 export interface Role {

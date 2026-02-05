@@ -184,16 +184,22 @@ export class ScannerComponent implements OnInit {
     const site = this.sites().find(s => s.id === this.selectedSite());
     if (!site || !this.selectedReason()) return;
     
+    // Calculate current stock from movement history
+    const previousStock = this.movementService.getCurrentStock(scan.product.id, site.id);
+    
+    // Calculate new stock after this movement
+    const newStock = mode === 'entry' 
+      ? previousStock + this.quantity() 
+      : previousStock - this.quantity();
+    
     this.movementService.addMovement({
       type: mode,
       reason: this.selectedReason() as MovementReason,
       productId: scan.product.id,
       productName: scan.product.name,
       quantity: this.quantity(),
-      previousStock: scan.product.quantity,
-      newStock: mode === 'entry' 
-        ? scan.product.quantity + this.quantity() 
-        : scan.product.quantity - this.quantity(),
+      previousStock: previousStock,
+      newStock: newStock,
       siteId: site.id,
       siteName: site.name,
       barcode: scan.barcode,

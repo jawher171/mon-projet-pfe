@@ -46,6 +46,7 @@ export class MainLayoutComponent {
     { icon: 'store', label: 'Sites', route: '/sites', permission: 'view_sites' },
     { icon: 'notifications', label: 'Alertes', route: '/alerts', permission: 'manage_alerts' },
     { icon: 'people', label: 'Gestion Utilisateurs', route: '/user-management', adminOnly: true },
+    { icon: 'settings', label: 'Paramètres', route: '/settings' },
   ];
 
   /** Filtered menu items based on user permissions */

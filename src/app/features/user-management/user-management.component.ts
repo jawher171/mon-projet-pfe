@@ -85,8 +85,15 @@ export class UserManagementComponent {
   isEditing = signal(false);
   /** Search input value for filtering the user list */
   searchTerm = signal('');
-  /** Currently selected user (when editing) */
-  selectedUser = signal<User | null>(null);
+  
+  /** Show add custom role modal */
+  showAddRoleModal = signal(false);
+  
+  /** New custom role input */
+  newCustomRoleName = signal('');
+  
+  /** Custom roles added by users */
+  customRoles = signal<{ value: string; label: string }[]>([]);
 
   /** Filtered list of users based on search input */
   filteredUsers = computed(() => {
@@ -108,17 +115,22 @@ export class UserManagementComponent {
   };
 
   /** Available role options for the selector */
-  roles = [
+  baseRoles = [
     { value: 'admin', label: 'Administrator' },
     { value: 'gestionnaire_de_stock', label: 'Stock Manager' },
     { value: 'operateur', label: 'Operator' }
   ];
+  
+  /** Computed roles including custom roles */
+  roles = computed(() => [
+    ...this.baseRoles,
+    ...this.customRoles()
+  ]);
 
   /** Open the form for create or edit */
   openForm(user?: User) {
     if (user) {
       this.isEditing.set(true);
-      this.selectedUser.set(user);
       this.formData = {
         firstName: user.firstName,
         lastName: user.lastName,
@@ -128,7 +140,6 @@ export class UserManagementComponent {
       };
     } else {
       this.isEditing.set(false);
-      this.selectedUser.set(null);
       this.resetForm();
     }
     this.showForm.set(true);
@@ -159,13 +170,23 @@ export class UserManagementComponent {
     }
 
     if (this.isEditing()) {
-      const user = this.selectedUser();
-      if (user) {
-        user.firstName = this.formData.firstName;
-        user.lastName = this.formData.lastName;
-        user.email = this.formData.email;
-        user.role = this.formData.role;
-        user.status = this.formData.status;
+      const userIndex = this.users().findIndex(u => 
+        u.firstName === this.formData.firstName && 
+        u.email === this.formData.email
+      );
+      if (userIndex !== -1) {
+        this.users.update(users => {
+          const updated = [...users];
+          updated[userIndex] = {
+            ...updated[userIndex],
+            firstName: this.formData.firstName,
+            lastName: this.formData.lastName,
+            email: this.formData.email,
+            role: this.formData.role,
+            status: this.formData.status
+          };
+          return updated;
+        });
       }
     } else {
       const newUser: User = {
@@ -198,6 +219,32 @@ export class UserManagementComponent {
 
   /** Resolve a role label from its value */
   getRoleLabel(role: string): string {
-    return this.roles.find(r => r.value === role)?.label || role;
+    const allRoles = this.roles();
+    return allRoles.find(r => r.value === role)?.label || role;
+  }
+  
+  /** Open add custom role modal */
+  openAddRoleModal(): void {
+    this.newCustomRoleName.set('');
+    this.showAddRoleModal.set(true);
+  }
+  
+  /** Close add custom role modal */
+  closeAddRoleModal(): void {
+    this.showAddRoleModal.set(false);
+    this.newCustomRoleName.set('');
+  }
+  
+  /** Save custom role */
+  saveCustomRole(): void {
+    const roleName = this.newCustomRoleName().trim();
+    if (!roleName) return;
+    
+    const roleValue = `custom_${roleName.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`;
+    this.customRoles.update(roles => [
+      ...roles,
+      { value: roleValue, label: roleName }
+    ]);
+    this.closeAddRoleModal();
   }
 }

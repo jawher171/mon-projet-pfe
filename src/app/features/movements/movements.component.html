@@ -14,6 +14,10 @@
         <span class="material-icons">remove_circle</span>
         Sortie
       </button>
+      <button class="btn btn-outline" (click)="openAddReasonModal()">
+        <span class="material-icons">edit_note</span>
+        Gérer Raisons
+      </button>
     </div>
   </div>
 
@@ -342,6 +346,50 @@
         } @else {
           <button class="btn btn-secondary" (click)="closeModal()">Fermer</button>
         }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Add Custom Reason Modal -->
+@if (showAddReasonModal()) {
+  <div class="modal-overlay" (click)="closeAddReasonModal()">
+    <div class="modal-content small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Ajouter une raison personnalisée</h2>
+        <button class="close-btn" (click)="closeAddReasonModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Type de mouvement *</label>
+          <select [value]="reasonType()" (change)="reasonType.set($any($event.target).value)">
+            <option value="entry">Entrée</option>
+            <option value="exit">Sortie</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Raison {{ reasonType() === 'entry' ? 'd\'entrée' : 'de sortie' }} *</label>
+          <input 
+            type="text" 
+            placeholder="Saisir la raison du mouvement..."
+            [value]="newCustomReason()"
+            (input)="newCustomReason.set($any($event.target).value)"
+            (keyup.enter)="saveCustomReason()"
+            autofocus
+          >
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeAddReasonModal()">Annuler</button>
+        <button class="btn btn-primary" (click)="saveCustomReason()" [disabled]="!newCustomReason().trim()">
+          <span class="material-icons">add</span>
+          Ajouter
+        </button>
       </div>
     </div>
   </div>
