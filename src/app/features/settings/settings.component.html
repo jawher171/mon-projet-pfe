@@ -1,0 +1,91 @@
+<div class="settings-container">
+  <div class="settings-header">
+    <div class="header-title">
+      <h1>Paramètres</h1>
+      <p>Gérer les permissions des rôles de l'application</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-outline" (click)="resetPermissions()">
+        <span class="material-icons">restart_alt</span>
+        Reinitialiser
+      </button>
+    </div>
+  </div>
+
+  @if (saved()) {
+    <div class="save-notification">
+      <span class="material-icons">check_circle</span>
+      Permissions mises à jour
+    </div>
+  }
+
+  <!-- Role Summary Cards -->
+  <div class="roles-summary">
+    @for (role of roles(); track role.id) {
+      <div class="role-card">
+        <div class="role-card-header" [style.borderColor]="role.color">
+          <span class="material-icons" [style.color]="role.color">{{ role.icon }}</span>
+          <div class="role-info">
+            <h3>{{ role.label }}</h3>
+            <span class="role-desc">{{ role.description }}</span>
+          </div>
+        </div>
+        <div class="role-card-footer">
+          <span class="permission-count" [style.color]="role.color">
+            {{ permissionCount(role) }}/{{ totalPermissions }}
+          </span>
+          <span class="permission-label">permissions</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Permissions Table -->
+  <div class="permissions-table-container">
+    <table class="permissions-table">
+      <thead>
+        <tr>
+          <th class="module-col">Module</th>
+          <th class="permission-col">Permission</th>
+          @for (role of roles(); track role.id) {
+            <th class="role-col">
+              <div class="role-header">
+                <span class="role-dot" [style.backgroundColor]="role.color"></span>
+                {{ role.label }}
+              </div>
+            </th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (group of permissionGroups; track group.label) {
+          @for (perm of group.permissions; track perm.key; let first = $first) {
+            <tr [class.group-first]="first">
+              @if (first) {
+                <td class="module-cell" [attr.rowspan]="group.permissions.length">
+                  <div class="module-info">
+                    <span class="material-icons">{{ group.icon }}</span>
+                    <span>{{ group.label }}</span>
+                  </div>
+                </td>
+              }
+              <td class="permission-cell">{{ perm.label }}</td>
+              @for (role of roles(); track role.id) {
+                <td class="checkbox-cell">
+                  <label class="checkbox-wrapper">
+                    <input
+                      type="checkbox"
+                      [checked]="hasPermission(role, perm.key)"
+                      (change)="togglePermission(role.name, perm.key)"
+                    >
+                    <span class="checkmark" [style.--check-color]="role.color"></span>
+                  </label>
+                </td>
+              }
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

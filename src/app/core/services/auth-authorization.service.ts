@@ -6,12 +6,17 @@
 
 import { Injectable, signal, computed } from '@angular/core';
 import { User } from '../models/user.model';
-import { UserRole, Permission, ROLES } from '../models/role.model';
+import { UserRole, Permission, ROLES, Role } from '../models/role.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthorizationService {
+  /** Reactive roles signal - source of truth for permissions */
+  rolesSignal = signal<Record<string, Role>>(
+    JSON.parse(JSON.stringify(ROLES))
+  );
+
   /** List of all system members */
   private membersSignal = signal<User[]>(this.getMockMembers());
 
@@ -127,7 +132,8 @@ export class AuthorizationService {
    * @returns true if user role has this permission
    */
   hasPermission(userRole: UserRole, permission: Permission): boolean {
-    const role = ROLES[userRole];
+    const roles = this.rolesSignal();
+    const role = roles[userRole];
     return role ? role.permissions.includes(permission) : false;
   }
 
@@ -149,6 +155,21 @@ export class AuthorizationService {
    */
   hasAllPermissions(userRole: UserRole, permissions: Permission[]): boolean {
     return permissions.every(p => this.hasPermission(userRole, p));
+  }
+
+  /**
+   * Update permissions for a role
+   * @param roleName Role to update
+   * @param permissions New permissions array
+   */
+  updateRolePermissions(roleName: UserRole, permissions: Permission[]): void {
+    this.rolesSignal.update(roles => {
+      const updated = { ...roles };
+      if (updated[roleName]) {
+        updated[roleName] = { ...updated[roleName], permissions: [...permissions] };
+      }
+      return updated;
+    });
   }
 
   /**

@@ -93,6 +93,13 @@ export const routes: Routes = [
         path: 'user-management',
         loadComponent: () => import('./features/user-management/user-management.component').then(m => m.UserManagementComponent),
         canActivate: [adminGuard]
+      },
+
+      // Settings - admin only
+      {
+        path: 'settings',
+        loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent),
+        canActivate: [adminGuard]
       }
     ]
   },

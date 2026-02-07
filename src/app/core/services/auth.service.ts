@@ -5,10 +5,11 @@
  * Supports role-based access with admin, gestionnaire_de_stock, and operateur roles.
  */
 
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { User } from '../models/user.model';
-import { UserRole, Permission, ROLES } from '../models/role.model';
+import { UserRole, Permission } from '../models/role.model';
 import { getMockUserByRole, getMockAccount } from '../models/mock-accounts';
+import { AuthorizationService } from './auth-authorization.service';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +18,9 @@ export class AuthService {
   // Storage keys for authentication data
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'current_user';
-  
+
+  private authorizationService = inject(AuthorizationService);
+
   // Signal-based reactive state
   /** Currently authenticated user (null if not logged in) */
   currentUser = signal<User | null>(this.loadUser());
@@ -147,8 +150,6 @@ export class AuthService {
   hasPermission(permission: Permission): boolean {
     const user = this.currentUser();
     if (!user) return false;
-    
-    const rolePermissions = ROLES[user.role];
-    return rolePermissions ? rolePermissions.permissions.includes(permission) : false;
+    return this.authorizationService.hasPermission(user.role, permission);
   }
 }

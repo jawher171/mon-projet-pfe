@@ -1,0 +1,326 @@
+.settings-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  .settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 2rem;
+
+    .header-title {
+      h1 {
+        font-size: 1.8rem;
+        color: #333;
+        margin: 0 0 0.5rem 0;
+      }
+
+      p {
+        color: #666;
+        margin: 0;
+        font-size: 0.95rem;
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .btn-outline {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: all 0.2s;
+      white-space: nowrap;
+
+      &:hover {
+        background: #f5f5f5;
+      }
+
+      .material-icons {
+        font-size: 1.2rem;
+      }
+    }
+
+    .btn-save {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: transform 0.2s, box-shadow 0.2s;
+      white-space: nowrap;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .material-icons {
+        font-size: 1.2rem;
+      }
+    }
+  }
+
+  .save-notification {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: #d4edda;
+    color: #155724;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+    animation: slideIn 0.3s ease;
+
+    .material-icons {
+      font-size: 1.2rem;
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  // Role summary cards
+  .roles-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+
+    .role-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+
+      .role-card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        border-left: 4px solid;
+
+        .material-icons {
+          font-size: 2rem;
+        }
+
+        .role-info {
+          h3 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1.1rem;
+            color: #333;
+          }
+
+          .role-desc {
+            font-size: 0.85rem;
+            color: #666;
+          }
+        }
+      }
+
+      .role-card-footer {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background: #f8f9fa;
+        border-top: 1px solid #eee;
+
+        .permission-count {
+          font-size: 1.3rem;
+          font-weight: 700;
+        }
+
+        .permission-label {
+          font-size: 0.85rem;
+          color: #999;
+        }
+      }
+    }
+  }
+
+  // Permissions table
+  .permissions-table-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+
+    .permissions-table {
+      width: 100%;
+      border-collapse: collapse;
+
+      thead {
+        background: #f8f9fa;
+        border-bottom: 2px solid #ddd;
+
+        th {
+          padding: 1rem;
+          text-align: left;
+          font-weight: 600;
+          color: #333;
+          font-size: 0.9rem;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          white-space: nowrap;
+
+          &.role-col {
+            text-align: center;
+            min-width: 140px;
+          }
+
+          &.module-col {
+            min-width: 160px;
+          }
+
+          &.permission-col {
+            min-width: 180px;
+          }
+        }
+
+        .role-header {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+
+          .role-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+          }
+        }
+      }
+
+      tbody {
+        tr {
+          border-bottom: 1px solid #eee;
+          transition: background-color 0.2s;
+
+          &:hover {
+            background-color: #fafafa;
+          }
+
+          &.group-first {
+            border-top: 2px solid #e0e0e0;
+          }
+        }
+
+        .module-cell {
+          padding: 1rem;
+          vertical-align: middle;
+          background: #fafbfc;
+          border-right: 1px solid #eee;
+
+          .module-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 600;
+            color: #333;
+
+            .material-icons {
+              font-size: 1.3rem;
+              color: #667eea;
+            }
+          }
+        }
+
+        .permission-cell {
+          padding: 1rem;
+          color: #555;
+          font-size: 0.95rem;
+        }
+
+        .checkbox-cell {
+          padding: 1rem;
+          text-align: center;
+
+          .checkbox-wrapper {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            width: 22px;
+            height: 22px;
+
+            input[type="checkbox"] {
+              position: absolute;
+              opacity: 0;
+              width: 0;
+              height: 0;
+
+              &:checked + .checkmark {
+                background-color: var(--check-color, #667eea);
+                border-color: var(--check-color, #667eea);
+
+                &::after {
+                  display: block;
+                }
+              }
+
+              &:focus + .checkmark {
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+              }
+            }
+
+            .checkmark {
+              width: 22px;
+              height: 22px;
+              border: 2px solid #ccc;
+              border-radius: 4px;
+              transition: all 0.2s;
+              position: relative;
+
+              &::after {
+                content: '';
+                position: absolute;
+                display: none;
+                left: 6px;
+                top: 2px;
+                width: 5px;
+                height: 10px;
+                border: solid white;
+                border-width: 0 2px 2px 0;
+                transform: rotate(45deg);
+              }
+
+              &:hover {
+                border-color: #999;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
