@@ -1,17 +1,17 @@
 <div class="products-page">
   <div class="page-header">
     <div>
-      <h1 class="page-title">Products</h1>
-      <p class="page-subtitle">Manage your inventory items</p>
+      <h1 class="page-title">Produits</h1>
+      <p class="page-subtitle">Gérer vos articles d'inventaire</p>
     </div>
     <div class="header-actions">
       <button class="btn btn-outline">
         <span class="material-icons">download</span>
-        Export
+        Exporter
       </button>
       <button class="btn btn-primary" (click)="openAddModal()">
         <span class="material-icons">add</span>
-        Add Product
+        Ajouter un produit
       </button>
     </div>
   </div>
@@ -22,7 +22,7 @@
       <span class="material-icons search-icon">search</span>
       <input 
         type="text" 
-        placeholder="Search products by name..." 
+        placeholder="Rechercher les produits par nom..." 
         class="search-input"
         (input)="onSearch($event)"
       >
@@ -30,10 +30,10 @@
 
     <div class="filter-controls">
       <select class="filter-select" (change)="onStatusChange($event)">
-        <option value="all">All Status</option>
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
-        <option value="discontinued">Discontinued</option>
+        <option value="all">Tous les statuts</option>
+        <option value="active">Actif</option>
+        <option value="inactive">Inactif</option>
+        <option value="discontinued">Discontinué</option>
       </select>
 
       <button class="view-toggle-btn" (click)="toggleViewMode()">
@@ -46,7 +46,7 @@
 
   <!-- Products Count -->
   <div class="results-info">
-    <span class="results-count">{{ filteredProducts().length }} products found</span>
+    <span class="results-count">{{ filteredProducts().length }} produits trouvés</span>
   </div>
 
   <!-- Products Grid/List -->
@@ -54,8 +54,8 @@
     @if (filteredProducts().length === 0) {
       <div class="empty-state">
         <span class="material-icons empty-icon">inventory_2</span>
-        <h3>No products found</h3>
-        <p>Try adjusting your search or filters</p>
+        <h3>Aucun produit trouvé</h3>
+        <p>Essayez d'ajuster votre recherche ou vos filtres</p>
       </div>
     } @else {
       @for (product of filteredProducts(); track product.id) {
@@ -86,18 +86,18 @@
 
             <div class="product-footer">
               <div class="product-price">
-                <span class="price-label">Price:</span>
+                <span class="price-label">Prix:</span>
                 <span class="price-value">${{ product.price.toFixed(2) }}</span>
               </div>
 
               <div class="product-actions">
-                <button class="icon-btn" title="View">
+                <button class="icon-btn" title="Voir">
                   <span class="material-icons">visibility</span>
                 </button>
-                <button class="icon-btn" title="Edit" (click)="openEditModal(product)">
+                <button class="icon-btn" title="Modifier" (click)="openEditModal(product)">
                   <span class="material-icons">edit</span>
                 </button>
-                <button class="icon-btn danger" title="Delete" (click)="deleteProduct(product.id)">
+                <button class="icon-btn danger" title="Supprimer" (click)="deleteProduct(product.id)">
                   <span class="material-icons">delete</span>
                 </button>
               </div>
@@ -115,7 +115,7 @@
         <div class="modal-header">
           <h2 class="modal-title">
             <span class="material-icons">{{ isEditMode() ? 'edit' : 'add_circle' }}</span>
-            {{ isEditMode() ? 'Edit Product' : 'Add New Product' }}
+            {{ isEditMode() ? 'Modifier le produit' : 'Ajouter un nouveau produit' }}
           </h2>
           <button class="modal-close" (click)="closeModal()">
             <span class="material-icons">close</span>
@@ -126,28 +126,28 @@
           <div class="form-grid">
             <!-- Product Name -->
             <div class="form-group full-width">
-              <label for="name" class="form-label">Product Name *</label>
+              <label for="name" class="form-label">Nom du produit *</label>
               <input 
                 type="text" 
                 id="name" 
                 formControlName="name" 
                 class="form-input"
-                placeholder="Enter product name"
+                placeholder="Entrez le nom du produit"
               >
               @if (productForm.get('name')?.touched && productForm.get('name')?.errors?.['required']) {
-                <span class="form-error">Product name is required</span>
+                <span class="form-error">Le nom du produit est requis</span>
               }
             </div>
 
              <!-- Barcode -->
             <div class="form-group">
-              <label for="barcode" class="form-label">Barcode *</label>
+              <label for="barcode" class="form-label">Code-barres *</label>
               <input 
                 type="text" 
                 id="barcode" 
                 formControlName="barcode" 
                 class="form-input"
-                placeholder="Product Barcode"
+                placeholder="Code-barres du produit"
               >
               @if (productForm.get('barcode')?.touched && productForm.get('barcode')?.errors?.['required']) {
                 <span class="form-error">Barcode is required</span>

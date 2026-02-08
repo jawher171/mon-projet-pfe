@@ -5,7 +5,7 @@
         <img src="/Poulina.png" alt="logo" class="logo-img" />
         <h1 class="logo-text">Inventory Pro</h1>
       </div>
-      <p class="welcome-text">Welcome back! Please login to your account.</p>
+      <p class="welcome-text">Bienvenue ! Veuillez vous connecter à votre compte.</p>
     </div>
 
     <form class="login-form" (ngSubmit)="onSubmit()">
@@ -19,12 +19,12 @@
       <div class="form-group">
         <label class="form-label">
           <span class="material-icons label-icon">email</span>
-          Email Address
+          Adresse e-mail
         </label>
         <input
           type="email"
           class="form-input"
-          placeholder="Enter your email"
+          placeholder="Entrez votre email"
           [value]="email()"
           (input)="onEmailChange($event)"
           required
@@ -34,13 +34,13 @@
       <div class="form-group">
         <label class="form-label">
           <span class="material-icons label-icon">lock</span>
-          Password
+          Mot de passe
         </label>
         <div class="password-input-wrapper">
           <input
             [type]="showPassword() ? 'text' : 'password'"
             class="form-input"
-            placeholder="Enter your password"
+            placeholder="Entrez votre mot de passe"
             [value]="password()"
             (input)="onPasswordChange($event)"
             required
@@ -60,17 +60,17 @@
       <div class="form-options">
         <label class="checkbox-label">
           <input type="checkbox" class="checkbox">
-          <span>Remember me</span>
+          <span>Se souvenir de moi</span>
         </label>
-        <a href="#" class="forgot-link">Forgot password?</a>
+        <a href="#" class="forgot-link">Mot de passe oublié ?</a>
       </div>
 
       <button type="submit" class="btn-login" [disabled]="isLoading()">
         @if (isLoading()) {
           <span class="spinner"></span>
-          <span>Logging in...</span>
+          <span>Connexion en cours...</span>
         } @else {
-          <span>Login</span>
+          <span>Connexion</span>
           <span class="material-icons">arrow_forward</span>
         }
       </button>

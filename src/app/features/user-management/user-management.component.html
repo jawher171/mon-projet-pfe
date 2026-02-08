@@ -1,8 +1,8 @@
 <div class="user-management-container">
   <div class="management-header">
     <div class="header-title">
-      <h1>User Management</h1>
-      <p>Manage application users and their roles</p>
+      <h1>Gestion des Utilisateurs</h1>
+      <p>Gérer les utilisateurs de l'application et leurs rôles</p>
     </div>
     <div class="header-actions">
       <button type="button" class="btn-outline" (click)="openAddRoleModal()">
@@ -11,7 +11,7 @@
       </button>
       <button type="button" class="btn-add" (click)="openForm()">
         <span class="material-icons">add</span>
-        Add New User
+        Ajouter un nouvel utilisateur
       </button>
     </div>
   </div>
@@ -21,7 +21,7 @@
       <span class="material-icons">search</span>
       <input 
         type="text" 
-        placeholder="Search by name or email..." 
+        placeholder="Rechercher par nom ou email..." 
         [(ngModel)]="searchTerm"
         class="search-input"
       >
@@ -33,7 +33,7 @@
     <div class="modal-overlay" (click)="closeForm()">
       <div class="modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h2>{{ isEditing() ? 'Edit User' : 'Add New User' }}</h2>
+          <h2>{{ isEditing() ? 'Modifier l\'utilisateur' : 'Ajouter un nouvel utilisateur' }}</h2>
           <button class="close-btn" (click)="closeForm()">
             <span class="material-icons">close</span>
           </button>
@@ -41,7 +41,7 @@
 
         <form class="user-form">
           <div class="form-group">
-            <label>First Name *</label>
+            <label>Prénom *</label>
             <input 
               type="text" 
               [(ngModel)]="formData.firstName" 
@@ -52,7 +52,7 @@
           </div>
 
           <div class="form-group">
-            <label>Last Name *</label>
+            <label>Nom *</label>
             <input 
               type="text" 
               [(ngModel)]="formData.lastName" 
@@ -73,7 +73,7 @@
             >
           </div>
           <div class="form-group">
-            <label>password *</label>
+            <label>Mot de passe *</label>
             <input 
               type="password" 
               name="password"
@@ -84,7 +84,7 @@
 
 
           <div class="form-group">
-            <label>Role</label>
+            <label>Rôle</label>
             <select [(ngModel)]="formData.role" name="role" class="form-select">
               @for (role of roles(); track role.value) {
                 <option [value]="role.value">{{ role.label }}</option>
@@ -93,19 +93,19 @@
           </div>
 
           <div class="form-group">
-            <label>Status</label>
+            <label>Statut</label>
             <select [(ngModel)]="formData.status" name="status" class="form-select">
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="active">Actif</option>
+              <option value="inactive">Inactif</option>
             </select>
           </div>
 
           <div class="form-actions">
             <button type="button" class="btn-cancel" (click)="closeForm()">
-              Cancel
+              Annuler
             </button>
             <button type="button" class="btn-save" (click)="saveUser()">
-              {{ isEditing() ? 'Update' : 'Create' }} User
+              {{ isEditing() ? 'Mettre à jour' : 'Créer' }} l'utilisateur
             </button>
           </div>
         </form>
@@ -119,12 +119,12 @@
       <table class="users-table">
         <thead>
           <tr>
-            <th>Name</th>
+            <th>Nom</th>
             <th>Email</th>
-            <th>Role</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Last Login</th>
+            <th>Rôle</th>
+            <th>Statut</th>
+            <th>Créé</th>
+            <th>Dernière connexion</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -140,11 +140,11 @@
               </td>
               <td>
                 <span class="status-badge" [class.active]="user.status === 'active'" [class.inactive]="user.status === 'inactive'">
-                  {{ user.status | titlecase }}
+                  {{ user.status === 'active' ? 'Actif' : 'Inactif' }}
                 </span>
               </td>
               <td>{{ user.createdAt | date: 'short' }}</td>
-              <td>{{ (user.lastLogin | date: 'short') || 'Never' }}</td>
+              <td>{{ (user.lastLogin | date: 'short') || 'Jamais' }}</td>
               <td>
                 <div class="actions">
                   <button class="btn-icon edit" title="Edit" (click)="openForm(user)">
@@ -165,7 +165,7 @@
     } @else {
       <div class="empty-state">
         <span class="material-icons">people</span>
-        <p>No users found</p>
+        <p>Aucun utilisateur trouvé</p>
       </div>
     }
   </div>

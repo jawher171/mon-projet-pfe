@@ -1,7 +1,7 @@
 <div class="members-container">
   <div class="members-header">
-    <h2>Team Members Management</h2>
-    <button class="btn-add-member" (click)="openAddMemberDialog()">+ Add Member</button>
+    <h2>Gestion des Équipe</h2>
+    <button class="btn-add-member" (click)="openAddMemberDialog()">+ Ajouter un membre</button>
   </div>
 
   <!-- Statistics Cards -->
@@ -10,28 +10,28 @@
       <div class="stat-icon" style="background-color: #f3f3f3;">👥</div>
       <div class="stat-content">
         <div class="stat-value">{{ stats().total }}</div>
-        <div class="stat-label">Total Members</div>
+        <div class="stat-label">Total des membres</div>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon" style="background-color: #f44336; color: white;">⚙️</div>
       <div class="stat-content">
         <div class="stat-value">{{ stats().admins }}</div>
-        <div class="stat-label">Administrators</div>
+        <div class="stat-label">Administrateurs</div>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon" style="background-color: #2196f3; color: white;">📦</div>
       <div class="stat-content">
         <div class="stat-value">{{ stats().stockManagers }}</div>
-        <div class="stat-label">Stock Managers</div>
+        <div class="stat-label">Gestionnaires de stock</div>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon" style="background-color: #4caf50; color: white;">🔨</div>
       <div class="stat-content">
         <div class="stat-value">{{ stats().operators }}</div>
-        <div class="stat-label">Operators</div>
+        <div class="stat-label">Opérateurs</div>
       </div>
     </div>
   </div>
@@ -41,11 +41,11 @@
     <table>
       <thead>
         <tr>
-          <th>Name</th>
+          <th>Nom</th>
           <th>Email</th>
-          <th>Role</th>
-          <th>Status</th>
-          <th>Last Login</th>
+          <th>Rôle</th>
+          <th>Statut</th>
+          <th>Dernière connexion</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -68,16 +68,16 @@
           </td>
           <td>
             <span class="status-badge" [class.active]="member.status === 'active'" [class.inactive]="member.status === 'inactive'">
-              {{ member.status | titlecase }}
+              {{ member.status === 'active' ? 'Actif' : 'Inactif' }}
             </span>
           </td>
-          <td>{{ (member.lastLogin | date: 'short') || 'Never' }}</td>
+          <td>{{ (member.lastLogin | date: 'short') || 'Jamais' }}</td>
           <td>
             <div class="actions">
-              <button class="btn-icon" title="Edit" (click)="editMember(member)">✎</button>
-              <button class="btn-icon" title="Change Role" (click)="openRoleDialog(member)">🔄</button>
-              <button class="btn-icon" title="Toggle Status" (click)="toggleStatus(member)">👁️</button>
-              <button class="btn-icon delete" title="Delete" (click)="deleteMember(member)">🗑️</button>
+              <button class="btn-icon" title="Modifier" (click)="editMember(member)">✎</button>
+              <button class="btn-icon" title="Changer le rôle" (click)="openRoleDialog(member)">🔄</button>
+              <button class="btn-icon" title="Basculer le statut" (click)="toggleStatus(member)">👁️</button>
+              <button class="btn-icon delete" title="Supprimer" (click)="deleteMember(member)">🗑️</button>
             </div>
           </td>
         </tr>

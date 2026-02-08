@@ -74,8 +74,8 @@ export class MainLayoutComponent {
 
   /** User dropdown menu items */
   userMenuItems = [
-    { icon: 'person', label: 'Profile', action: () => this.navigateTo('/profile') },
-    { icon: 'logout', label: 'Logout', action: () => this.logout() }
+    { icon: 'person', label: 'Profil', action: () => this.navigateTo('/profile') },
+    { icon: 'logout', label: 'Déconnexion', action: () => this.logout() }
   ];
 
   constructor(
