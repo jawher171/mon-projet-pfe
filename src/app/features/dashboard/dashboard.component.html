@@ -92,16 +92,16 @@
       <div class="card-body">
         <div class="alerts-list">
           @for (alert of criticalAlerts(); track alert.id) {
-            <div class="alert-item" [class]="alert.severity">
+            <div class="alert-item" [class]="getSeverityForAlert(alert)">
               <div class="alert-icon">
                 <span class="material-icons">{{ getAlertIcon(alert.type) }}</span>
               </div>
               <div class="alert-content">
-                <p class="alert-title">{{ alert.title }}</p>
+                <p class="alert-title">{{ alert.type }}</p>
                 <p class="alert-message">{{ alert.message }}</p>
               </div>
-              <span class="alert-badge" [class]="alert.severity">
-                {{ severityConfig[alert.severity].label }}
+              <span class="alert-badge" [class]="getSeverityForAlert(alert)">
+                {{ severityConfig[getSeverityForAlert(alert)]?.label || alert.type }}
               </span>
             </div>
           } @empty {

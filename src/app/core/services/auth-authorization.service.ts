@@ -1,21 +1,22 @@
 /**
  * Authorization Service
  * Manages role-based access control, permissions, and user management.
- * Allows admins to create members, assign roles, and manage permissions.
+ * Uses RolesService for roles (synced from backend when available).
  */
 
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, inject, computed, signal } from '@angular/core';
 import { User } from '../models/user.model';
 import { UserRole, Permission, ROLES, Role } from '../models/role.model';
+import { RolesService } from './roles.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthorizationService {
-  /** Reactive roles signal - source of truth for permissions */
-  rolesSignal = signal<Record<string, Role>>(
-    JSON.parse(JSON.stringify(ROLES))
-  );
+  private rolesService = inject(RolesService);
+
+  /** Reactive roles - from RolesService (backend) or local ROLES default */
+  rolesSignal = this.rolesService.roles;
 
   /** List of all system members */
   private membersSignal = signal<User[]>(this.getMockMembers());
@@ -50,11 +51,10 @@ export class AuthorizationService {
    * @param member User data without auto-generated fields
    * @returns Created user object
    */
-  addMember(member: Omit<User, 'id' | 'createdAt' | 'lastLogin'>): User {
+  addMember(member: Omit<User, 'id' | 'lastLogin'>): User {
     const newMember: User = {
       ...member,
-      id: this.generateId(),
-      createdAt: new Date()
+      id: this.generateId()
     };
 
     this.membersSignal.update(members => [...members, newMember]);
@@ -158,18 +158,15 @@ export class AuthorizationService {
   }
 
   /**
-   * Update permissions for a role
+   * Update permissions for a role (persists to backend via RolesService)
    * @param roleName Role to update
    * @param permissions New permissions array
    */
-  updateRolePermissions(roleName: UserRole, permissions: Permission[]): void {
-    this.rolesSignal.update(roles => {
-      const updated = { ...roles };
-      if (updated[roleName]) {
-        updated[roleName] = { ...updated[roleName], permissions: [...permissions] };
-      }
-      return updated;
-    });
+  async updateRolePermissions(roleName: UserRole, permissions: Permission[]): Promise<void> {
+    const ok = await this.rolesService.updateRolePermissions(roleName, permissions);
+    if (!ok) {
+      throw new Error('Failed to update role permissions');
+    }
   }
 
   /**
@@ -222,70 +219,11 @@ export class AuthorizationService {
 
   private getMockMembers(): User[] {
     return [
-      {
-        id: 'user_001',
-        email: 'admin@inventaire.ma',
-        firstName: 'Ahmed',
-        lastName: 'Admin',
-        role: 'admin',
-        avatar: 'https://i.pravatar.cc/150?img=1',
-        department: 'Management',
-        phone: '+212 661 123 456',
-        status: 'active',
-        createdAt: new Date('2024-01-01'),
-        lastLogin: new Date()
-      },
-      {
-        id: 'user_002',
-        email: 'stock@inventaire.ma',
-        firstName: 'Fatima',
-        lastName: 'Zahra',
-        role: 'gestionnaire_de_stock',
-        avatar: 'https://i.pravatar.cc/150?img=2',
-        department: 'Warehouse',
-        phone: '+212 661 234 567',
-        status: 'active',
-        createdAt: new Date('2024-02-01'),
-        lastLogin: new Date('2026-01-30')
-      },
-      {
-        id: 'user_003',
-        email: 'operator@inventaire.ma',
-        firstName: 'Mohammed',
-        lastName: 'Salah',
-        role: 'operateur',
-        avatar: 'https://i.pravatar.cc/150?img=3',
-        department: 'Warehouse',
-        phone: '+212 661 345 678',
-        status: 'active',
-        createdAt: new Date('2024-03-01'),
-        lastLogin: new Date('2026-01-29')
-      },
-      {
-        id: 'user_004',
-        email: 'stock2@inventaire.ma',
-        firstName: 'Youssef',
-        lastName: 'Amrani',
-        role: 'gestionnaire_de_stock',
-        avatar: 'https://i.pravatar.cc/150?img=4',
-        department: 'Warehouse',
-        phone: '+212 661 456 789',
-        status: 'active',
-        createdAt: new Date('2024-04-01'),
-        lastLogin: new Date('2026-01-28')
-      },
-      {
-        id: 'user_005',
-        email: 'operator2@inventaire.ma',
-        firstName: 'Leila',
-        lastName: 'Khaldi',
-        role: 'operateur',
-        avatar: 'https://i.pravatar.cc/150?img=5',
-        department: 'Warehouse',
-        phone: '+212 661 567 890',
-        status: 'inactive',
-        createdAt: new Date('2024-05-01')
-      }
+      { id: 'user_001', email: 'admin@inventaire.ma', nom: 'Admin', prenom: 'Ahmed', role: 'admin', status: 'active', lastLogin: new Date() },
+      { id: 'user_002', email: 'stock@inventaire.ma', nom: 'Zahra', prenom: 'Fatima', role: 'gestionnaire_de_stock', status: 'active', lastLogin: new Date() },
+      { id: 'user_003', email: 'operator@inventaire.ma', nom: 'Salah', prenom: 'Mohammed', role: 'operateur', status: 'active', lastLogin: new Date() },
+      { id: 'user_004', email: 'stock2@inventaire.ma', nom: 'Amrani', prenom: 'Youssef', role: 'gestionnaire_de_stock', status: 'active', lastLogin: new Date() },
+      { id: 'user_005', email: 'operator2@inventaire.ma', nom: 'Khaldi', prenom: 'Leila', role: 'operateur', status: 'inactive', lastLogin: new Date() }
     ];
   }
 }

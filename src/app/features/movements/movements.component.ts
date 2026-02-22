@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MovementService } from '../../core/services/movement.service';
 import { SiteService } from '../../core/services/site.service';
-import { StockMovement, MovementFilter, MovementReason } from '../../core/models/movement.model';
+import { MouvementStock, MouvementFilter, MovementReason } from '../../core/models/movement.model';
 
 @Component({
   selector: 'app-movements',
@@ -40,7 +40,7 @@ export class MovementsComponent {
   modalMode = signal<'add' | 'view'>('add');
   
   /** Currently selected movement */
-  selectedMovement = signal<StockMovement | null>(null);
+  selectedMovement = signal<MouvementStock | null>(null);
   
   /** Type for new movement */
   movementType = signal<'entry' | 'exit'>('entry');
@@ -70,7 +70,7 @@ export class MovementsComponent {
   // Get data from services
   sites = computed(() => this.siteService.getActiveSites()());
   
-  filter = computed<MovementFilter>(() => ({
+  filter = computed<MouvementFilter>(() => ({
     search: this.searchTerm(),
     type: this.selectedType() === 'all' ? undefined : this.selectedType(),
     siteId: this.selectedSite() || undefined,
@@ -118,7 +118,7 @@ export class MovementsComponent {
     this.showModal.set(true);
   }
 
-  openViewModal(movement: StockMovement) {
+  openViewModal(movement: MouvementStock) {
     this.modalMode.set('view');
     this.selectedMovement.set(movement);
     this.showModal.set(true);
@@ -186,20 +186,16 @@ export class MovementsComponent {
       : previousStock - form.quantity;
 
     this.movementService.addMovement({
-      type: this.movementType(),
-      reason: form.reason as MovementReason,
+      dateMouvement: new Date(),
+      raison: form.reason as MovementReason,
+      quantite: form.quantity,
+      note: form.notes || undefined,
+      produitNom: form.productName,
+      siteNom: site?.nom || '',
       productId: productId,
-      productName: form.productName,
-      quantity: form.quantity,
-      previousStock: previousStock,
-      newStock: newStock,
       siteId: form.siteId,
-      siteName: site?.name || '',
-      reference: form.reference,
-      barcode: form.barcode,
-      notes: form.notes,
-      performedBy: 'Current User',
-      performedAt: new Date()
+      type: this.movementType(),
+      utilisateurNom: 'Utilisateur courant'
     });
 
     this.closeModal();

@@ -1,0 +1,54 @@
+using Application.Dtos;
+using AutoMapper;
+using Domain.Models;
+
+namespace Application.Mapping
+{
+    /// <summary>
+    /// AutoMapper profile: defines how Domain entities map to/from DTOs for API requests/responses.
+    /// </summary>
+    public class AppMappingProfile : Profile
+    {
+        public AppMappingProfile()
+        {
+            // Category: simple 1:1 mapping
+            CreateMap<Category, CategoryDto>();
+            CreateMap<CategoryDto, Category>();
+
+            // Product: map navigation Categorie.Libelle to CategorieLibelle in DTO
+            CreateMap<Product, ProductDto>()
+                .ForMember(d => d.CategorieLibelle, o => o.MapFrom(s => s.Categorie != null ? s.Categorie.Libelle : null));
+            CreateMap<ProductDto, Product>();
+
+            // Site: simple 1:1 mapping
+            CreateMap<Site, SiteDto>();
+            CreateMap<SiteDto, Site>();
+
+            // Alert: simple 1:1 mapping
+            CreateMap<Alert, AlertDto>();
+            CreateMap<AlertDto, Alert>();
+
+            // Stock: add ProduitNom and SiteNom from related entities
+            CreateMap<Stock, StockDto>()
+                .ForMember(d => d.ProduitNom, o => o.MapFrom(s => s.Produit != null ? s.Produit.Nom : null))
+                .ForMember(d => d.SiteNom, o => o.MapFrom(s => s.Site != null ? s.Site.Nom : null));
+            CreateMap<StockDto, Stock>();
+
+            // StockMovement: simple 1:1 mapping
+            CreateMap<StockMovement, StockMovementDto>();
+            CreateMap<StockMovementDto, StockMovement>();
+
+            // User: custom mappings (Id_u→Id string, bool Status→"active"/"inactive", Role.Nom→Role)
+            CreateMap<User, UserDto>()
+                .ForMember(d => d.Id, o => o.MapFrom(s => s.Id_u.ToString()))
+                .ForMember(d => d.Role, o => o.MapFrom(s => s.Role != null ? s.Role.Nom : string.Empty))
+                .ForMember(d => d.Status, o => o.MapFrom(s => s.Status ? "active" : "inactive"));
+            // UserDto→User: ignore password, Role and collections (set separately)
+            CreateMap<UserDto, User>()
+                .ForMember(d => d.Id_u, o => o.MapFrom(s => Guid.TryParse(s.Id, out var g) ? g : Guid.Empty))
+                .ForMember(d => d.MotDePasse, o => o.Ignore())
+                .ForMember(d => d.Role, o => o.Ignore())
+                .ForMember(d => d.MouvementsStock, o => o.Ignore());
+        }
+    }
+}

@@ -97,6 +97,22 @@
   }
 }
 
+.demo-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #e3f2fd;
+  border-radius: 8px;
+  color: #1565c0;
+  font-size: 0.8125rem;
+  margin-bottom: 1rem;
+
+  .material-icons {
+    font-size: 1.125rem;
+  }
+}
+
 .form-group {
   display: flex;
   flex-direction: column;

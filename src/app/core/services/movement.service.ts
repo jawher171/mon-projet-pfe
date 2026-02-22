@@ -5,14 +5,14 @@
  */
 
 import { Injectable, signal, computed } from '@angular/core';
-import { StockMovement, MovementFilter, MovementSummary, MovementReason, MOVEMENT_REASONS } from '../models/movement.model';
+import { MouvementStock, MouvementFilter, MovementSummary, MovementReason, MOVEMENT_REASONS } from '../models/movement.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MovementService {
   /** All stock movements */
-  private movementsSignal = signal<StockMovement[]>([]);
+  private movementsSignal = signal<MouvementStock[]>([]);
   
   /** Custom reasons added by users */
   private customReasonsSignal = signal<{ value: string; label: string; type: 'entry' | 'exit' }[]>([]);
@@ -31,15 +31,14 @@ export class MovementService {
    * @param filter Movement filter criteria
    * @returns Computed signal of filtered and sorted movements
    */
-  getFilteredMovements(filter: MovementFilter) {
+  getFilteredMovements(filter: MouvementFilter) {
     return computed(() => {
       let movements = this.movementsSignal();
 
       if (filter.search) {
         const search = filter.search.toLowerCase();
         movements = movements.filter(m =>
-          m.movementNumber.toLowerCase().includes(search) ||
-          m.productName.toLowerCase().includes(search)
+          (m.produitNom ?? m.raison ?? '').toLowerCase().includes(search)
         );
       }
 
@@ -47,8 +46,8 @@ export class MovementService {
         movements = movements.filter(m => m.type === filter.type);
       }
 
-      if (filter.reason) {
-        movements = movements.filter(m => m.reason === filter.reason);
+      if (filter.raison) {
+        movements = movements.filter(m => m.raison === filter.raison);
       }
 
       if (filter.siteId) {
@@ -59,16 +58,17 @@ export class MovementService {
         movements = movements.filter(m => m.productId === filter.productId);
       }
 
+      const getDate = (m: MouvementStock) => m.dateMouvement ?? 0;
       if (filter.startDate) {
-        movements = movements.filter(m => new Date(m.performedAt) >= filter.startDate!);
+        movements = movements.filter(m => new Date(getDate(m)).getTime() >= filter.startDate!.getTime());
       }
 
       if (filter.endDate) {
-        movements = movements.filter(m => new Date(m.performedAt) <= filter.endDate!);
+        movements = movements.filter(m => new Date(getDate(m)).getTime() <= filter.endDate!.getTime());
       }
 
       return movements.sort((a, b) => 
-        new Date(b.performedAt).getTime() - new Date(a.performedAt).getTime()
+        new Date(getDate(b)).getTime() - new Date(getDate(a)).getTime()
       );
     });
   }
@@ -78,7 +78,7 @@ export class MovementService {
    * @param id Movement identifier
    * @returns Movement object or undefined if not found
    */
-  getMovementById(id: string): StockMovement | undefined {
+  getMovementById(id: string): MouvementStock | undefined {
     return this.movementsSignal().find(m => m.id === id);
   }
 
@@ -87,13 +87,11 @@ export class MovementService {
    * @param movement Movement data without auto-generated fields
    * @returns Created movement object
    */
-  addMovement(movement: Omit<StockMovement, 'id' | 'movementNumber' | 'createdAt' | 'updatedAt'>): StockMovement {
-    const newMovement: StockMovement = {
+  addMovement(movement: Omit<MouvementStock, 'id'>): MouvementStock {
+    const newMovement: MouvementStock = {
       ...movement,
       id: this.generateId(),
-      movementNumber: this.generateMovementNumber(movement.type),
-      createdAt: new Date(),
-      updatedAt: new Date()
+      type: movement.type ?? 'entry'
     };
 
     this.movementsSignal.update(movements => [newMovement, ...movements]);
@@ -106,7 +104,7 @@ export class MovementService {
    * @param updates Partial movement data to update
    * @returns true if successful, false if movement not found
    */
-  updateMovement(id: string, updates: Partial<StockMovement>): boolean {
+  updateMovement(id: string, updates: Partial<MouvementStock>): boolean {
     const index = this.movementsSignal().findIndex(m => m.id === id);
     if (index === -1) return false;
 
@@ -117,7 +115,7 @@ export class MovementService {
    * @param id Movement identifier
    * @returns true if successful, false if movement not found
    */
-      updated[index] = { ...updated[index], ...updates, updatedAt: new Date() };
+      updated[index] = { ...updated[index], ...updates };
       return updated;
     });
     return true;
@@ -143,29 +141,32 @@ export class MovementService {
     let movements = this.movementsSignal();
 
     if (siteId) {
-      movements = movements.filter(m => m.siteId === siteId);
+      movements = movements.filter(m => String(m.siteId) === String(siteId));
     }
 
+    const getDate = (m: MouvementStock) => m.dateMouvement ?? 0;
     if (startDate) {
-      movements = movements.filter(m => new Date(m.performedAt) >= startDate);
+      movements = movements.filter(m => new Date(getDate(m)).getTime() >= startDate.getTime());
     }
 
     if (endDate) {
-      movements = movements.filter(m => new Date(m.performedAt) <= endDate);
+      movements = movements.filter(m => new Date(getDate(m)).getTime() <= endDate.getTime());
     }
 
-    const entries = movements.filter(m => m.type === 'entry');
+    const entries = movements.filter(m => (m.type ?? 'entry') === 'entry');
     const exits = movements.filter(m => m.type === 'exit');
 
     const productMap = new Map<string, { productName: string; entries: number; exits: number }>();
     movements.forEach(m => {
-      const existing = productMap.get(m.productId) || { productName: m.productName, entries: 0, exits: 0 };
-      if (m.type === 'entry') {
-        existing.entries += m.quantity;
+      const pid = String(m.productId ?? '');
+      const existing = productMap.get(pid) || { productName: m.produitNom ?? '', entries: 0, exits: 0 };
+      const qty = m.quantite ?? 0;
+      if (m.type === 'exit') {
+        existing.exits += qty;
       } else {
-        existing.exits += m.quantity;
+        existing.entries += qty;
       }
-      productMap.set(m.productId, existing);
+      productMap.set(String(pid), existing);
     });
 
     const topMovingProducts = Array.from(productMap.entries())
@@ -191,9 +192,9 @@ export class MovementService {
    */
       totalEntries: entries.length,
       totalExits: exits.length,
-      entriesQuantity: entries.reduce((sum, m) => sum + m.quantity, 0),
-      exitsQuantity: exits.reduce((sum, m) => sum + m.quantity, 0),
-      netChange: entries.reduce((sum, m) => sum + m.quantity, 0) - exits.reduce((sum, m) => sum + m.quantity, 0),
+      entriesQuantity: entries.reduce((sum, m) => sum + (m.quantite ?? 0), 0),
+      exitsQuantity: exits.reduce((sum, m) => sum + (m.quantite ?? 0), 0),
+      netChange: entries.reduce((sum, m) => sum + (m.quantite ?? 0), 0) - exits.reduce((sum, m) => sum + (m.quantite ?? 0), 0),
       topMovingProducts
     };
   }
@@ -245,13 +246,12 @@ export class MovementService {
    */
   getCurrentStock(productId: string, siteId: string): number {
     const movements = this.movementsSignal().filter(
-      m => m.productId === productId && m.siteId === siteId
+      m => String(m.productId) === String(productId) && String(m.siteId) === String(siteId)
     );
 
     return movements.reduce((total, movement) => {
-      return movement.type === 'entry' 
-        ? total + movement.quantity 
-        : total - movement.quantity;
+      const qty = movement.quantite ?? 0;
+      return (movement.type ?? 'entry') === 'entry' ? total + qty : total - qty;
     }, 0);
   }
 
@@ -261,12 +261,11 @@ export class MovementService {
    * @returns Total stock quantity
    */
   getTotalStock(productId: string): number {
-    const movements = this.movementsSignal().filter(m => m.productId === productId);
+    const movements = this.movementsSignal().filter(m => String(m.productId) === String(productId));
 
     return movements.reduce((total, movement) => {
-      return movement.type === 'entry' 
-        ? total + movement.quantity 
-        : total - movement.quantity;
+      const qty = movement.quantite ?? 0;
+      return (movement.type ?? 'entry') === 'entry' ? total + qty : total - qty;
     }, 0);
   }
 
@@ -276,15 +275,15 @@ export class MovementService {
    * @returns Array of stock by site
    */
   getStockBySite(productId: string): { siteId: string; siteName: string; quantity: number }[] {
-    const movements = this.movementsSignal().filter(m => m.productId === productId);
+    const movements = this.movementsSignal().filter(m => String(m.productId) === String(productId));
     const siteMap = new Map<string, { siteName: string; quantity: number }>();
 
     movements.forEach(movement => {
-      const existing = siteMap.get(movement.siteId) || { siteName: movement.siteName, quantity: 0 };
-      existing.quantity = movement.type === 'entry' 
-        ? existing.quantity + movement.quantity 
-        : existing.quantity - movement.quantity;
-      siteMap.set(movement.siteId, existing);
+      const sid = String(movement.siteId ?? '');
+      const existing = siteMap.get(sid) || { siteName: movement.siteNom ?? '', quantity: 0 };
+      const qty = movement.quantite ?? 0;
+      existing.quantity = (movement.type ?? 'entry') === 'entry' ? existing.quantity + qty : existing.quantity - qty;
+      siteMap.set(sid, existing);
     });
 
     return Array.from(siteMap.entries()).map(([siteId, data]) => ({

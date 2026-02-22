@@ -1,22 +1,17 @@
 /**
- * User Model
- * Represents application users with authentication and role information.
- * Supports different user roles: admin, gestionnaire_de_stock, and operateur.
+ * Utilisateur - Diagram: nom, prenom, email, motDePasse, status
  */
+import type { UserRole } from './role.model';
+import type { Permission } from './role.model';
 
-import { UserRole } from './role.model';
-
-/** User interface - application user profile */
 export interface User {
-  id: string;
+  id: string | number;
+  nom: string;
+  prenom: string;
   email: string;
-  firstName: string;
-  lastName: string;
   role: UserRole;
-  avatar?: string;
-  department?: string;
-  phone?: string;
   status: 'active' | 'inactive';
-  createdAt: Date;
   lastLogin?: Date;
+  /** Permissions from API (when using backend auth) */
+  permissions?: string[];
 }

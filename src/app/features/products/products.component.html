@@ -61,8 +61,8 @@
       @for (product of filteredProducts(); track product.id) {
         <div class="product-card">
           <div class="product-image">
-            @if (product.imageUrl) {
-              <img [src]="product.imageUrl" [alt]="product.name">
+            @if (getProductImage(product)) {
+              <img [src]="getProductImage(product)" [alt]="product.nom">
             } @else {
               <div class="image-placeholder">
                 <span class="material-icons">image</span>
@@ -72,7 +72,7 @@
 
           <div class="product-info">
             <div class="product-header">
-              <h3 class="product-name">{{ product.name }}</h3>
+              <h3 class="product-name">{{ product.nom }}</h3>
             </div>
 
             <p class="product-description">{{ product.description }}</p>
@@ -80,14 +80,14 @@
             <div class="product-meta">
               <div class="meta-item">
                 <span class="material-icons meta-icon">category</span>
-                <span>{{ product.category }}</span>
+                <span>{{ product.categorieLibelle }}</span>
               </div>
             </div>
 
             <div class="product-footer">
               <div class="product-price">
                 <span class="price-label">Prix:</span>
-                <span class="price-value">${{ product.price.toFixed(2) }}</span>
+                <span class="price-value">{{ product.prix.toFixed(2) }} DH</span>
               </div>
 
               <div class="product-actions">
@@ -126,45 +126,42 @@
           <div class="form-grid">
             <!-- Product Name -->
             <div class="form-group full-width">
-              <label for="name" class="form-label">Nom du produit *</label>
+              <label for="nom" class="form-label">Nom du produit *</label>
               <input 
                 type="text" 
-                id="name" 
-                formControlName="name" 
+                id="nom" 
+                formControlName="nom" 
                 class="form-input"
                 placeholder="Entrez le nom du produit"
               >
-              @if (productForm.get('name')?.touched && productForm.get('name')?.errors?.['required']) {
+              @if (productForm.get('nom')?.touched && productForm.get('nom')?.errors?.['required']) {
                 <span class="form-error">Le nom du produit est requis</span>
               }
             </div>
 
-             <!-- Barcode -->
+            <!-- Barcode -->
             <div class="form-group">
-              <label for="barcode" class="form-label">Code-barres *</label>
+              <label for="codeBarre" class="form-label">Code-barres</label>
               <input 
                 type="text" 
-                id="barcode" 
-                formControlName="barcode" 
+                id="codeBarre" 
+                formControlName="codeBarre" 
                 class="form-input"
                 placeholder="Code-barres du produit"
               >
-              @if (productForm.get('barcode')?.touched && productForm.get('barcode')?.errors?.['required']) {
-                <span class="form-error">Barcode is required</span>
-              }
             </div>
 
             <!-- Category -->
             <div class="form-group">
-              <label for="categoryId" class="form-label">Category *</label>
-              <select id="categoryId" formControlName="categoryId" class="form-select">
-                <option value="">Select category</option>
+              <label for="categorieId" class="form-label">Catégorie *</label>
+              <select id="categorieId" formControlName="categorieId" class="form-select">
+                <option [ngValue]="null">Sélectionner une catégorie</option>
                 @for (category of categories(); track category.id) {
-                  <option [value]="category.id">{{ category.name }}</option>
+                  <option [value]="category.id">{{ category.libelle }}</option>
                 }
               </select>
-              @if (productForm.get('categoryId')?.touched && productForm.get('categoryId')?.errors?.['required']) {
-                <span class="form-error">Category is required</span>
+              @if (productForm.get('categorieId')?.touched && productForm.get('categorieId')?.errors?.['required']) {
+                <span class="form-error">La catégorie est requise</span>
               }
             </div>
 
@@ -176,33 +173,21 @@
                 formControlName="description" 
                 class="form-textarea"
                 rows="3"
-                placeholder="Product description"
+                placeholder="Description du produit"
               ></textarea>
             </div>
 
             <!-- Price -->
             <div class="form-group">
-              <label for="price" class="form-label">Price *</label>
+              <label for="prix" class="form-label">Prix (DH) *</label>
               <input 
                 type="number" 
-                id="price" 
-                formControlName="price" 
+                id="prix" 
+                formControlName="prix" 
                 class="form-input"
                 min="0"
                 step="0.01"
                 placeholder="0.00"
-              >
-            </div>
-
-            <!-- Image URL -->
-            <div class="form-group full-width">
-              <label for="imageUrl" class="form-label">Image URL</label>
-              <input 
-                type="url" 
-                id="imageUrl" 
-                formControlName="imageUrl" 
-                class="form-input"
-                placeholder="https://example.com/image.jpg"
               >
             </div>
           </div>

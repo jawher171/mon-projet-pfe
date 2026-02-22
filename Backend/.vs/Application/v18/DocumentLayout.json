@@ -1,0 +1,408 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\domain\\models\\stockmovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|solutionrelative:domain\\models\\stockmovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{76A3D99E-2BF3-4BC0-8DE0-6364A3755FE4}|Data\\Data.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\data\\context\\dbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{76A3D99E-2BF3-4BC0-8DE0-6364A3755FE4}|Data\\Data.csproj|solutionrelative:data\\context\\dbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F92F805F-9F4E-4DF9-A027-D4D6264BB5FF}|Application\\Application.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\application\\controllers\\authentification.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F92F805F-9F4E-4DF9-A027-D4D6264BB5FF}|Application\\Application.csproj|solutionrelative:application\\controllers\\authentification.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{76A3D99E-2BF3-4BC0-8DE0-6364A3755FE4}|Data\\Data.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\data\\migrations\\20260211124455_newdb.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{76A3D99E-2BF3-4BC0-8DE0-6364A3755FE4}|Data\\Data.csproj|solutionrelative:data\\migrations\\20260211124455_newdb.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\domain\\models\\alert.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|solutionrelative:domain\\models\\alert.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F92F805F-9F4E-4DF9-A027-D4D6264BB5FF}|Application\\Application.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\application\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{F92F805F-9F4E-4DF9-A027-D4D6264BB5FF}|Application\\Application.csproj|solutionrelative:application\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\domain\\models\\site.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|solutionrelative:domain\\models\\site.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\domain\\models\\rolepermission.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|solutionrelative:domain\\models\\rolepermission.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\domain\\models\\role.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|solutionrelative:domain\\models\\role.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\domain\\models\\product.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|solutionrelative:domain\\models\\product.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\domain\\models\\permission.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|solutionrelative:domain\\models\\permission.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\domain\\models\\category.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|solutionrelative:domain\\models\\category.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\domain\\models\\stock.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|solutionrelative:domain\\models\\stock.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\domain\\models\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|solutionrelative:domain\\models\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F92F805F-9F4E-4DF9-A027-D4D6264BB5FF}|Application\\Application.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\application\\startup.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F92F805F-9F4E-4DF9-A027-D4D6264BB5FF}|Application\\Application.csproj|solutionrelative:application\\startup.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F92F805F-9F4E-4DF9-A027-D4D6264BB5FF}|Application\\Application.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\application\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F92F805F-9F4E-4DF9-A027-D4D6264BB5FF}|Application\\Application.csproj|solutionrelative:application\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{67CBB9FF-48F2-4BCF-9D61-83A2EAF21217}|Infra\\Infra.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\infra\\dependencycontainer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{67CBB9FF-48F2-4BCF-9D61-83A2EAF21217}|Infra\\Infra.csproj|solutionrelative:infra\\dependencycontainer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\domain\\commands\\putgenericcommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|solutionrelative:domain\\commands\\putgenericcommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F92F805F-9F4E-4DF9-A027-D4D6264BB5FF}|Application\\Application.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\application\\controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F92F805F-9F4E-4DF9-A027-D4D6264BB5FF}|Application\\Application.csproj|solutionrelative:application\\controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F92F805F-9F4E-4DF9-A027-D4D6264BB5FF}|Application\\Application.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\application\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{F92F805F-9F4E-4DF9-A027-D4D6264BB5FF}|Application\\Application.csproj|solutionrelative:application\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\domain\\commands\\addgenericcommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|solutionrelative:domain\\commands\\addgenericcommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\domain\\commands\\deletegenericcommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|solutionrelative:domain\\commands\\deletegenericcommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\domain\\handlers\\deletegenerichandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC0E500B-682A-47CE-BD04-D6F970FF1F86}|Domain\\Domain.csproj|solutionrelative:domain\\handlers\\deletegenerichandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F92F805F-9F4E-4DF9-A027-D4D6264BB5FF}|Application\\Application.csproj|c:\\users\\jawher\\downloads\\applications\\applications\\application\\weatherforecast.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F92F805F-9F4E-4DF9-A027-D4D6264BB5FF}|Application\\Application.csproj|solutionrelative:application\\weatherforecast.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "User.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\User.cs",
+              "RelativeDocumentMoniker": "Domain\\Models\\User.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\User.cs",
+              "RelativeToolTip": "Domain\\Models\\User.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAA8AAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:13:07.219Z",
+              "IsPinned": true
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "DBContext.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Data\\Context\\DBContext.cs",
+              "RelativeDocumentMoniker": "Data\\Context\\DBContext.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Data\\Context\\DBContext.cs",
+              "RelativeToolTip": "Data\\Context\\DBContext.cs",
+              "ViewState": "AgIAABAAAAAAAAAAAAAkwFkAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:05:38.789Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "StockMovement.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\StockMovement.cs",
+              "RelativeDocumentMoniker": "Domain\\Models\\StockMovement.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\StockMovement.cs",
+              "RelativeToolTip": "Domain\\Models\\StockMovement.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:16:17.775Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Authentification.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Application\\Controllers\\Authentification.cs",
+              "RelativeDocumentMoniker": "Application\\Controllers\\Authentification.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Application\\Controllers\\Authentification.cs",
+              "RelativeToolTip": "Application\\Controllers\\Authentification.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T12:51:51.21Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Product.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\Product.cs",
+              "RelativeDocumentMoniker": "Domain\\Models\\Product.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\Product.cs",
+              "RelativeToolTip": "Domain\\Models\\Product.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAuwA0AAAAmAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:38:04.009Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Role.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\Role.cs",
+              "RelativeDocumentMoniker": "Domain\\Models\\Role.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\Role.cs",
+              "RelativeToolTip": "Domain\\Models\\Role.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAgAAAAoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:35:00.553Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Alert.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\Alert.cs",
+              "RelativeDocumentMoniker": "Domain\\Models\\Alert.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\Alert.cs",
+              "RelativeToolTip": "Domain\\Models\\Alert.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAA0AAAAmAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:39:50.658Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "Category.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\Category.cs",
+              "RelativeDocumentMoniker": "Domain\\Models\\Category.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\Category.cs",
+              "RelativeToolTip": "Domain\\Models\\Category.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:39:20.376Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "Permission.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\Permission.cs",
+              "RelativeDocumentMoniker": "Domain\\Models\\Permission.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\Permission.cs",
+              "RelativeToolTip": "Domain\\Models\\Permission.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAgAAAAvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:30:33.847Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "RolePermission.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\RolePermission.cs",
+              "RelativeDocumentMoniker": "Domain\\Models\\RolePermission.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\RolePermission.cs",
+              "RelativeToolTip": "Domain\\Models\\RolePermission.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAoAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:24:55.845Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "20260211124455_newDB.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Data\\Migrations\\20260211124455_newDB.cs",
+              "RelativeDocumentMoniker": "Data\\Migrations\\20260211124455_newDB.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Data\\Migrations\\20260211124455_newDB.cs",
+              "RelativeToolTip": "Data\\Migrations\\20260211124455_newDB.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T12:44:56.876Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Site.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\Site.cs",
+              "RelativeDocumentMoniker": "Domain\\Models\\Site.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\Site.cs",
+              "RelativeToolTip": "Domain\\Models\\Site.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAA3wAgAAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:23:24.973Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Application\\appsettings.json",
+              "RelativeDocumentMoniker": "Application\\appsettings.json",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Application\\appsettings.json",
+              "RelativeToolTip": "Application\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAA9AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-02-11T09:05:38.793Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "Stock.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\Stock.cs",
+              "RelativeDocumentMoniker": "Domain\\Models\\Stock.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Models\\Stock.cs",
+              "RelativeToolTip": "Domain\\Models\\Stock.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAwAAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:17:39.126Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "Startup.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Application\\Startup.cs",
+              "RelativeDocumentMoniker": "Application\\Startup.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Application\\Startup.cs",
+              "RelativeToolTip": "Application\\Startup.cs",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAYwCcAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:05:38.798Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Application\\Program.cs",
+              "RelativeDocumentMoniker": "Application\\Program.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Application\\Program.cs",
+              "RelativeToolTip": "Application\\Program.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAABQAAAA3AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T12:08:25.856Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "DependencyContainer.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Infra\\DependencyContainer.cs",
+              "RelativeDocumentMoniker": "Infra\\DependencyContainer.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Infra\\DependencyContainer.cs",
+              "RelativeToolTip": "Infra\\DependencyContainer.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:05:38.805Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "PutGenericCommand.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Commands\\PutGenericCommand.cs",
+              "RelativeDocumentMoniker": "Domain\\Commands\\PutGenericCommand.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Commands\\PutGenericCommand.cs",
+              "RelativeToolTip": "Domain\\Commands\\PutGenericCommand.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAmAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:05:38.695Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "DeleteGenericHandler.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Handlers\\DeleteGenericHandler.cs",
+              "RelativeDocumentMoniker": "Domain\\Handlers\\DeleteGenericHandler.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Handlers\\DeleteGenericHandler.cs",
+              "RelativeToolTip": "Domain\\Handlers\\DeleteGenericHandler.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAxAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:05:38.765Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "AddGenericCommand.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Commands\\AddGenericCommand.cs",
+              "RelativeDocumentMoniker": "Domain\\Commands\\AddGenericCommand.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Commands\\AddGenericCommand.cs",
+              "RelativeToolTip": "Domain\\Commands\\AddGenericCommand.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:05:38.76Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "DeleteGenericCommand.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Commands\\DeleteGenericCommand.cs",
+              "RelativeDocumentMoniker": "Domain\\Commands\\DeleteGenericCommand.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Domain\\Commands\\DeleteGenericCommand.cs",
+              "RelativeToolTip": "Domain\\Commands\\DeleteGenericCommand.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:05:38.756Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Application\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "Application\\Properties\\launchSettings.json",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Application\\Properties\\launchSettings.json",
+              "RelativeToolTip": "Application\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-02-11T09:05:38.771Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "WeatherForecastController.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Application\\Controllers\\WeatherForecastController.cs",
+              "RelativeDocumentMoniker": "Application\\Controllers\\WeatherForecastController.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Application\\Controllers\\WeatherForecastController.cs",
+              "RelativeToolTip": "Application\\Controllers\\WeatherForecastController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:05:38.776Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "WeatherForecast.cs",
+              "DocumentMoniker": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Application\\WeatherForecast.cs",
+              "RelativeDocumentMoniker": "Application\\WeatherForecast.cs",
+              "ToolTip": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Application\\WeatherForecast.cs",
+              "RelativeToolTip": "Application\\WeatherForecast.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T09:05:38.781Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

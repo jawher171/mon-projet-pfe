@@ -118,7 +118,7 @@
               >
                 <option value="">Sélectionner un site</option>
                 @for (site of sites(); track site.id) {
-                  <option [value]="site.id">{{ site.name }}</option>
+                  <option [value]="site.id">{{ site.nom }}</option>
                 }
               </select>
               
@@ -159,10 +159,10 @@
             <div class="result-content">
               <div class="barcode">{{ scan.barcode }}</div>
               @if (scan.product) {
-                <div class="product-name">{{ scan.product.name }}</div>
+                <div class="product-name">{{ scan.product.nom }}</div>
                 <div class="product-details">
-                  @if (scan.product.sku) {
-                    <span>SKU: {{ scan.product.sku }}</span>
+                  @if (scan.product.codeBarre) {
+                    <span>Code: {{ scan.product.codeBarre }}</span>
                   }
                 </div>
               } @else {
@@ -197,7 +197,7 @@
             <div class="item-content">
               <div class="item-barcode">{{ scan.barcode }}</div>
               <div class="item-product">
-                {{ scan.product?.name || 'Non trouvé' }}
+                {{ scan.product?.nom || 'Non trouvé' }}
               </div>
             </div>
             <div class="item-time">{{ formatTime(scan.timestamp) }}</div>
@@ -230,9 +230,9 @@
             <span class="material-icons">inventory_2</span>
           </div>
           <div class="product-info">
-            <h3>{{ product.name }}</h3>
-            @if (product.sku) {
-              <p>SKU: {{ product.sku }}</p>
+            <h3>{{ product.nom }}</h3>
+            @if (product.codeBarre) {
+              <p>Code-barres: {{ product.codeBarre }}</p>
             }
             <p>Code-barres: {{ lastScan()?.barcode }}</p>
           </div>

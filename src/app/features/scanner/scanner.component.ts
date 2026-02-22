@@ -158,7 +158,7 @@ export class ScannerComponent implements OnInit {
   }
 
   findProductByBarcode(barcode: string): Product | null {
-    return this.products().find(p => p.barcode === barcode) || null;
+    return this.products().find(p => p.codeBarre === barcode) || null;
   }
 
   // Quick actions
@@ -185,7 +185,7 @@ export class ScannerComponent implements OnInit {
     if (!site || !this.selectedReason()) return;
     
     // Calculate current stock from movement history
-    const previousStock = this.movementService.getCurrentStock(scan.product.id, site.id);
+    const previousStock = this.movementService.getCurrentStock(String(scan.product.id), String(site.id));
     
     // Calculate new stock after this movement
     const newStock = mode === 'entry' 
@@ -193,18 +193,15 @@ export class ScannerComponent implements OnInit {
       : previousStock - this.quantity();
     
     this.movementService.addMovement({
-      type: mode,
-      reason: this.selectedReason() as MovementReason,
+      dateMouvement: new Date(),
+      raison: this.selectedReason() as MovementReason,
+      quantite: this.quantity(),
+      produitNom: scan.product.nom,
+      siteNom: site.nom,
       productId: scan.product.id,
-      productName: scan.product.name,
-      quantity: this.quantity(),
-      previousStock: previousStock,
-      newStock: newStock,
       siteId: site.id,
-      siteName: site.name,
-      barcode: scan.barcode,
-      performedBy: 'Current User',
-      performedAt: new Date()
+      type: mode,
+      utilisateurNom: 'Utilisateur courant'
     });
     
     this.closeResultModal();
@@ -256,7 +253,7 @@ export class ScannerComponent implements OnInit {
     const siteId = this.selectedSite();
     if (!siteId) return 'Non sélectionné';
     const site = this.sites().find(s => s.id === siteId);
-    return site?.name || 'Non sélectionné';
+    return site?.nom || 'Non sélectionné';
   }
 
   getSelectedReasonLabel(): string {

@@ -114,7 +114,7 @@
       <select class="filter-select" (change)="onSiteChange($event)">
         <option value="">Tous les sites</option>
         @for (site of sites(); track site.id) {
-          <option [value]="site.id">{{ site.name }}</option>
+          <option [value]="site.id">{{ site.nom }}</option>
         }
       </select>
       
@@ -133,9 +133,9 @@
       @for (alert of alerts(); track alert.id) {
         <div 
           class="alert-card" 
-          [class]="alert.severity"
-          [class.unread]="!alert.isRead"
-          [class.resolved]="alert.isResolved"
+          [class]="getSeverityForAlert(alert)"
+          [class.unread]="!alert.resolue"
+          [class.resolved]="alert.resolue"
           (click)="openAlertModal(alert)"
         >
           <div class="alert-indicator"></div>
@@ -146,39 +146,39 @@
           
           <div class="alert-content">
             <div class="alert-header">
-              <h3 class="alert-title">{{ alert.title }}</h3>
+              <h3 class="alert-title">{{ getAlertTypeConfig(alert.type)?.label || alert.type }}</h3>
               <div class="alert-badges">
-                <span class="severity-badge" [class]="alert.severity">
-                  {{ getSeverityConfig(alert.severity).label }}
+                <span class="severity-badge" [class]="getSeverityForAlert(alert)">
+                  {{ getSeverityConfig(getSeverityForAlert(alert))?.label }}
                 </span>
-                @if (alert.isResolved) {
+                @if (alert.resolue) {
                   <span class="resolved-badge">Résolu</span>
                 }
               </div>
             </div>
             <p class="alert-message">{{ alert.message }}</p>
             <div class="alert-meta">
-              @if (alert.siteName) {
+              @if (alert.siteNom) {
                 <span class="meta-item">
                   <span class="material-icons">location_on</span>
-                  {{ alert.siteName }}
+                  {{ alert.siteNom }}
                 </span>
               }
-              @if (alert.productName) {
+              @if (alert.produitNom) {
                 <span class="meta-item">
                   <span class="material-icons">inventory_2</span>
-                  {{ alert.productName }}
+                  {{ alert.produitNom }}
                 </span>
               }
               <span class="meta-item time">
                 <span class="material-icons">schedule</span>
-                {{ getTimeAgo(alert.createdAt) }}
+                {{ getTimeAgo(alert.dateCreation) }}
               </span>
             </div>
           </div>
           
           <div class="alert-actions" (click)="$event.stopPropagation()">
-            @if (!alert.isResolved) {
+            @if (!alert.resolue) {
               <button 
                 class="action-btn resolve"
                 (click)="openAlertModal(alert)"
@@ -263,18 +263,18 @@
 <!-- Alert Detail Modal -->
 @if (showModal() && selectedAlert(); as alert) {
   <div class="modal-overlay" (click)="closeModal()">
-    <div class="modal-content" [class]="alert.severity" (click)="$event.stopPropagation()">
+    <div class="modal-content" [class]="getSeverityForAlert(alert)" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <div class="modal-title-section">
-          <div class="alert-type-icon" [style.background]="getSeverityConfig(alert.severity).bgColor">
-            <span class="material-icons" [style.color]="getSeverityConfig(alert.severity).color">
+          <div class="alert-type-icon" [style.background]="getSeverityConfig(getSeverityForAlert(alert))?.bgColor">
+            <span class="material-icons" [style.color]="getSeverityConfig(getSeverityForAlert(alert))?.color">
               {{ getAlertTypeConfig(alert.type)?.icon }}
             </span>
           </div>
           <div>
-            <h2>{{ alert.title }}</h2>
-            <span class="severity-label" [class]="alert.severity">
-              {{ getSeverityConfig(alert.severity).label }}
+            <h2>{{ getAlertTypeConfig(alert.type)?.label || alert.type }}</h2>
+            <span class="severity-label" [class]="getSeverityForAlert(alert)">
+              {{ getSeverityConfig(getSeverityForAlert(alert))?.label }}
             </span>
           </div>
         </div>
@@ -296,44 +296,26 @@
           </div>
           <div class="detail-item">
             <label>Créée</label>
-            <span>{{ formatDate(alert.createdAt) }}</span>
+            <span>{{ formatDate(alert.dateCreation) }}</span>
           </div>
-          @if (alert.productName) {
+          @if (alert.produitNom) {
             <div class="detail-item">
               <label>Produit</label>
-              <span>{{ alert.productName }} ({{ alert.productSku }})</span>
+              <span>{{ alert.produitNom }}</span>
             </div>
           }
-          @if (alert.siteName) {
+          @if (alert.siteNom) {
             <div class="detail-item">
               <label>Site</label>
-              <span>{{ alert.siteName }}</span>
-            </div>
-          }
-          @if (alert.currentValue !== undefined) {
-            <div class="detail-item">
-              <label>Valeur Actuelle</label>
-              <span class="highlight">{{ alert.currentValue }}</span>
-            </div>
-          }
-          @if (alert.thresholdValue !== undefined) {
-            <div class="detail-item">
-              <label>Seuil</label>
-              <span>{{ alert.thresholdValue }}</span>
+              <span>{{ alert.siteNom }}</span>
             </div>
           }
         </div>
         
-        @if (alert.isResolved) {
+        @if (alert.resolue) {
           <div class="resolution-section">
             <h4>Résolution</h4>
-            <div class="resolution-info">
-              <p><strong>Résolu par:</strong> {{ alert.resolvedBy }}</p>
-              <p><strong>Date:</strong> {{ formatDate(alert.resolvedAt!) }}</p>
-              @if (alert.resolutionNotes) {
-                <p><strong>Notes:</strong> {{ alert.resolutionNotes }}</p>
-              }
-            </div>
+            <p>Cette alerte a été marquée comme résolue.</p>
           </div>
         } @else {
           <div class="resolve-section">
@@ -350,7 +332,7 @@
       
       <div class="modal-footer">
         <button class="btn btn-secondary" (click)="closeModal()">Fermer</button>
-        @if (!alert.isResolved) {
+        @if (!alert.resolue) {
           <button class="btn btn-success" (click)="resolveAlert()">
             <span class="material-icons">check_circle</span>
             Marquer comme résolu

@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "ZnM/BOxvgO4=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Infra\\Infra.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\jawher\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\7.0.0\\microsoft.extensions.dependencyinjection.7.0.0.nupkg.sha512",
+    "C:\\Users\\jawher\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\7.0.0\\microsoft.extensions.dependencyinjection.abstractions.7.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

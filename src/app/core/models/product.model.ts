@@ -1,35 +1,18 @@
 /**
- * Product Model
- * Represents products in the inventory management system.
- * Includes product details, pricing, stock levels, and status information.
+ * Produit - Diagram: nom, description, codeBarre, prix
+ * Single model for diagram alignment (sujet PFE: QR/code-barres)
  */
-
-/** Product interface - core product data */
 export interface Product {
-  id: string;
-  name: string;
+  id: number | string;
+  nom: string;
   description: string;
-  sku?: string;
-  category: string;
-  categoryId: string;
-  supplier: string;
-  supplierId: string;
-  price: number;
-  cost: number;
-  location: string;
-  barcode?: string;
-  imageUrl?: string;
-  status: 'active' | 'inactive' | 'discontinued';
-  createdAt: Date;
-  updatedAt: Date;
-  lastRestocked?: Date;
+  codeBarre?: string;
+  prix: number;
+  categorieId: number;
+  categorieLibelle?: string;
 }
 
 export interface ProductFilter {
   search?: string;
-  categoryId?: string;
-  supplierId?: string;
-  status?: string;
-  minQuantity?: number;
-  maxQuantity?: number;
+  categorieId?: number;
 }

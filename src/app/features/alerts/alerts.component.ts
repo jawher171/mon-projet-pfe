@@ -58,9 +58,7 @@ export class AlertsComponent implements OnInit {
   /** Computed filter object */
   filter = computed<AlertFilter>(() => ({
     type: this.selectedType() === 'all' ? undefined : this.selectedType(),
-    severity: this.selectedSeverity() === 'all' ? undefined : this.selectedSeverity(),
-    siteId: this.selectedSite() || undefined,
-    isResolved: this.showResolved() ? undefined : false
+    resolue: this.showResolved() ? undefined : false
   }));
 
   /** Filtered alerts */
@@ -69,8 +67,8 @@ export class AlertsComponent implements OnInit {
   /** Alert statistics */
   stats = computed(() => this.alertService.getAlertStats());
   
-  /** Alert rules */
-  rules = computed(() => this.alertService.getRules()());
+  /** Alert rules (diagram: no AlertRule) */
+  rules = computed(() => this.alertService.getRules());
   
   /** Count of unread alerts */
   unreadCount = computed(() => this.alertService.getUnreadAlerts()().length);
@@ -124,11 +122,7 @@ export class AlertsComponent implements OnInit {
     this.selectedAlert.set(alert);
     this.resolveNotes.set('');
     this.showModal.set(true);
-    
-    // Mark as read
-    if (!alert.isRead) {
-      this.alertService.markAsRead(alert.id);
-    }
+    this.alertService.markAsRead(alert.id);
   }
 
   closeModal() {
@@ -140,7 +134,7 @@ export class AlertsComponent implements OnInit {
   resolveAlert() {
     const alert = this.selectedAlert();
     if (alert) {
-      this.alertService.resolveAlert(alert.id, 'Current User', this.resolveNotes());
+      this.alertService.resolveAlert(alert.id);
       this.closeModal();
     }
   }
@@ -163,8 +157,19 @@ export class AlertsComponent implements OnInit {
     return this.alertService.getAlertTypeConfig(type);
   }
 
-  getSeverityConfig(severity: AlertSeverity) {
+  getSeverityConfig(severity: string | AlertSeverity) {
     return this.alertService.getSeverityConfig(severity);
+  }
+
+  /** Derive severity from alert type (diagram has type only) */
+  getSeverityForAlert(alert: Alert): string {
+    const typeToSeverity: Record<string, string> = {
+      out_of_stock: 'critical',
+      low_stock: 'high',
+      reorder_point: 'medium',
+      overstock: 'low'
+    };
+    return typeToSeverity[alert.type] || 'info';
   }
 
   getTimeAgo(date: Date): string {

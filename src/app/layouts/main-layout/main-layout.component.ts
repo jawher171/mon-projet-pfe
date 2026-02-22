@@ -117,7 +117,7 @@ export class MainLayoutComponent {
   /** Display name for the current user */
   get userName() {
     const user = this.currentUser();
-    return user ? `${user.firstName} ${user.lastName}` : 'User';
+    return user ? `${user.prenom} ${user.nom}` : 'User';
   }
 
   /** Email for the current user */

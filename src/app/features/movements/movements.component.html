@@ -89,7 +89,7 @@
     <select class="filter-select" (change)="onSiteChange($event)">
       <option value="">Tous les sites</option>
       @for (site of sites(); track site.id) {
-        <option [value]="site.id">{{ site.name }}</option>
+        <option [value]="site.id">{{ site.nom }}</option>
       }
     </select>
   </div>
@@ -112,7 +112,7 @@
       <tbody>
         @for (movement of movements(); track movement.id) {
           <tr>
-            <td class="movement-number">{{ movement.movementNumber }}</td>
+            <td class="movement-number">{{ movement.id }}</td>
             <td>
               <span class="type-badge" [class]="movement.type">
                 <span class="material-icons">
@@ -123,22 +123,22 @@
             </td>
             <td>
               <div class="product-info">
-                <span class="product-name">{{ movement.productName }}</span>
+                <span class="product-name">{{ movement.produitNom }}</span>
               </div>
             </td>
             <td>
               <span class="quantity" [class]="movement.type">
-                {{ movement.type === 'entry' ? '+' : '-' }}{{ movement.quantity }}
+                {{ movement.type === 'entry' ? '+' : '-' }}{{ movement.quantite }}
               </span>
             </td>
             <td>
-              <span class="reason-tag">{{ getReasonLabel(movement.reason) }}</span>
+              <span class="reason-tag">{{ getReasonLabel(movement.raison) }}</span>
             </td>
-            <td>{{ movement.siteName }}</td>
+            <td>{{ movement.siteNom }}</td>
             <td>
               <div class="date-info">
-                <span class="date-relative">{{ getTimeAgo(movement.performedAt) }}</span>
-                <span class="date-full">{{ formatDate(movement.performedAt) }}</span>
+                <span class="date-relative">{{ getTimeAgo(movement.dateMouvement) }}</span>
+                <span class="date-full">{{ formatDate(movement.dateMouvement) }}</span>
               </div>
             </td>
             <td>
@@ -239,7 +239,7 @@
               >
                 <option value="">Sélectionner un site</option>
                 @for (site of sites(); track site.id) {
-                  <option [value]="site.id">{{ site.name }}</option>
+                  <option [value]="site.id">{{ site.nom }}</option>
                 }
               </select>
             </div>
@@ -270,7 +270,7 @@
             <div class="detail-grid">
               <div class="detail-item">
                 <label>Numéro</label>
-                <span>{{ movement.movementNumber }}</span>
+                <span>{{ movement.id }}</span>
               </div>
               <div class="detail-item">
                 <label>Type</label>
@@ -280,55 +280,35 @@
               </div>
               <div class="detail-item">
                 <label>Produit</label>
-                <span>{{ movement.productName }}</span>
+                <span>{{ movement.produitNom }}</span>
               </div>
 
               <div class="detail-item">
                 <label>Quantité</label>
                 <span class="quantity" [class]="movement.type">
-                  {{ movement.type === 'entry' ? '+' : '-' }}{{ movement.quantity }}
+                  {{ movement.type === 'entry' ? '+' : '-' }}{{ movement.quantite }}
                 </span>
               </div>
               <div class="detail-item">
                 <label>Raison</label>
-                <span>{{ getReasonLabel(movement.reason) }}</span>
+                <span>{{ getReasonLabel(movement.raison) }}</span>
               </div>
               <div class="detail-item">
                 <label>Site</label>
-                <span>{{ movement.siteName }}</span>
-              </div>
-              <div class="detail-item">
-                <label>Stock Avant</label>
-                <span>{{ movement.previousStock }}</span>
-              </div>
-              <div class="detail-item">
-                <label>Stock Après</label>
-                <span>{{ movement.newStock }}</span>
+                <span>{{ movement.siteNom }}</span>
               </div>
               <div class="detail-item">
                 <label>Effectué par</label>
-                <span>{{ movement.performedBy }}</span>
+                <span>{{ movement.utilisateurNom || '-' }}</span>
               </div>
               <div class="detail-item">
                 <label>Date</label>
-                <span>{{ formatDate(movement.performedAt) }}</span>
+                <span>{{ formatDate(movement.dateMouvement) }}</span>
               </div>
-              @if (movement.barcode) {
-                <div class="detail-item">
-                  <label>Code-barres</label>
-                  <span>{{ movement.barcode }}</span>
-                </div>
-              }
-              @if (movement.reference) {
-                <div class="detail-item">
-                  <label>Référence</label>
-                  <span>{{ movement.reference }}</span>
-                </div>
-              }
-              @if (movement.notes) {
+              @if (movement.note) {
                 <div class="detail-item full-width">
                   <label>Notes</label>
-                  <span>{{ movement.notes }}</span>
+                  <span>{{ movement.note }}</span>
                 </div>
               }
             </div>

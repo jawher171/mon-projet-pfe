@@ -52,13 +52,13 @@ export class ProductsComponent implements OnInit {
     const search = this.searchTerm().toLowerCase();
     if (search) {
       filtered = filtered.filter(p => 
-        p.name.toLowerCase().includes(search)
+        p.nom.toLowerCase().includes(search)
       );
     }
     
     const status = this.selectedStatus();
     if (status !== 'all') {
-      filtered = filtered.filter(p => p.status === status);
+      filtered = filtered.filter(p => (p as any).status === status);
     }
     
     return filtered;
@@ -80,18 +80,11 @@ export class ProductsComponent implements OnInit {
   initForm() {
     this.productForm = this.fb.group({
       id: [''],
-      name: ['', Validators.required],
+      nom: ['', Validators.required],
       description: [''],
-      categoryId: ['', Validators.required],
-      category: [''],
-      supplier: [''],
-      supplierId: [''],
-      price: [0, [Validators.required, Validators.min(0)]],
-      cost: [0, [Validators.required, Validators.min(0)]],
-      location: [''],
-      barcode: [''],
-      imageUrl: [''],
-      status: ['active', Validators.required]
+      categorieId: [null, Validators.required],
+      prix: [0, [Validators.required, Validators.min(0)]],
+      codeBarre: ['']
     });
   }
 
@@ -126,9 +119,11 @@ export class ProductsComponent implements OnInit {
   openAddModal() {
     this.isEditMode.set(false);
     this.productForm.reset({
-      price: 0,
-      cost: 0,
-      status: 'active'
+      prix: 0,
+      nom: '',
+      description: '',
+      categorieId: null,
+      codeBarre: ''
     });
     this.showModal.set(true);
   }
@@ -161,23 +156,26 @@ export class ProductsComponent implements OnInit {
     }
 
     const formValue = this.productForm.value;
-    
-    // Get category name from categoryId
-    const category = this.categories().find(c => c.id === formValue.categoryId);
-    if (category) {
-      formValue.category = category.name;
-    }
+    const category = this.categories().find(c => String(c.id) === String(formValue.categorieId));
+    const categorieLibelle = category?.libelle;
 
     if (this.isEditMode()) {
-      // Update existing product
-      this.productService.updateProductSync(formValue.id, formValue);
+      this.productService.updateProductSync(formValue.id, {
+        nom: formValue.nom,
+        description: formValue.description ?? '',
+        codeBarre: formValue.codeBarre,
+        prix: formValue.prix,
+        categorieId: formValue.categorieId,
+        categorieLibelle
+      });
     } else {
-      // Add new product
-      const newProduct: Product = {
-        ...formValue,
-        id: this.generateId(),
-        createdAt: new Date(),
-        updatedAt: new Date()
+      const newProduct: Omit<Product, 'id'> = {
+        nom: formValue.nom,
+        description: formValue.description ?? '',
+        codeBarre: formValue.codeBarre,
+        prix: formValue.prix,
+        categorieId: formValue.categorieId,
+        categorieLibelle
       };
       this.productService.addProduct(newProduct);
     }
@@ -189,10 +187,14 @@ export class ProductsComponent implements OnInit {
    * Delete product
    * @param productId Product ID to delete
    */
-  deleteProduct(productId: string) {
+  deleteProduct(productId: string | number) {
     if (confirm('Are you sure you want to delete this product?')) {
       this.productService.deleteProductSync(productId);
     }
+  }
+
+  getProductImage(product: Product): string | null {
+    return (product as { imageUrl?: string }).imageUrl ?? null;
   }
 
   /**

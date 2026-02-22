@@ -61,7 +61,7 @@
         
         <div class="user-menu-container">
           <button class="user-avatar" (click)="toggleUserMenu()">
-            <span class="avatar-text">{{ userName.charAt(0) }}{{ userName.split(' ')[1]?.charAt(0) || '' }}</span>
+            <span class="avatar-text">{{ userName.split(' ')[0]?.charAt(0) || '' }}{{ userName.split(' ')[1]?.charAt(0) || '' }}</span>
           </button>
           
           @if (showUserMenu()) {

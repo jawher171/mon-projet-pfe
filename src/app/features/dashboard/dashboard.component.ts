@@ -4,7 +4,7 @@
  * Displays inventory statistics and critical alerts at a glance.
  */
 
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AlertService } from '../../core/services/alert.service';
@@ -60,13 +60,12 @@ export class DashboardComponent implements OnInit {
   /** Movement summary data */
   movementSummary = computed(() => this.movementService.getMovementSummary());
   
+  private siteService = inject(SiteService);
   /** Site statistics */
   siteStats = computed(() => this.siteService.getSiteStats()());
   
-  /** Top 5 critical and high-severity alerts */
-  criticalAlerts = computed(() => 
-    this.activeAlerts().filter(a => a.severity === 'critical' || a.severity === 'high').slice(0, 5)
-  );
+  /** Top 5 active alerts (diagram Alert has type, not severity) */
+  criticalAlerts = computed(() => this.activeAlerts().slice(0, 5));
 
   /** Severity configuration for alert styling */
   severityConfig = SEVERITY_CONFIG;
@@ -84,8 +83,7 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private alertService: AlertService,
-    private movementService: MovementService,
-    private siteService: SiteService
+    private movementService: MovementService
   ) {}
 
   ngOnInit(): void {}
@@ -115,6 +113,17 @@ export class DashboardComponent implements OnInit {
       'reorder': 'À commander'
     };
     return labels[status] || status;
+  }
+
+  /** Derive severity from alert type for styling (diagram has type only) */
+  getSeverityForAlert(alert: Alert): string {
+    const typeToSeverity: Record<string, string> = {
+      out_of_stock: 'critical',
+      low_stock: 'high',
+      reorder_point: 'medium',
+      overstock: 'low'
+    };
+    return typeToSeverity[alert.type] || 'info';
   }
 
   getAlertIcon(type: string): string {

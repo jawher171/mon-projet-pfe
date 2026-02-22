@@ -1,10 +1,25 @@
 /**
- * Role and Permission Models
- * Defines user roles, permissions, and access control for the inventory system
+ * Role and Permission Models - Diagram alignment
+ * Role: idRole, nom
+ * Permission: idPermission, code, description
+ * RolePermission: idRole, idPermission, createdAt
  */
 
-/** Permission types available in the system */
-export type Permission = 
+/** Permission entity - Diagram: idPermission, code, description */
+export interface PermissionEntity {
+  idPermission: number;
+  code: string;
+  description?: string;
+}
+
+export interface RolePermission {
+  idRole: number;
+  idPermission: number;
+  createdAt: Date;
+}
+
+/** Permission codes for authorization (used by hasPermission) */
+export type Permission =
   | 'view_dashboard'
   | 'manage_movements'
   | 'view_movements'
@@ -20,77 +35,50 @@ export type Permission =
   | 'manage_roles'
   | 'view_reports';
 
-/** User role types */
+/** User role names (backend nom values) */
 export type UserRole = 'admin' | 'gestionnaire_de_stock' | 'operateur' | string;
 
-/** Role definition with permissions */
+/** Role with permissions - Diagram Role + UI auth */
 export interface Role {
-  id: string;
-  name: UserRole;
-  label: string;
-  description: string;
+  idRole: number;
+  nom: string;
+  description?: string;
   permissions: Permission[];
+}
+
+/** Backward compatibility: Role with label for UI */
+export interface RoleWithLabel extends Role {
+  label: string;
   color?: string;
   icon?: string;
 }
 
-/** Pre-defined roles with their permissions */
-export const ROLES: Record<UserRole, Role> = {
+export const ROLES: Record<UserRole, RoleWithLabel> = {
   admin: {
-    id: 'role_admin',
-    name: 'admin',
+    idRole: 1,
+    nom: 'admin',
     label: 'Administrator',
-    description: 'Full system access and user management',
+    description: 'Full system access',
     color: '#f44336',
     icon: 'admin_panel_settings',
-    permissions: [
-      'view_dashboard',
-      'manage_movements',
-      'view_movements',
-      'manage_alerts',
-      'view_alerts',
-      'manage_products',
-      'view_products',
-      'manage_sites',
-      'view_sites',
-      'scan_barcode',
-      'basic_entry_exit',
-      'manage_users',
-      'manage_roles',
-      'view_reports'
-    ]
+    permissions: ['view_dashboard', 'manage_movements', 'view_movements', 'manage_alerts', 'view_alerts', 'manage_products', 'view_products', 'manage_sites', 'view_sites', 'scan_barcode', 'basic_entry_exit', 'manage_users', 'manage_roles', 'view_reports']
   },
-
   gestionnaire_de_stock: {
-    id: 'role_stock_manager',
-    name: 'gestionnaire_de_stock',
-    label: 'Stock Manager',
-    description: 'Manages inventory movements, alerts, and dashboard access',
+    idRole: 2,
+    nom: 'gestionnaire_de_stock',
+    label: 'Gestionnaire de Stock',
+    description: 'Manages inventory',
     color: '#2196f3',
     icon: 'inventory_2',
-    permissions: [
-      'view_dashboard',
-      'manage_movements',
-      'view_movements',
-      'manage_alerts',
-      'view_alerts',
-      'view_products',
-      'view_sites',
-      'view_reports'
-    ]
+    permissions: ['view_dashboard', 'manage_movements', 'view_movements', 'manage_alerts', 'view_alerts', 'view_products', 'view_sites', 'view_reports']
   },
-
   operateur: {
-    id: 'role_operator',
-    name: 'operateur',
-    label: 'Operator',
-    description: 'Performs basic inventory operations and barcode scanning',
+    idRole: 3,
+    nom: 'operateur',
+    label: 'Opérateur',
+    description: 'Basic operations',
     color: '#4caf50',
     icon: 'construction_worker',
-    permissions: [
-      'view_products',
-      'scan_barcode',
-      'basic_entry_exit'
-    ]
+    permissions: ['view_products', 'scan_barcode', 'basic_entry_exit']
   }
 };

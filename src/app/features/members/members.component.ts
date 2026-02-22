@@ -1,9 +1,9 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthorizationService } from '../../core/services/auth-authorization.service';
 import { User } from '../../core/models/user.model';
-import { UserRole, ROLES } from '../../core/models/role.model';
+import { UserRole } from '../../core/models/role.model';
+import { UserService } from '../../core/services/user.service';
 
 @Component({
   selector: 'app-members',
@@ -17,118 +17,142 @@ export class MembersComponent implements OnInit {
   showDialog = signal(false);
   dialogMode = signal<'add' | 'edit'>('add');
   selectedMember = signal<User | null>(null);
+  saving = signal(false);
+  errorMessage = signal('');
 
-  formData = signal({
+  formData = {
     email: '',
-    firstName: '',
-    lastName: '',
-    role: 'operateur' as UserRole,
-    phone: '',
-    department: ''
-  });
+    prenom: '',
+    nom: '',
+    password: '',
+    role: 'operateur' as UserRole
+  };
 
-  get members() {
-    return this.authorizationService.getMembers();
-  }
-
-  get stats() {
-    return this.authorizationService.getMemberStats();
-  }
-
-  constructor(private authorizationService: AuthorizationService) {}
+  private userService = inject(UserService);
+  members = this.userService.users;
+  stats = this.userService.stats;
 
   ngOnInit(): void {
-    // Component initialization
+    void this.userService.fetchUsers();
   }
 
   getRoleLabel(role: UserRole): string {
-    return this.authorizationService.getRoleLabel(role);
+    return this.userService.getRoleLabel(role);
   }
 
   getRoleColor(role: UserRole): string {
-    return this.authorizationService.getRoleColor(role);
+    return this.userService.getRoleColor(role);
   }
 
   getRoleIcon(role: UserRole): string {
-    return this.authorizationService.getRoleIcon(role);
+    return this.userService.getRoleIcon(role);
+  }
+
+  trackByMemberId(_index: number, member: User): string | number {
+    return member.id;
   }
 
   openAddMemberDialog(): void {
     this.dialogMode.set('add');
-    this.formData.set({
+    this.errorMessage.set('');
+    this.formData = {
       email: '',
-      firstName: '',
-      lastName: '',
-      role: 'operateur',
-      phone: '',
-      department: ''
-    });
+      prenom: '',
+      nom: '',
+      password: '',
+      role: 'operateur'
+    };
     this.showDialog.set(true);
   }
 
   editMember(member: User): void {
     this.dialogMode.set('edit');
+    this.errorMessage.set('');
     this.selectedMember.set(member);
-    this.formData.set({
+    this.formData = {
       email: member.email,
-      firstName: member.firstName,
-      lastName: member.lastName,
-      role: member.role,
-      phone: member.phone || '',
-      department: member.department || ''
-    });
+      prenom: member.prenom,
+      nom: member.nom,
+      password: '',
+      role: member.role
+    };
     this.showDialog.set(true);
   }
 
-  openRoleDialog(member: User): void {
-    const newRole: UserRole = member.role === 'admin' 
-      ? 'gestionnaire_de_stock' 
-      : member.role === 'gestionnaire_de_stock' 
-      ? 'operateur' 
-      : 'admin';
-    
-    this.authorizationService.changeRole(member.id, newRole);
-  }
-
-  toggleStatus(member: User): void {
-    this.authorizationService.toggleMemberStatus(member.id);
-  }
-
-  deleteMember(member: User): void {
-    if (confirm(`Are you sure you want to delete ${member.firstName} ${member.lastName}?`)) {
-      this.authorizationService.deleteMember(member.id);
+  async openRoleDialog(member: User): Promise<void> {
+    const newRole: UserRole = member.role === 'admin'
+      ? 'gestionnaire_de_stock'
+      : member.role === 'gestionnaire_de_stock'
+        ? 'operateur'
+        : 'admin';
+    try {
+      await this.userService.changeRole(String(member.id), newRole);
+    } catch {
+      this.errorMessage.set('Impossible de changer le rôle.');
     }
   }
 
-  saveMember(): void {
-    const data = this.formData();
-    
-    if (this.dialogMode() === 'add') {
-      this.authorizationService.addMember({
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        role: data.role,
-        phone: data.phone,
-        department: data.department,
-        status: 'active'
-      });
-    } else if (this.selectedMember()) {
-      this.authorizationService.updateMember(this.selectedMember()!.id, {
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        role: data.role,
-        phone: data.phone,
-        department: data.department
-      });
+  async toggleStatus(member: User): Promise<void> {
+    try {
+      await this.userService.toggleStatus(String(member.id), member.status);
+    } catch {
+      this.errorMessage.set('Impossible de changer le statut.');
+    }
+  }
+
+  async deleteMember(member: User): Promise<void> {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${member.prenom} ${member.nom} ?`)) return;
+    try {
+      await this.userService.deleteUser(String(member.id));
+    } catch (e) {
+      this.errorMessage.set(e instanceof Error ? e.message : 'Impossible de supprimer.');
+    }
+  }
+
+  async saveMember(): Promise<void> {
+    const data = this.formData;
+    if (!data.email?.trim() || !data.nom?.trim() || !data.prenom?.trim()) {
+      this.errorMessage.set('Veuillez remplir tous les champs obligatoires.');
+      return;
+    }
+    if (this.dialogMode() === 'add' && !data.password?.trim()) {
+      this.errorMessage.set('Le mot de passe est obligatoire pour un nouvel utilisateur.');
+      return;
     }
 
-    this.closeDialog();
+    this.saving.set(true);
+    this.errorMessage.set('');
+    try {
+      if (this.dialogMode() === 'add') {
+        await this.userService.createUser({
+          email: data.email.trim(),
+          nom: data.nom.trim(),
+          prenom: data.prenom.trim(),
+          password: data.password,
+          role: data.role,
+          status: 'active'
+        });
+      } else if (this.selectedMember()) {
+        const updates: Parameters<UserService['updateUser']>[1] = {
+          email: data.email.trim(),
+          nom: data.nom.trim(),
+          prenom: data.prenom.trim(),
+          role: data.role
+        };
+        if (data.password?.trim()) updates.password = data.password;
+        await this.userService.updateUser(String(this.selectedMember()!.id), updates);
+      }
+      this.closeDialog();
+    } catch (e) {
+      this.errorMessage.set(e instanceof Error ? e.message : 'Une erreur est survenue.');
+    } finally {
+      this.saving.set(false);
+    }
   }
 
   closeDialog(): void {
     this.showDialog.set(false);
     this.selectedMember.set(null);
+    this.errorMessage.set('');
   }
 }

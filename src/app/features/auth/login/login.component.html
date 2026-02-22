@@ -8,6 +8,13 @@
       <p class="welcome-text">Bienvenue ! Veuillez vous connecter à votre compte.</p>
     </div>
 
+    @if (!useBackend) {
+      <p class="demo-hint">
+        <span class="material-icons">info</span>
+        Mode démo : admin@inventaire.ma / admin123 — stock@inventaire.ma / stock123 — operator@inventaire.ma / operator123
+      </p>
+    }
+
     <form class="login-form" (ngSubmit)="onSubmit()">
       @if (errorMessage()) {
         <div class="error-message">
@@ -25,8 +32,8 @@
           type="email"
           class="form-input"
           placeholder="Entrez votre email"
-          [value]="email()"
-          (input)="onEmailChange($event)"
+          [(ngModel)]="emailValue"
+          name="email"
           required
         >
       </div>
@@ -41,8 +48,8 @@
             [type]="showPassword() ? 'text' : 'password'"
             class="form-input"
             placeholder="Entrez votre mot de passe"
-            [value]="password()"
-            (input)="onPasswordChange($event)"
+            [(ngModel)]="passwordValue"
+            name="password"
             required
           >
           <button

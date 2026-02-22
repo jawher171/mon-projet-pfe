@@ -10,6 +10,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { USE_BACKEND } from '../../../app.config';
 
 @Component({
   selector: 'app-login',
@@ -19,11 +20,11 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
-  /** User email input */
-  email = signal('');
+  /** User email input (ngModel) */
+  emailValue = '';
   
-  /** User password input */
-  password = signal('');
+  /** User password input (ngModel) */
+  passwordValue = '';
   
   /** Show/hide password toggle state */
   showPassword = signal(false);
@@ -33,6 +34,9 @@ export class LoginComponent {
   
   /** Error message display */
   errorMessage = signal('');
+
+  /** Show mock credentials hint when backend is disabled */
+  useBackend = USE_BACKEND;
 
   constructor(
     private authService: AuthService,
@@ -44,8 +48,10 @@ export class LoginComponent {
    * Validates input, authenticates user, and navigates to dashboard on success
    */
   async onSubmit() {
-    if (!this.email() || !this.password()) {
-      this.errorMessage.set('Please fill in all fields');
+    const email = this.emailValue?.trim() ?? '';
+    const password = this.passwordValue?.trim() ?? '';
+    if (!email || !password) {
+      this.errorMessage.set('Veuillez remplir tous les champs.');
       return;
     }
 
@@ -53,7 +59,7 @@ export class LoginComponent {
     this.errorMessage.set('');
 
     try {
-      const success = await this.authService.login(this.email(), this.password());
+      const success = await this.authService.login(email, password);
       
       if (success) {
         this.router.navigate(['/dashboard']);
@@ -74,21 +80,4 @@ export class LoginComponent {
     this.showPassword.update(show => !show);
   }
 
-  /**
-   * Handle email input changes
-   * @param event Input change event
-   */
-  onEmailChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.email.set(input.value);
-  }
-
-  /**
-   * Handle password input changes
-   * @param event Input change event
-   */
-  onPasswordChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.password.set(input.value);
-  }
 }

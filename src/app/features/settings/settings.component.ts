@@ -1,8 +1,9 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Permission, Role } from '../../core/models/role.model';
 import { AuthorizationService } from '../../core/services/auth-authorization.service';
+import { RolesService } from '../../core/services/roles.service';
 
 interface PermissionGroup {
   label: string;
@@ -17,8 +18,9 @@ interface PermissionGroup {
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })
-export class SettingsComponent {
+export class SettingsComponent implements OnInit {
   private authorizationService = inject(AuthorizationService);
+  private rolesService = inject(RolesService);
 
   /** Roles derived from the reactive signal */
   roles = computed(() => Object.values(this.authorizationService.rolesSignal()));
@@ -92,13 +94,17 @@ export class SettingsComponent {
   /** Track save feedback */
   saved = signal(false);
 
+  ngOnInit(): void {
+    void this.rolesService.fetchRoles();
+  }
+
   /** Check if a role has a specific permission */
   hasPermission(role: Role, permission: Permission): boolean {
     return role.permissions.includes(permission);
   }
 
-  /** Toggle a permission for a role - updates immediately via the reactive signal */
-  togglePermission(roleName: string, permission: Permission): void {
+  /** Toggle a permission for a role - persists to backend */
+  async togglePermission(roleName: string, permission: Permission): Promise<void> {
     const roles = this.authorizationService.rolesSignal();
     const role = roles[roleName];
     if (!role) return;
@@ -108,14 +114,17 @@ export class SettingsComponent {
       ? role.permissions.filter(p => p !== permission)
       : [...role.permissions, permission];
 
-    this.authorizationService.updateRolePermissions(roleName, newPermissions);
-
-    this.saved.set(true);
-    setTimeout(() => this.saved.set(false), 2000);
+    try {
+      await this.authorizationService.updateRolePermissions(roleName, newPermissions);
+      this.saved.set(true);
+      setTimeout(() => this.saved.set(false), 2000);
+    } catch {
+      // Error handled by service
+    }
   }
 
   /** Reset to default permissions */
-  resetPermissions(): void {
+  async resetPermissions(): Promise<void> {
     if (!confirm('Reinitialiser toutes les permissions aux valeurs par defaut ?')) return;
 
     const defaults: Record<string, Permission[]> = {
@@ -134,9 +143,27 @@ export class SettingsComponent {
       ]
     };
 
-    for (const [roleName, permissions] of Object.entries(defaults)) {
-      this.authorizationService.updateRolePermissions(roleName, permissions);
+    try {
+      for (const [roleName, permissions] of Object.entries(defaults)) {
+        await this.authorizationService.updateRolePermissions(roleName, permissions);
+      }
+      this.saved.set(true);
+      setTimeout(() => this.saved.set(false), 2000);
+    } catch {
+      // Error handled by service
     }
+  }
+
+  getRoleColor(role: Role): string {
+    return (role as { color?: string }).color ?? '#666';
+  }
+
+  getRoleIcon(role: Role): string {
+    return (role as { icon?: string }).icon ?? 'person';
+  }
+
+  getRoleLabel(role: Role): string {
+    return (role as { label?: string }).label ?? role.nom;
   }
 
   /** Count permissions for a role */

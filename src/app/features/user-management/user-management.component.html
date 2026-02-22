@@ -22,7 +22,8 @@
       <input 
         type="text" 
         placeholder="Rechercher par nom ou email..." 
-        [(ngModel)]="searchTerm"
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
         class="search-input"
       >
     </div>
@@ -39,13 +40,17 @@
           </button>
         </div>
 
-        <form class="user-form">
+        @if (errorMessage()) {
+          <div class="error-banner">{{ errorMessage() }}</div>
+        }
+
+        <form class="user-form" (ngSubmit)="saveUser()">
           <div class="form-group">
             <label>Prénom *</label>
             <input 
               type="text" 
-              [(ngModel)]="formData.firstName" 
-              name="firstName"
+              [(ngModel)]="formData.prenom" 
+              name="prenom"
               class="form-input"
               required
             >
@@ -55,8 +60,8 @@
             <label>Nom *</label>
             <input 
               type="text" 
-              [(ngModel)]="formData.lastName" 
-              name="lastName"
+              [(ngModel)]="formData.nom" 
+              name="nom"
               class="form-input"
               required
             >
@@ -72,15 +77,30 @@
               required
             >
           </div>
-          <div class="form-group">
-            <label>Mot de passe *</label>
-            <input 
-              type="password" 
-              name="password"
-              class="form-input"
-              required
-            >
-          </div>
+          @if (!isEditing()) {
+            <div class="form-group">
+              <label>Mot de passe *</label>
+              <input 
+                type="password" 
+                [(ngModel)]="formData.password" 
+                name="password"
+                class="form-input"
+                required
+                placeholder="Définir un mot de passe"
+              >
+            </div>
+          } @else {
+            <div class="form-group">
+              <label>Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+              <input 
+                type="password" 
+                [(ngModel)]="formData.password" 
+                name="passwordEdit"
+                class="form-input"
+                placeholder="Optionnel"
+              >
+            </div>
+          }
 
 
           <div class="form-group">
@@ -104,8 +124,8 @@
             <button type="button" class="btn-cancel" (click)="closeForm()">
               Annuler
             </button>
-            <button type="button" class="btn-save" (click)="saveUser()">
-              {{ isEditing() ? 'Mettre à jour' : 'Créer' }} l'utilisateur
+            <button type="submit" class="btn-save" [disabled]="saving()">
+              {{ saving() ? 'Enregistrement...' : (isEditing() ? 'Mettre à jour' : 'Créer') }} l'utilisateur
             </button>
           </div>
         </form>
@@ -131,7 +151,7 @@
         <tbody>
           @for (user of filteredUsers(); track user.id) {
             <tr>
-              <td>{{ user.firstName }} {{ user.lastName }}</td>
+              <td>{{ user.prenom }} {{ user.nom }}</td>
               <td>{{ user.email }}</td>
               <td>
                 <span class="role-badge">
@@ -143,7 +163,7 @@
                   {{ user.status === 'active' ? 'Actif' : 'Inactif' }}
                 </span>
               </td>
-              <td>{{ user.createdAt | date: 'short' }}</td>
+              <td>{{ user.lastLogin | date: 'short' }}</td>
               <td>{{ (user.lastLogin | date: 'short') || 'Jamais' }}</td>
               <td>
                 <div class="actions">

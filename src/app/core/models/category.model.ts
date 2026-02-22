@@ -1,22 +1,7 @@
 /**
- * Category Model
- * Represents product categories for organizing inventory.
- * Supports hierarchical category structures.
+ * Categorie - Diagram: libelle
  */
-
-/** Category interface - product categorization */
 export interface Category {
-  id: string;
-  name: string;
-  description: string;
-  parentId?: string;
-  icon?: string;
-  color?: string;
-  productCount: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CategoryTree extends Category {
-  children?: CategoryTree[];
+  id: number | string;
+  libelle: string;
 }

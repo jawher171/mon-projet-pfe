@@ -21,17 +21,17 @@
 
   <!-- Role Summary Cards -->
   <div class="roles-summary">
-    @for (role of roles(); track role.id) {
+    @for (role of roles(); track role.idRole) {
       <div class="role-card">
-        <div class="role-card-header" [style.borderColor]="role.color">
-          <span class="material-icons" [style.color]="role.color">{{ role.icon }}</span>
+        <div class="role-card-header" [style.borderColor]="getRoleColor(role)">
+          <span class="material-icons" [style.color]="getRoleColor(role)">{{ getRoleIcon(role) }}</span>
           <div class="role-info">
-            <h3>{{ role.label }}</h3>
+            <h3>{{ getRoleLabel(role) }}</h3>
             <span class="role-desc">{{ role.description }}</span>
           </div>
         </div>
         <div class="role-card-footer">
-          <span class="permission-count" [style.color]="role.color">
+          <span class="permission-count" [style.color]="getRoleColor(role)">
             {{ permissionCount(role) }}/{{ totalPermissions }}
           </span>
           <span class="permission-label">permissions</span>
@@ -47,11 +47,11 @@
         <tr>
           <th class="module-col">Module</th>
           <th class="permission-col">Permission</th>
-          @for (role of roles(); track role.id) {
+          @for (role of roles(); track role.idRole) {
             <th class="role-col">
               <div class="role-header">
-                <span class="role-dot" [style.backgroundColor]="role.color"></span>
-                {{ role.label }}
+                <span class="role-dot" [style.backgroundColor]="getRoleColor(role)"></span>
+                {{ getRoleLabel(role) }}
               </div>
             </th>
           }
@@ -70,15 +70,15 @@
                 </td>
               }
               <td class="permission-cell">{{ perm.label }}</td>
-              @for (role of roles(); track role.id) {
+              @for (role of roles(); track role.idRole) {
                 <td class="checkbox-cell">
                   <label class="checkbox-wrapper">
                     <input
                       type="checkbox"
                       [checked]="hasPermission(role, perm.key)"
-                      (change)="togglePermission(role.name, perm.key)"
+                      (change)="togglePermission(role.nom, perm.key)"
                     >
-                    <span class="checkmark" [style.--check-color]="role.color"></span>
+                    <span class="checkmark" [style.--check-color]="getRoleColor(role)"></span>
                   </label>
                 </td>
               }
