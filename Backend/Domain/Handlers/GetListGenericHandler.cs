@@ -3,10 +3,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Domain.Interface;
 using Domain.Queries;
+using MediatR;
 
 namespace Domain.Handlers
 {
-    public class GetListGenericHandler<TEntity> where TEntity : class
+    public class GetListGenericHandler<TEntity> : IRequestHandler<GetListGenericQuery<TEntity>, IEnumerable<TEntity>> where TEntity : class
     {
         private readonly IGenericRepository<TEntity> _repository;
 

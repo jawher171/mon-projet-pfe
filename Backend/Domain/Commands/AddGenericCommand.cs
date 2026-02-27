@@ -1,6 +1,8 @@
+using MediatR;
+
 namespace Domain.Commands
 {
-    public class AddGenericCommand<TEntity> where TEntity : class
+    public class AddGenericCommand<TEntity> : IRequest<TEntity> where TEntity : class
     {
         public TEntity Entity { get; }
 

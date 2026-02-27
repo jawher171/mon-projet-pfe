@@ -1,0 +1,132 @@
+<div class="site-stocks-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <button class="btn-back" (click)="goBack()">
+        <span class="material-icons">arrow_back</span>
+      </button>
+      <div class="header-content">
+        <h1 class="page-title">Stocks — {{ siteName() }}</h1>
+        <p class="page-subtitle">Liste des produits stockés dans ce site</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="material-icons spin">sync</span>
+      <p>Chargement des stocks…</p>
+    </div>
+  }
+
+  <!-- Table -->
+  @if (!loading()) {
+    <div class="table-container">
+      <table class="stocks-table">
+        <thead>
+          <tr>
+            <th>Produit</th>
+            <th class="num">Qté Disponible</th>
+            <th class="num">Seuil d'Alerte</th>
+            <th class="num">Seuil Sécurité</th>
+            <th class="num">Seuil Minimum</th>
+            <th class="num">Seuil Maximum</th>
+            <th>Statut</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (stock of stocks(); track stock.id) {
+            <tr [class]="'row-' + getStockStatus(stock)">
+              <td class="product-cell">
+                <span class="material-icons product-icon">inventory_2</span>
+                <span class="product-name">{{ stock.produitNom || stock.produitId }}</span>
+              </td>
+              <td class="num">
+                <span class="qty-badge" [class]="getStockStatus(stock)">
+                  {{ stock.quantiteDisponible }}
+                </span>
+              </td>
+              <td class="num">{{ stock.seuilAlerte }}</td>
+              <td class="num">{{ stock.seuilSecurite }}</td>
+              <td class="num">{{ stock.seuilMinimum }}</td>
+              <td class="num">{{ stock.seuilMaximum }}</td>
+              <td>
+                <span class="status-badge" [class]="getStockStatus(stock)">
+                  {{ getStockStatusLabel(stock) }}
+                </span>
+              </td>
+              <td class="actions-cell">
+                <button class="btn btn-sm btn-edit" (click)="openEdit(stock)" title="Modifier les seuils">
+                  <span class="material-icons">edit</span>
+                  Seuils
+                </button>
+                <button class="btn btn-sm btn-entry" (click)="openMovement(stock, 'entry')" title="Entrée de stock">
+                  <span class="material-icons">add_circle</span>
+                  Entrée
+                </button>
+                <button class="btn btn-sm btn-exit" (click)="openMovement(stock, 'exit')" title="Sortie de stock">
+                  <span class="material-icons">remove_circle</span>
+                  Sortie
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="empty-state">
+                <span class="material-icons">inventory</span>
+                <p>Aucun stock trouvé pour ce site</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Edit Seuils Modal -->
+  @if (showEditModal()) {
+    <div class="modal-backdrop" (click)="closeEdit()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Modifier les seuils</h2>
+          <button class="modal-close" (click)="closeEdit()">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <p class="modal-product-name">
+          <span class="material-icons">inventory_2</span>
+          {{ editingStock()?.produitNom || editingStock()?.produitId }}
+        </p>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="seuilAlerte">Seuil d'Alerte</label>
+            <input id="seuilAlerte" type="number" min="0" [ngModel]="editForm().seuilAlerte" (ngModelChange)="editForm.set({...editForm(), seuilAlerte: $event})" />
+          </div>
+          <div class="form-group">
+            <label for="seuilSecurite">Seuil Sécurité</label>
+            <input id="seuilSecurite" type="number" min="0" [ngModel]="editForm().seuilSecurite" (ngModelChange)="editForm.set({...editForm(), seuilSecurite: $event})" />
+          </div>
+          <div class="form-group">
+            <label for="seuilMinimum">Seuil Minimum</label>
+            <input id="seuilMinimum" type="number" min="0" [ngModel]="editForm().seuilMinimum" (ngModelChange)="editForm.set({...editForm(), seuilMinimum: $event})" />
+          </div>
+          <div class="form-group">
+            <label for="seuilMaximum">Seuil Maximum</label>
+            <input id="seuilMaximum" type="number" min="0" [ngModel]="editForm().seuilMaximum" (ngModelChange)="editForm.set({...editForm(), seuilMaximum: $event})" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-cancel" (click)="closeEdit()">Annuler</button>
+          <button class="btn btn-save" (click)="saveEdit()" [disabled]="saving()">
+            @if (saving()) {
+              <span class="material-icons spin">sync</span>
+            }
+            Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

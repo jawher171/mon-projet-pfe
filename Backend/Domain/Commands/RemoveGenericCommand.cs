@@ -1,8 +1,9 @@
 using System;
+using MediatR;
 
 namespace Domain.Commands
 {
-    public class RemoveGenericCommand
+    public class RemoveGenericCommand<TEntity> : IRequest<TEntity> where TEntity : class
     {
         public Guid Id { get; }
 

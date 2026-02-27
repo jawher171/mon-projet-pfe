@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "dgSpecHash": "Pxb3Iax/eVI=",
+  "dgSpecHash": "RKiXfTTV7MA=",
   "success": true,
-  "projectFilePath": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Application\\Application.csproj",
+  "projectFilePath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Application\\Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\jawher\\.nuget\\packages\\automapper\\9.0.0\\automapper.9.0.0.nupkg.sha512",
     "C:\\Users\\jawher\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\7.0.0\\automapper.extensions.microsoft.dependencyinjection.7.0.0.nupkg.sha512",
     "C:\\Users\\jawher\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
-    "C:\\Users\\jawher\\.nuget\\packages\\mediatr\\8.0.0\\mediatr.8.0.0.nupkg.sha512",
-    "C:\\Users\\jawher\\.nuget\\packages\\mediatr.extensions.microsoft.dependencyinjection\\8.0.0\\mediatr.extensions.microsoft.dependencyinjection.8.0.0.nupkg.sha512",
+    "C:\\Users\\jawher\\.nuget\\packages\\mediatr\\9.0.0\\mediatr.9.0.0.nupkg.sha512",
+    "C:\\Users\\jawher\\.nuget\\packages\\mediatr.extensions.microsoft.dependencyinjection\\9.0.0\\mediatr.extensions.microsoft.dependencyinjection.9.0.0.nupkg.sha512",
     "C:\\Users\\jawher\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\3.1.32\\microsoft.aspnetcore.authentication.jwtbearer.3.1.32.nupkg.sha512",
     "C:\\Users\\jawher\\.nuget\\packages\\microsoft.aspnetcore.jsonpatch\\3.1.1\\microsoft.aspnetcore.jsonpatch.3.1.1.nupkg.sha512",
     "C:\\Users\\jawher\\.nuget\\packages\\microsoft.aspnetcore.mvc.newtonsoftjson\\3.1.1\\microsoft.aspnetcore.mvc.newtonsoftjson.3.1.1.nupkg.sha512",
@@ -28,8 +28,8 @@
     "C:\\Users\\jawher\\.nuget\\packages\\microsoft.extensions.configuration\\3.1.1\\microsoft.extensions.configuration.3.1.1.nupkg.sha512",
     "C:\\Users\\jawher\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\3.1.1\\microsoft.extensions.configuration.abstractions.3.1.1.nupkg.sha512",
     "C:\\Users\\jawher\\.nuget\\packages\\microsoft.extensions.configuration.binder\\3.1.1\\microsoft.extensions.configuration.binder.3.1.1.nupkg.sha512",
-    "C:\\Users\\jawher\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\7.0.0\\microsoft.extensions.dependencyinjection.7.0.0.nupkg.sha512",
-    "C:\\Users\\jawher\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\7.0.0\\microsoft.extensions.dependencyinjection.abstractions.7.0.0.nupkg.sha512",
+    "C:\\Users\\jawher\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\3.1.32\\microsoft.extensions.dependencyinjection.3.1.32.nupkg.sha512",
+    "C:\\Users\\jawher\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\3.1.32\\microsoft.extensions.dependencyinjection.abstractions.3.1.32.nupkg.sha512",
     "C:\\Users\\jawher\\.nuget\\packages\\microsoft.extensions.logging\\3.1.1\\microsoft.extensions.logging.3.1.1.nupkg.sha512",
     "C:\\Users\\jawher\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\3.1.1\\microsoft.extensions.logging.abstractions.3.1.1.nupkg.sha512",
     "C:\\Users\\jawher\\.nuget\\packages\\microsoft.extensions.options\\3.1.1\\microsoft.extensions.options.3.1.1.nupkg.sha512",
@@ -120,9 +120,9 @@
       "code": "NU1903",
       "level": "Warning",
       "message": "Package 'Newtonsoft.Json' 12.0.3 has a known high severity vulnerability, https://github.com/advisories/GHSA-5crp-9r3c-p9vr",
-      "projectPath": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Application\\Application.csproj",
+      "projectPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Application\\Application.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Application\\Application.csproj",
+      "filePath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Application\\Application.csproj",
       "libraryId": "Newtonsoft.Json",
       "targetGraphs": [
         ".NETCoreApp,Version=v3.1"
@@ -132,9 +132,9 @@
       "code": "NU1902",
       "level": "Warning",
       "message": "Package 'System.IdentityModel.Tokens.Jwt' 6.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-59j7-ghrg-fj52",
-      "projectPath": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Application\\Application.csproj",
+      "projectPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Application\\Application.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Application\\Application.csproj",
+      "filePath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Application\\Application.csproj",
       "libraryId": "System.IdentityModel.Tokens.Jwt",
       "targetGraphs": [
         ".NETCoreApp,Version=v3.1"

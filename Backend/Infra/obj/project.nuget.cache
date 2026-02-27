@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "ZnM/BOxvgO4=",
+  "dgSpecHash": "R2Pquv6EylQ=",
   "success": true,
-  "projectFilePath": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Infra\\Infra.csproj",
+  "projectFilePath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Infra\\Infra.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\jawher\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\7.0.0\\microsoft.extensions.dependencyinjection.7.0.0.nupkg.sha512",
-    "C:\\Users\\jawher\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\7.0.0\\microsoft.extensions.dependencyinjection.abstractions.7.0.0.nupkg.sha512"
+    "C:\\Users\\jawher\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\3.1.32\\microsoft.extensions.dependencyinjection.3.1.32.nupkg.sha512",
+    "C:\\Users\\jawher\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\3.1.32\\microsoft.extensions.dependencyinjection.abstractions.3.1.32.nupkg.sha512"
   ],
   "logs": []
 }

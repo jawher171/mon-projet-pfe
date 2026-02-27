@@ -3,10 +3,9 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Application.Dtos;
 using Domain.Commands;
-using Domain.Handlers;
-using Domain.Interface;
 using Domain.Models;
 using Domain.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,13 +16,11 @@ namespace Application.Controllers
     [Authorize]
     public class ProfileController : ControllerBase
     {
-        private readonly IGenericRepository<User> _userRepository;
-        private readonly IGenericRepository<Role> _roleRepository;
+        private readonly IMediator _mediator;
 
-        public ProfileController(IGenericRepository<User> userRepository, IGenericRepository<Role> roleRepository)
+        public ProfileController(IMediator mediator)
         {
-            _userRepository = userRepository;
-            _roleRepository = roleRepository;
+            _mediator = mediator;
         }
 
         [HttpPut]
@@ -36,10 +33,8 @@ namespace Application.Controllers
             if (!Guid.TryParse(userId, out var guid))
                 return Unauthorized(new { message = "Invalid user ID." });
 
-            var user = await (new GetGenericHandler<User>(_userRepository))
-                .Handle(
-                    new GetGenericQuery<User>(condition: u => u.Id_u == guid, includes: null),
-                    new CancellationToken());
+            var user = await _mediator.Send(
+                new GetGenericQuery<User>(condition: u => u.Id_u == guid, includes: null));
 
             if (user == null)
                 return NotFound(new { message = "User not found." });
@@ -51,7 +46,8 @@ namespace Application.Controllers
                 var trimmed = request.Email.Trim();
                 if (trimmed != user.Email)
                 {
-                    var existing = _userRepository.Get(u => u.Email == trimmed);
+                    var existing = await _mediator.Send(
+                        new GetGenericQuery<User>(condition: u => u.Email == trimmed, includes: null));
                     if (existing != null)
                         return BadRequest(new { message = "A user with this email already exists." });
                     user.Email = trimmed;
@@ -60,14 +56,13 @@ namespace Application.Controllers
             if (!string.IsNullOrEmpty(request?.Password))
                 user.MotDePasse = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-            var putHandler = new PutGenericHandler<User>(_userRepository);
-            var putCommand = new PutGenericCommand<User>(user);
-            var updated = await putHandler.Handle(putCommand, new CancellationToken());
+            var updated = await _mediator.Send(new PutGenericCommand<User>(user));
 
-            var role = _roleRepository.Get(r => r.RoleId == updated.RoleId);
+            var role = await _mediator.Send(
+                new GetGenericQuery<Role>(condition: r => r.RoleId == updated.RoleId, includes: null));
             var dto = new UserDto
             {
-                Id = updated.Id_u.ToString(),
+                Id = updated.Id_u,
                 Nom = updated.Nom,
                 Prenom = updated.Prenom,
                 Email = updated.Email,

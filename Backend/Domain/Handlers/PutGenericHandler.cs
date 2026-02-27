@@ -2,10 +2,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Domain.Commands;
 using Domain.Interface;
+using MediatR;
 
 namespace Domain.Handlers
 {
-    public class PutGenericHandler<TEntity> where TEntity : class
+    public class PutGenericHandler<TEntity> : IRequestHandler<PutGenericCommand<TEntity>, TEntity> where TEntity : class
     {
         private readonly IGenericRepository<TEntity> _repository;
 

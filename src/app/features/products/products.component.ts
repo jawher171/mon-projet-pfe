@@ -35,6 +35,18 @@ export class ProductsComponent implements OnInit {
   
   /** Edit mode flag */
   isEditMode = signal(false);
+
+  /** Details modal state */
+  showDetailsModal = signal(false);
+
+  /** Selected product for details */
+  selectedProduct = signal<Product | null>(null);
+
+  /** Inline add category state */
+  isAddingCategory = signal(false);
+
+  /** New category input value */
+  newCategoryName = signal('');
   
   /** Product form */
   productForm!: FormGroup;
@@ -139,11 +151,55 @@ export class ProductsComponent implements OnInit {
   }
 
   /**
+   * Open details modal for a product
+   */
+  openDetailsModal(product: Product) {
+    this.selectedProduct.set(product);
+    this.showDetailsModal.set(true);
+  }
+
+  /**
    * Close modal
    */
   closeModal() {
     this.showModal.set(false);
     this.productForm.reset();
+    this.cancelAddCategory();
+  }
+
+  /**
+   * Close details modal
+   */
+  closeDetailsModal() {
+    this.showDetailsModal.set(false);
+    this.selectedProduct.set(null);
+  }
+
+  startAddCategory() {
+    this.isAddingCategory.set(true);
+    this.newCategoryName.set('');
+  }
+
+  onNewCategoryInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.newCategoryName.set(input.value);
+  }
+
+  cancelAddCategory() {
+    this.isAddingCategory.set(false);
+    this.newCategoryName.set('');
+  }
+
+  addCategoryFromForm() {
+    const libelle = this.newCategoryName().trim();
+    if (!libelle) {
+      return;
+    }
+
+    const category = this.categoryService.addCategorySync(libelle);
+    this.productForm.patchValue({ categorieId: category.id });
+    this.productForm.get('categorieId')?.markAsTouched();
+    this.cancelAddCategory();
   }
 
   /**

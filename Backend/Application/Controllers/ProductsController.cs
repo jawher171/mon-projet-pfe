@@ -4,10 +4,9 @@ using System.Threading.Tasks;
 using Application.Dtos;
 using AutoMapper;
 using Domain.Commands;
-using Domain.Handlers;
-using Domain.Interface;
 using Domain.Models;
 using Domain.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,24 +18,22 @@ namespace Application.Controllers
     [Authorize]
     public class ProductsController : ControllerBase
     {
-        private readonly IGenericRepository<Product> _repository;
+        private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
-        public ProductsController(IGenericRepository<Product> repository, IMapper mapper)
+        public ProductsController(IMediator mediator, IMapper mapper)
         {
-            _repository = repository;
+            _mediator = mediator;
             _mapper = mapper;
         }
 
         [HttpGet("GetProducts")]
         public async Task<IEnumerable<ProductDto>> GetNotDeleted()
         {
-            var result = await (new GetListGenericHandler<Product>(_repository))
-                .Handle(
-                    new GetListGenericQuery<Product>(
-                        condition: x => true,
-                        includes: i => i.Include(x => x.Categorie)),
-                    new CancellationToken());
+            var result = await _mediator.Send(
+                new GetListGenericQuery<Product>(
+                    condition: x => true,
+                    includes: i => i.Include(x => x.Categorie)));
 
             return _mapper.Map<IEnumerable<ProductDto>>(result);
         }
@@ -44,12 +41,10 @@ namespace Application.Controllers
         [HttpGet("GetProduct/{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var entity = await (new GetGenericHandler<Product>(_repository))
-                .Handle(
-                    new GetGenericQuery<Product>(
-                        condition: x => x.id_p == id,
-                        includes: i => i.Include(x => x.Categorie)),
-                    new CancellationToken());
+            var entity = await _mediator.Send(
+                new GetGenericQuery<Product>(
+                    condition: x => x.id_p == id,
+                    includes: i => i.Include(x => x.Categorie)));
 
             if (entity == null) return NotFound();
             return Ok(_mapper.Map<ProductDto>(entity));
@@ -57,21 +52,30 @@ namespace Application.Controllers
 
         [HttpPost("AddProduct")]
         [Authorize(Roles = "admin,gestionnaire_de_stock")]
-        public async Task<IActionResult> Add([FromBody] Product product)
+        public async Task<IActionResult> Add([FromBody] ProductDto dto)
         {
-            var handler = new AddGenericHandler<Product>(_repository);
-            var command = new AddGenericCommand<Product>(product);
-            var result = await handler.Handle(command, new CancellationToken());
+            var product = _mapper.Map<Product>(dto);
+            product.id_p = Guid.NewGuid();
+            var result = await _mediator.Send(new AddGenericCommand<Product>(product));
             return Ok(_mapper.Map<ProductDto>(result));
         }
 
         [HttpPut("UpdateProduct")]
         [Authorize(Roles = "admin,gestionnaire_de_stock")]
-        public async Task<IActionResult> Update([FromBody] Product product)
+        public async Task<IActionResult> Update([FromBody] ProductDto dto)
         {
-            var handler = new PutGenericHandler<Product>(_repository);
-            var command = new PutGenericCommand<Product>(product);
-            var result = await handler.Handle(command, new CancellationToken());
+            if (dto.id_p == Guid.Empty)
+                return BadRequest(new { message = "id_p is required." });
+
+            var existing = await _mediator.Send(
+                new GetGenericQuery<Product>(condition: x => x.id_p == dto.id_p, includes: null));
+
+            if (existing == null)
+                return NotFound(new { message = "Product not found." });
+
+            _mapper.Map(dto, existing);
+
+            var result = await _mediator.Send(new PutGenericCommand<Product>(existing));
             return Ok(_mapper.Map<ProductDto>(result));
         }
 
@@ -79,9 +83,7 @@ namespace Application.Controllers
         [Authorize(Roles = "admin,gestionnaire_de_stock")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var handler = new RemoveGenericHandler<Product>(_repository);
-            var command = new RemoveGenericCommand(id);
-            var deleted = await handler.Handle(command, new CancellationToken());
+            var deleted = await _mediator.Send(new RemoveGenericCommand<Product>(id));
             if (deleted == null) return NotFound();
             return NoContent();
         }

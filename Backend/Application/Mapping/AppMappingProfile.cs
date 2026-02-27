@@ -1,3 +1,4 @@
+using System;
 using Application.Dtos;
 using AutoMapper;
 using Domain.Models;
@@ -11,41 +12,61 @@ namespace Application.Mapping
     {
         public AppMappingProfile()
         {
-            // Category: simple 1:1 mapping
-            CreateMap<Category, CategoryDto>();
-            CreateMap<CategoryDto, Category>();
+            // Category: Id_c (Guid) ↔ Id (Guid), ignore Produits
+            CreateMap<Category, CategoryDto>()
+                .ForMember(d => d.Id, o => o.MapFrom(s => s.Id_c));
+            CreateMap<CategoryDto, Category>()
+                .ForMember(d => d.Id_c, o => o.MapFrom(s => s.Id))
+                .ForMember(d => d.Produits, o => o.Ignore());
 
             // Product: map navigation Categorie.Libelle to CategorieLibelle in DTO
             CreateMap<Product, ProductDto>()
                 .ForMember(d => d.CategorieLibelle, o => o.MapFrom(s => s.Categorie != null ? s.Categorie.Libelle : null));
-            CreateMap<ProductDto, Product>();
+            CreateMap<ProductDto, Product>()
+                .ForMember(d => d.Categorie, o => o.Ignore())
+                .ForMember(d => d.Stocks, o => o.Ignore());
 
             // Site: simple 1:1 mapping
             CreateMap<Site, SiteDto>();
-            CreateMap<SiteDto, Site>();
+            CreateMap<SiteDto, Site>()
+                .ForMember(d => d.Stocks, o => o.Ignore());
 
-            // Alert: simple 1:1 mapping
-            CreateMap<Alert, AlertDto>();
-            CreateMap<AlertDto, Alert>();
+            // Alert: enrich with ProduitNom and SiteNom from Stock navigation
+            CreateMap<Alert, AlertDto>()
+                .ForMember(d => d.ProduitNom, o => o.MapFrom(s => s.Stock != null && s.Stock.Produit != null ? s.Stock.Produit.Nom : null))
+                .ForMember(d => d.SiteNom, o => o.MapFrom(s => s.Stock != null && s.Stock.Site != null ? s.Stock.Site.Nom : null));
+            CreateMap<AlertDto, Alert>()
+                .ForMember(d => d.Stock, o => o.Ignore());
 
             // Stock: add ProduitNom and SiteNom from related entities
             CreateMap<Stock, StockDto>()
                 .ForMember(d => d.ProduitNom, o => o.MapFrom(s => s.Produit != null ? s.Produit.Nom : null))
                 .ForMember(d => d.SiteNom, o => o.MapFrom(s => s.Site != null ? s.Site.Nom : null));
-            CreateMap<StockDto, Stock>();
+            CreateMap<StockDto, Stock>()
+                .ForMember(d => d.Produit, o => o.Ignore())
+                .ForMember(d => d.Site, o => o.Ignore())
+                .ForMember(d => d.MouvementsStock, o => o.Ignore())
+                .ForMember(d => d.Alertes, o => o.Ignore());
 
-            // StockMovement: simple 1:1 mapping
-            CreateMap<StockMovement, StockMovementDto>();
-            CreateMap<StockMovementDto, StockMovement>();
+            // StockMovement: map display fields from navigation properties
+            CreateMap<StockMovement, StockMovementDto>()
+                .ForMember(d => d.ProduitNom, o => o.MapFrom(s => s.Stock != null && s.Stock.Produit != null ? s.Stock.Produit.Nom : null))
+                .ForMember(d => d.SiteNom, o => o.MapFrom(s => s.Stock != null && s.Stock.Site != null ? s.Stock.Site.Nom : null))
+                .ForMember(d => d.UtilisateurNom, o => o.MapFrom(s => s.Utilisateur != null ? s.Utilisateur.Nom : null))
+                .ForMember(d => d.ProductId, o => o.MapFrom(s => s.Stock != null ? s.Stock.id_p : (Guid?)null))
+                .ForMember(d => d.SiteId, o => o.MapFrom(s => s.Stock != null ? s.Stock.Id_site : (Guid?)null));
+            CreateMap<StockMovementDto, StockMovement>()
+                .ForMember(d => d.Stock, o => o.Ignore())
+                .ForMember(d => d.Utilisateur, o => o.Ignore());
 
             // User: custom mappings (Id_u→Id string, bool Status→"active"/"inactive", Role.Nom→Role)
             CreateMap<User, UserDto>()
-                .ForMember(d => d.Id, o => o.MapFrom(s => s.Id_u.ToString()))
+                .ForMember(d => d.Id, o => o.MapFrom(s => s.Id_u))
                 .ForMember(d => d.Role, o => o.MapFrom(s => s.Role != null ? s.Role.Nom : string.Empty))
                 .ForMember(d => d.Status, o => o.MapFrom(s => s.Status ? "active" : "inactive"));
             // UserDto→User: ignore password, Role and collections (set separately)
             CreateMap<UserDto, User>()
-                .ForMember(d => d.Id_u, o => o.MapFrom(s => Guid.TryParse(s.Id, out var g) ? g : Guid.Empty))
+                .ForMember(d => d.Id_u, o => o.MapFrom(s => s.Id))
                 .ForMember(d => d.MotDePasse, o => o.Ignore())
                 .ForMember(d => d.Role, o => o.Ignore())
                 .ForMember(d => d.MouvementsStock, o => o.Ignore());

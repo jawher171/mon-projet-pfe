@@ -78,6 +78,9 @@
             <span class="site-location">{{ site.ville }}</span>
           </div>
           <div class="card-actions">
+            <a class="action-btn stocks" [routerLink]="['/sites', site.id, 'stocks']" title="Stocks">
+              <span class="material-icons">inventory</span>
+            </a>
             <button class="action-btn" (click)="openViewModal(site)" title="Voir">
               <span class="material-icons">visibility</span>
             </button>

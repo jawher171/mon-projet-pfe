@@ -5,7 +5,7 @@
       <p>Gérer les utilisateurs de l'application et leurs rôles</p>
     </div>
     <div class="header-actions">
-      <button type="button" class="btn-outline" (click)="openAddRoleModal()">
+      <button type="button" class="btn-outline" (click)="openAddRoleModal()" [disabled]="backendMode" [title]="backendMode ? 'Désactivé en mode backend' : ''">
         <span class="material-icons">edit_note</span>
         Gérer Rôles
       </button>
@@ -42,6 +42,10 @@
 
         @if (errorMessage()) {
           <div class="error-banner">{{ errorMessage() }}</div>
+        }
+
+        @if (backendMode) {
+          <div class="error-banner">Mode backend: rôles autorisés = admin, gestionnaire_de_stock, operateur.</div>
         }
 
         <form class="user-form" (ngSubmit)="saveUser()">

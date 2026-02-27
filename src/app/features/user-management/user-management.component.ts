@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { User } from '../../core/models/user.model';
 import { UserRole } from '../../core/models/role.model';
 import { UserService } from '../../core/services/user.service';
+import { USE_BACKEND } from '../../app.config';
 
 @Component({
   selector: 'app-user-management',
@@ -13,6 +14,8 @@ import { UserService } from '../../core/services/user.service';
   styleUrls: ['./user-management.component.scss']
 })
 export class UserManagementComponent implements OnInit {
+  readonly backendMode = USE_BACKEND;
+
   /** Search input value for filtering the user list */
   searchTerm = signal('');
 
@@ -52,6 +55,10 @@ export class UserManagementComponent implements OnInit {
     ...this.baseRoles,
     ...this.customRoles()
   ]);
+
+  private isBaseRole(role: string): boolean {
+    return this.baseRoles.some(r => r.value === role);
+  }
 
   get users() {
     return this.userService.users();
@@ -120,6 +127,11 @@ export class UserManagementComponent implements OnInit {
       return;
     }
 
+    if (this.backendMode && !this.isBaseRole(this.formData.role)) {
+      this.errorMessage.set('En mode backend, seuls les rôles admin, gestionnaire_de_stock et operateur sont autorisés.');
+      return;
+    }
+
     this.saving.set(true);
     this.errorMessage.set('');
     try {
@@ -175,6 +187,10 @@ export class UserManagementComponent implements OnInit {
   }
 
   openAddRoleModal(): void {
+    if (this.backendMode) {
+      this.errorMessage.set('Rôles personnalisés désactivés en mode backend pour rester aligné avec l\'API.');
+      return;
+    }
     this.newCustomRoleName.set('');
     this.showAddRoleModal.set(true);
   }
@@ -185,8 +201,17 @@ export class UserManagementComponent implements OnInit {
   }
 
   saveCustomRole(): void {
+    if (this.backendMode) return;
+
     const roleName = this.newCustomRoleName().trim();
     if (!roleName) return;
+
+    const exists = this.roles().some(r => r.label.toLowerCase() === roleName.toLowerCase());
+    if (exists) {
+      this.errorMessage.set('Ce rôle existe déjà.');
+      return;
+    }
+
     const roleValue = `custom_${roleName.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`;
     this.customRoles.update(roles => [...roles, { value: roleValue, label: roleName }]);
     this.closeAddRoleModal();

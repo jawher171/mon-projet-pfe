@@ -6,7 +6,7 @@ namespace Application.Dtos
     /// <summary>User info returned on login (includes Permissions for frontend).</summary>
     public class LoginUserDto
     {
-        public string Id { get; set; } = string.Empty;
+        public Guid Id { get; set; }
         public string Nom { get; set; } = string.Empty;
         public string Prenom { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;

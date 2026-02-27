@@ -6,10 +6,9 @@ using Application.Dtos;
 using Application.Services;
 using Data.Context;
 using Domain.Commands;
-using Domain.Handlers;
-using Domain.Interface;
 using Domain.Models;
 using Domain.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -21,15 +20,13 @@ namespace Application.Controllers
     [AllowAnonymous]
     public class AuthentificationController : ControllerBase
     {
-        private readonly IGenericRepository<User> _userRepository;
-        private readonly IGenericRepository<Role> _roleRepository;
+        private readonly IMediator _mediator;
         private readonly AppDbContext _context;
         private readonly IJwtService _jwtService;
 
-        public AuthentificationController(IGenericRepository<User> userRepository, IGenericRepository<Role> roleRepository, AppDbContext context, IJwtService jwtService)
+        public AuthentificationController(IMediator mediator, AppDbContext context, IJwtService jwtService)
         {
-            _userRepository = userRepository;
-            _roleRepository = roleRepository;
+            _mediator = mediator;
             _context = context;
             _jwtService = jwtService;
         }
@@ -40,10 +37,8 @@ namespace Application.Controllers
             if (request == null || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
                 return BadRequest(new { message = "Email and password are required." });
 
-            var user = await (new GetGenericHandler<User>(_userRepository))
-                .Handle(
-                    new GetGenericQuery<User>(condition: u => u.Email == request.Email.Trim(), includes: null),
-                    new CancellationToken());
+            var user = await _mediator.Send(
+                new GetGenericQuery<User>(condition: u => u.Email == request.Email.Trim(), includes: null));
 
             if (user == null)
                 return Unauthorized(new { message = "Invalid email or password." });
@@ -66,11 +61,10 @@ namespace Application.Controllers
 
             user.LastLogin = DateTime.UtcNow;
 
-            var putHandler = new PutGenericHandler<User>(_userRepository);
-            var putCommand = new PutGenericCommand<User>(user);
-            await putHandler.Handle(putCommand, new CancellationToken());
+            await _mediator.Send(new PutGenericCommand<User>(user));
 
-            var role = _roleRepository.Get(r => r.RoleId == user.RoleId);
+            var role = await _mediator.Send(
+                new GetGenericQuery<Role>(condition: r => r.RoleId == user.RoleId, includes: null));
             var roleNom = role?.Nom ?? string.Empty;
 
             var rolePermissions = await _context.rolepermission
@@ -89,7 +83,7 @@ namespace Application.Controllers
 
             var userDto = new LoginUserDto
             {
-                Id = user.Id_u.ToString(),
+                Id = user.Id_u,
                 Nom = user.Nom,
                 Prenom = user.Prenom,
                 Email = user.Email,

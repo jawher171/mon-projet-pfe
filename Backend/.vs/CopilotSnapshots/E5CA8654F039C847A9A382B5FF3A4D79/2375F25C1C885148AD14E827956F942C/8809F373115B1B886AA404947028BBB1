@@ -1,0 +1,263 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Application.Dtos;
+using AutoMapper;
+using Domain.Commands;
+using Domain.Handlers;
+using Domain.Interface;
+using Domain.Models;
+using Domain.Queries;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace Application.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize(Roles = "admin")]
+    public class UsersController : ControllerBase
+    {
+        private readonly IGenericRepository<User> _userRepository;
+        private readonly IGenericRepository<Role> _roleRepository;
+        private readonly IMapper _mapper;
+
+        public UsersController(IGenericRepository<User> userRepository, IGenericRepository<Role> roleRepository, IMapper mapper)
+        {
+            _userRepository = userRepository;
+            _roleRepository = roleRepository;
+            _mapper = mapper;
+        }
+
+        [HttpGet]
+        public async Task<IEnumerable<UserDto>> GetUsers()
+        {
+            var result = await (new GetListGenericHandler<User>(_userRepository))
+                .Handle(
+                    new GetListGenericQuery<User>(
+                        condition: x => true,
+                        includes: i => i.Include(x => x.Role)),
+                    new CancellationToken());
+
+            return _mapper.Map<IEnumerable<UserDto>>(result);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUser(Guid id)
+        {
+            var entity = await (new GetGenericHandler<User>(_userRepository))
+                .Handle(
+                    new GetGenericQuery<User>(
+                        condition: x => x.Id_u == id,
+                        includes: i => i.Include(x => x.Role)),
+                    new CancellationToken());
+
+            if (entity == null)
+                return NotFound(new { message = "User not found." });
+
+            return Ok(_mapper.Map<UserDto>(entity));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.Email) || string.IsNullOrWhiteSpace(request?.Password))
+                return BadRequest(new { message = "Email and password are required." });
+
+            var existing = _userRepository.Get(u => u.Email == request.Email.Trim());
+            if (existing != null)
+                return Conflict(new { message = "A user with this email already exists." });
+
+            var roleName = request?.Role?.Trim();
+            if (string.IsNullOrWhiteSpace(roleName))
+                return BadRequest(new { message = "Invalid role." });
+            var role = _roleRepository.Get(r => r.Nom == roleName);
+            if (role == null)
+                return BadRequest(new { message = "Invalid role." });
+
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            var user = new User
+            {
+                Id_u = Guid.NewGuid(),
+                Nom = request.Nom?.Trim() ?? string.Empty,
+                Prenom = request.Prenom?.Trim() ?? string.Empty,
+                Email = request.Email.Trim(),
+                MotDePasse = hashedPassword,
+                Status = request.Status?.ToLowerInvariant() == "active",
+                RoleId = role.RoleId,
+                LastLogin = null
+            };
+
+            var handler = new AddGenericHandler<User>(_userRepository);
+            var command = new AddGenericCommand<User>(user);
+            var created = await handler.Handle(command, new CancellationToken());
+
+            var dto = new UserDto
+            {
+                Id = created.Id_u,
+                Nom = created.Nom,
+                Prenom = created.Prenom,
+                Email = created.Email,
+                Role = role.Nom,
+                Status = created.Status ? "active" : "inactive",
+                LastLogin = created.LastLogin
+            };
+
+            return CreatedAtAction(nameof(GetUser), new { id = dto.Id }, dto);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserRequest request)
+        {
+            var (success, userDto, errorMessage) = await UpdateUserInternal(id, request?.Nom, request?.Prenom, request?.Email, request?.Password, request?.Role, request?.Status);
+            if (!success)
+            {
+                if (errorMessage.Contains("not found")) return NotFound(new { message = errorMessage });
+                return BadRequest(new { message = errorMessage });
+            }
+            return Ok(userDto);
+        }
+
+        [HttpPut("{id}/role")]
+        public async Task<IActionResult> ChangeRole(Guid id, [FromBody] ChangeRoleRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.Role))
+                return BadRequest(new { message = "Role is required." });
+
+            var (success, userDto, errorMessage) = await UpdateUserInternal(id, null, null, null, null, request.Role, null);
+            if (!success)
+            {
+                if (errorMessage.Contains("not found")) return NotFound(new { message = errorMessage });
+                return BadRequest(new { message = errorMessage });
+            }
+            return Ok(userDto);
+        }
+
+        [HttpPut("{id}/status")]
+        public async Task<IActionResult> ToggleStatus(Guid id, [FromBody] ToggleStatusRequest request)
+        {
+            var (success, userDto, errorMessage) = await UpdateUserInternal(id, null, null, null, null, null, request?.Status ?? "active");
+            if (!success)
+            {
+                if (errorMessage.Contains("not found")) return NotFound(new { message = errorMessage });
+                return BadRequest(new { message = errorMessage });
+            }
+            return Ok(userDto);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(Guid id)
+        {
+            var usersResult = await (new GetListGenericHandler<User>(_userRepository))
+                .Handle(
+                    new GetListGenericQuery<User>(condition: x => true, includes: i => i.Include(x => x.Role)),
+                    new CancellationToken());
+            var users = _mapper.Map<IEnumerable<UserDto>>(usersResult).ToList();
+            var toDelete = users.Find(u => u.Id == id);
+            if (toDelete == null)
+                return NotFound(new { message = "User not found." });
+
+            if (toDelete.Role == "admin")
+            {
+                var adminCount = users.Count(u => u.Role == "admin" && u.Status == "active");
+                if (adminCount <= 1)
+                    return BadRequest(new { message = "Cannot delete the last admin." });
+            }
+
+            var handler = new RemoveGenericHandler<User>(_userRepository);
+            var command = new RemoveGenericCommand(id);
+            var deleted = await handler.Handle(command, new CancellationToken());
+            if (deleted == null)
+                return NotFound(new { message = "User not found." });
+
+            return NoContent();
+        }
+
+        private async Task<(bool Success, UserDto? UserDto, string ErrorMessage)> UpdateUserInternal(Guid id, string? nom, string? prenom, string? email, string? password, string? role, string? status)
+        {
+            var user = await (new GetGenericHandler<User>(_userRepository))
+                .Handle(
+                    new GetGenericQuery<User>(condition: x => x.Id_u == id, includes: null),
+                    new CancellationToken());
+
+            if (user == null)
+                return (false, null, "User not found.");
+
+            if (nom != null) user.Nom = nom.Trim();
+            if (prenom != null) user.Prenom = prenom.Trim();
+            if (email != null)
+            {
+                var trimmed = email.Trim();
+                if (trimmed != user.Email)
+                {
+                    var existing = _userRepository.Get(u => u.Email == trimmed);
+                    if (existing != null)
+                        return (false, null, "A user with this email already exists.");
+                    user.Email = trimmed;
+                }
+            }
+            if (!string.IsNullOrEmpty(password))
+                user.MotDePasse = BCrypt.Net.BCrypt.HashPassword(password);
+            if (status != null)
+                user.Status = status.ToLowerInvariant() == "active";
+            if (role != null)
+            {
+                var roleEntity = _roleRepository.Get(r => r.Nom == role.Trim());
+                if (roleEntity == null)
+                    return (false, null, "Invalid role.");
+                user.RoleId = roleEntity.RoleId;
+            }
+
+            var putHandler = new PutGenericHandler<User>(_userRepository);
+            var putCommand = new PutGenericCommand<User>(user);
+            var updated = await putHandler.Handle(putCommand, new CancellationToken());
+
+            var roleEntity2 = _roleRepository.Get(r => r.RoleId == updated.RoleId);
+            var dto = new UserDto
+            {
+                Id = updated.Id_u,
+                Nom = updated.Nom,
+                Prenom = updated.Prenom,
+                Email = updated.Email,
+                Role = roleEntity2?.Nom ?? string.Empty,
+                Status = updated.Status ? "active" : "inactive",
+                LastLogin = updated.LastLogin
+            };
+
+            return (true, dto, string.Empty);
+        }
+    }
+
+    public class CreateUserRequest
+    {
+        public string Nom { get; set; } = string.Empty;
+        public string Prenom { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public string Status { get; set; } = "active";
+    }
+
+    public class UpdateUserRequest
+    {
+        public string? Nom { get; set; }
+        public string? Prenom { get; set; }
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+        public string? Role { get; set; }
+        public string? Status { get; set; }
+    }
+
+    public class ChangeRoleRequest
+    {
+        public string Role { get; set; } = string.Empty;
+    }
+
+    public class ToggleStatusRequest
+    {
+        public string Status { get; set; } = "active";
+    }
+}

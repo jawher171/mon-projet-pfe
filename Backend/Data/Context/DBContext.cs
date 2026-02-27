@@ -90,6 +90,21 @@ namespace Data.Context
                 .WithMany(s => s.Alertes)
                 .HasForeignKey(a => a.id_s);
 
+            // Alert: Fingerprint stored as string, indexed for dedup queries
+            modelBuilder.Entity<Alert>()
+                .Property(a => a.Fingerprint)
+                .HasMaxLength(300);
+            modelBuilder.Entity<Alert>()
+                .HasIndex(a => new { a.Fingerprint, a.Status })
+                .HasName("IX_Alert_Fingerprint_Status");
+            modelBuilder.Entity<Alert>()
+                .Property(a => a.Severity)
+                .HasMaxLength(20);
+            modelBuilder.Entity<Alert>()
+                .Property(a => a.Status)
+                .HasMaxLength(20)
+                .HasDefaultValue("Open");
+
             modelBuilder.Entity<Category>()
                 .HasKey(rp => new { rp.Id_c });
 

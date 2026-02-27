@@ -1,0 +1,18 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace Application.Dtos
+{
+    /// <summary>User info returned on login (includes Permissions for frontend).</summary>
+    public class LoginUserDto
+    {
+        public Guid Id { get; set; }
+        public string Nom { get; set; } = string.Empty;
+        public string Prenom { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public DateTime? LastLogin { get; set; }
+        public List<string> Permissions { get; set; } = new List<string>();
+    }
+}

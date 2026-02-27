@@ -5,10 +5,9 @@ using System.Threading.Tasks;
 using Application.Dtos;
 using AutoMapper;
 using Domain.Commands;
-using Domain.Handlers;
-using Domain.Interface;
 using Domain.Models;
 using Domain.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,42 +19,33 @@ namespace Application.Controllers
     [Authorize(Roles = "admin")]
     public class UsersController : ControllerBase
     {
-        private readonly IGenericRepository<User> _userRepository;
-        private readonly IGenericRepository<Role> _roleRepository;
+        private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
-        public UsersController(IGenericRepository<User> userRepository, IGenericRepository<Role> roleRepository, IMapper mapper)
+        public UsersController(IMediator mediator, IMapper mapper)
         {
-            _userRepository = userRepository;
-            _roleRepository = roleRepository;
+            _mediator = mediator;
             _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<IEnumerable<UserDto>> GetUsers()
         {
-            var result = await (new GetListGenericHandler<User>(_userRepository))
-                .Handle(
-                    new GetListGenericQuery<User>(
-                        condition: x => true,
-                        includes: i => i.Include(x => x.Role)),
-                    new CancellationToken());
+            var result = await _mediator.Send(
+                new GetListGenericQuery<User>(
+                    condition: x => true,
+                    includes: i => i.Include(x => x.Role)));
 
             return _mapper.Map<IEnumerable<UserDto>>(result);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUser(string id)
+        public async Task<IActionResult> GetUser(Guid id)
         {
-            if (!Guid.TryParse(id, out var guid))
-                return BadRequest(new { message = "Invalid user ID." });
-
-            var entity = await (new GetGenericHandler<User>(_userRepository))
-                .Handle(
-                    new GetGenericQuery<User>(
-                        condition: x => x.Id_u == guid,
-                        includes: i => i.Include(x => x.Role)),
-                    new CancellationToken());
+            var entity = await _mediator.Send(
+                new GetGenericQuery<User>(
+                    condition: x => x.Id_u == id,
+                    includes: i => i.Include(x => x.Role)));
 
             if (entity == null)
                 return NotFound(new { message = "User not found." });
@@ -69,11 +59,16 @@ namespace Application.Controllers
             if (string.IsNullOrWhiteSpace(request?.Email) || string.IsNullOrWhiteSpace(request?.Password))
                 return BadRequest(new { message = "Email and password are required." });
 
-            var existing = _userRepository.Get(u => u.Email == request.Email.Trim());
+            var existing = await _mediator.Send(
+                new GetGenericQuery<User>(condition: u => u.Email == request.Email.Trim(), includes: null));
             if (existing != null)
                 return Conflict(new { message = "A user with this email already exists." });
 
-            var role = _roleRepository.Get(r => r.Nom == request.Role?.Trim());
+            var roleName = request?.Role?.Trim();
+            if (string.IsNullOrWhiteSpace(roleName))
+                return BadRequest(new { message = "Invalid role." });
+            var role = await _mediator.Send(
+                new GetGenericQuery<Role>(condition: r => r.Nom == roleName, includes: null));
             if (role == null)
                 return BadRequest(new { message = "Invalid role." });
 
@@ -90,13 +85,11 @@ namespace Application.Controllers
                 LastLogin = null
             };
 
-            var handler = new AddGenericHandler<User>(_userRepository);
-            var command = new AddGenericCommand<User>(user);
-            var created = await handler.Handle(command, new CancellationToken());
+            var created = await _mediator.Send(new AddGenericCommand<User>(user));
 
             var dto = new UserDto
             {
-                Id = created.Id_u.ToString(),
+                Id = created.Id_u,
                 Nom = created.Nom,
                 Prenom = created.Prenom,
                 Email = created.Email,
@@ -109,7 +102,7 @@ namespace Application.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserRequest request)
+        public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserRequest request)
         {
             var (success, userDto, errorMessage) = await UpdateUserInternal(id, request?.Nom, request?.Prenom, request?.Email, request?.Password, request?.Role, request?.Status);
             if (!success)
@@ -121,7 +114,7 @@ namespace Application.Controllers
         }
 
         [HttpPut("{id}/role")]
-        public async Task<IActionResult> ChangeRole(string id, [FromBody] ChangeRoleRequest request)
+        public async Task<IActionResult> ChangeRole(Guid id, [FromBody] ChangeRoleRequest request)
         {
             if (string.IsNullOrWhiteSpace(request?.Role))
                 return BadRequest(new { message = "Role is required." });
@@ -136,7 +129,7 @@ namespace Application.Controllers
         }
 
         [HttpPut("{id}/status")]
-        public async Task<IActionResult> ToggleStatus(string id, [FromBody] ToggleStatusRequest request)
+        public async Task<IActionResult> ToggleStatus(Guid id, [FromBody] ToggleStatusRequest request)
         {
             var (success, userDto, errorMessage) = await UpdateUserInternal(id, null, null, null, null, null, request?.Status ?? "active");
             if (!success)
@@ -148,15 +141,10 @@ namespace Application.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(string id)
+        public async Task<IActionResult> DeleteUser(Guid id)
         {
-            if (!Guid.TryParse(id, out var guid))
-                return BadRequest(new { message = "Invalid user ID." });
-
-            var usersResult = await (new GetListGenericHandler<User>(_userRepository))
-                .Handle(
-                    new GetListGenericQuery<User>(condition: x => true, includes: i => i.Include(x => x.Role)),
-                    new CancellationToken());
+            var usersResult = await _mediator.Send(
+                new GetListGenericQuery<User>(condition: x => true, includes: i => i.Include(x => x.Role)));
             var users = _mapper.Map<IEnumerable<UserDto>>(usersResult).ToList();
             var toDelete = users.Find(u => u.Id == id);
             if (toDelete == null)
@@ -169,24 +157,17 @@ namespace Application.Controllers
                     return BadRequest(new { message = "Cannot delete the last admin." });
             }
 
-            var handler = new RemoveGenericHandler<User>(_userRepository);
-            var command = new RemoveGenericCommand(guid);
-            var deleted = await handler.Handle(command, new CancellationToken());
+            var deleted = await _mediator.Send(new RemoveGenericCommand<User>(id));
             if (deleted == null)
                 return NotFound(new { message = "User not found." });
 
             return NoContent();
         }
 
-        private async Task<(bool Success, UserDto? UserDto, string ErrorMessage)> UpdateUserInternal(string id, string? nom, string? prenom, string? email, string? password, string? role, string? status)
+        private async Task<(bool Success, UserDto? UserDto, string ErrorMessage)> UpdateUserInternal(Guid id, string? nom, string? prenom, string? email, string? password, string? role, string? status)
         {
-            if (!Guid.TryParse(id, out var userId))
-                return (false, null, "Invalid user ID.");
-
-            var user = await (new GetGenericHandler<User>(_userRepository))
-                .Handle(
-                    new GetGenericQuery<User>(condition: x => x.Id_u == userId, includes: null),
-                    new CancellationToken());
+            var user = await _mediator.Send(
+                new GetGenericQuery<User>(condition: x => x.Id_u == id, includes: null));
 
             if (user == null)
                 return (false, null, "User not found.");
@@ -198,7 +179,8 @@ namespace Application.Controllers
                 var trimmed = email.Trim();
                 if (trimmed != user.Email)
                 {
-                    var existing = _userRepository.Get(u => u.Email == trimmed);
+                    var existing = await _mediator.Send(
+                        new GetGenericQuery<User>(condition: u => u.Email == trimmed, includes: null));
                     if (existing != null)
                         return (false, null, "A user with this email already exists.");
                     user.Email = trimmed;
@@ -210,20 +192,20 @@ namespace Application.Controllers
                 user.Status = status.ToLowerInvariant() == "active";
             if (role != null)
             {
-                var roleEntity = _roleRepository.Get(r => r.Nom == role.Trim());
+                var roleEntity = await _mediator.Send(
+                    new GetGenericQuery<Role>(condition: r => r.Nom == role.Trim(), includes: null));
                 if (roleEntity == null)
                     return (false, null, "Invalid role.");
                 user.RoleId = roleEntity.RoleId;
             }
 
-            var putHandler = new PutGenericHandler<User>(_userRepository);
-            var putCommand = new PutGenericCommand<User>(user);
-            var updated = await putHandler.Handle(putCommand, new CancellationToken());
+            var updated = await _mediator.Send(new PutGenericCommand<User>(user));
 
-            var roleEntity2 = _roleRepository.Get(r => r.RoleId == updated.RoleId);
+            var roleEntity2 = await _mediator.Send(
+                new GetGenericQuery<Role>(condition: r => r.RoleId == updated.RoleId, includes: null));
             var dto = new UserDto
             {
-                Id = updated.Id_u.ToString(),
+                Id = updated.Id_u,
                 Nom = updated.Nom,
                 Prenom = updated.Prenom,
                 Email = updated.Email,

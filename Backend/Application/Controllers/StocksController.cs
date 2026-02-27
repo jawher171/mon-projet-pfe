@@ -2,13 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Dtos;
-using Application.Services;
 using AutoMapper;
 using Domain.Commands;
-using Domain.Handlers;
-using Domain.Interface;
 using Domain.Models;
 using Domain.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,26 +18,22 @@ namespace Application.Controllers
     [Authorize]
     public class StocksController : ControllerBase
     {
-        private readonly IGenericRepository<Stock> _repository;
-        private readonly IAlertTriggerService _alertTriggerService;
+        private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
-        public StocksController(IGenericRepository<Stock> repository, IAlertTriggerService alertTriggerService, IMapper mapper)
+        public StocksController(IMediator mediator, IMapper mapper)
         {
-            _repository = repository;
-            _alertTriggerService = alertTriggerService;
+            _mediator = mediator;
             _mapper = mapper;
         }
 
         [HttpGet("GetStocks")]
         public async Task<IEnumerable<StockDto>> GetNotDeleted()
         {
-            var result = await (new GetListGenericHandler<Stock>(_repository))
-                .Handle(
-                    new GetListGenericQuery<Stock>(
-                        condition: x => true,
-                        includes: i => i.Include(x => x.Produit).Include(x => x.Site)),
-                    new CancellationToken());
+            var result = await _mediator.Send(
+                new GetListGenericQuery<Stock>(
+                    condition: x => true,
+                    includes: i => i.Include(x => x.Produit).Include(x => x.Site)));
 
             return _mapper.Map<IEnumerable<StockDto>>(result);
         }
@@ -47,72 +41,87 @@ namespace Application.Controllers
         [HttpGet("GetStock/{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var entity = await (new GetGenericHandler<Stock>(_repository))
-                .Handle(
-                    new GetGenericQuery<Stock>(
-                        condition: x => x.id_s == id,
-                        includes: i => i.Include(x => x.Produit).Include(x => x.Site)),
-                    new CancellationToken());
+            var entity = await _mediator.Send(
+                new GetGenericQuery<Stock>(
+                    condition: x => x.id_s == id,
+                    includes: i => i.Include(x => x.Produit).Include(x => x.Site)));
 
             if (entity == null) return NotFound();
             return Ok(_mapper.Map<StockDto>(entity));
         }
 
+        [HttpGet("GetStocksBySite/{siteId}")]
+        public async Task<IEnumerable<StockDto>> GetBySite(Guid siteId)
+        {
+            var result = await _mediator.Send(
+                new GetListGenericQuery<Stock>(
+                    condition: x => x.Id_site == siteId,
+                    includes: i => i.Include(x => x.Produit).Include(x => x.Site)));
+
+            return _mapper.Map<IEnumerable<StockDto>>(result);
+        }
+
         [HttpPost("AddStock")]
         [Authorize(Roles = "admin,gestionnaire_de_stock")]
-        public async Task<IActionResult> Add([FromBody] Stock stock)
+        public async Task<IActionResult> Add([FromBody] StockDto dto)
         {
-            var handler = new AddGenericHandler<Stock>(_repository);
-            var command = new AddGenericCommand<Stock>(stock);
-            var result = await handler.Handle(command, new CancellationToken());
+            var stock = _mapper.Map<Stock>(dto);
 
-            var stockWithIncludes = await (new GetGenericHandler<Stock>(_repository))
-                .Handle(
-                    new GetGenericQuery<Stock>(
-                        condition: x => x.id_s == result.id_s,
-                        includes: i => i.Include(x => x.Produit).Include(x => x.Site)),
-                    new CancellationToken());
-            await _alertTriggerService.TryCreateLowStockAlertAsync(stockWithIncludes ?? result);
+            if (stock.id_s == Guid.Empty)
+                stock.id_s = Guid.NewGuid();
 
-            return Ok(_mapper.Map<StockDto>(result));
+            var result = await _mediator.Send(new AddGenericCommand<Stock>(stock));
+            
+            // Re-fetch with includes for the response
+            var stockWithIncludes = await _mediator.Send(
+                new GetGenericQuery<Stock>(
+                    condition: x => x.id_s == result.id_s,
+                    includes: i => i.Include(x => x.Produit).Include(x => x.Site)));
+
+            return Ok(_mapper.Map<StockDto>(stockWithIncludes ?? result));
         }
 
         [HttpPut("UpdateStock")]
         [Authorize(Roles = "admin,gestionnaire_de_stock")]
-        public async Task<IActionResult> Update([FromBody] Stock stock)
+        public async Task<IActionResult> Update([FromBody] StockDto dto)
         {
-            var stockWithIncludes = await (new GetGenericHandler<Stock>(_repository))
-                .Handle(
-                    new GetGenericQuery<Stock>(
-                        condition: x => x.id_s == stock.id_s,
-                        includes: i => i.Include(x => x.Produit).Include(x => x.Site)),
-                    new CancellationToken());
+            if (dto.id_s == Guid.Empty)
+                return BadRequest(new { message = "id_s is required." });
 
-            var handler = new PutGenericHandler<Stock>(_repository);
-            var command = new PutGenericCommand<Stock>(stock);
-            var result = await handler.Handle(command, new CancellationToken());
+            // Fetch existing to ensure it exists
+            var existing = await _mediator.Send(
+                new GetGenericQuery<Stock>(
+                    condition: x => x.id_s == dto.id_s,
+                    includes: null));
 
-            if (stockWithIncludes != null)
-            {
-                stockWithIncludes.QuantiteDisponible = result.QuantiteDisponible;
-                stockWithIncludes.SeuilAlerte = result.SeuilAlerte;
-                await _alertTriggerService.TryCreateLowStockAlertAsync(stockWithIncludes);
-            }
-            else
-            {
-                await _alertTriggerService.TryCreateLowStockAlertAsync(result);
-            }
+            if (existing == null)
+                return NotFound(new { message = "Stock not found." });
 
-            return Ok(_mapper.Map<StockDto>(result));
+            // Map DTO values onto the tracked entity
+            existing.QuantiteDisponible = dto.QuantiteDisponible;
+            existing.SeuilAlerte = dto.SeuilAlerte;
+            existing.SeuilSecurite = dto.SeuilSecurite;
+            existing.SeuilMinimum = dto.SeuilMinimum;
+            existing.SeuilMaximum = dto.SeuilMaximum;
+            existing.id_p = dto.id_p;
+            existing.Id_site = dto.Id_site;
+
+            var result = await _mediator.Send(new PutGenericCommand<Stock>(existing));
+
+            // Re-fetch with includes for the response
+            var stockWithIncludes = await _mediator.Send(
+                new GetGenericQuery<Stock>(
+                    condition: x => x.id_s == result.id_s,
+                    includes: i => i.Include(x => x.Produit).Include(x => x.Site)));
+
+            return Ok(_mapper.Map<StockDto>(stockWithIncludes ?? result));
         }
 
         [HttpDelete("DeleteStock/{id}")]
         [Authorize(Roles = "admin,gestionnaire_de_stock")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var handler = new RemoveGenericHandler<Stock>(_repository);
-            var command = new RemoveGenericCommand(id);
-            var deleted = await handler.Handle(command, new CancellationToken());
+            var deleted = await _mediator.Send(new RemoveGenericCommand<Stock>(id));
             if (deleted == null) return NotFound();
             return NoContent();
         }

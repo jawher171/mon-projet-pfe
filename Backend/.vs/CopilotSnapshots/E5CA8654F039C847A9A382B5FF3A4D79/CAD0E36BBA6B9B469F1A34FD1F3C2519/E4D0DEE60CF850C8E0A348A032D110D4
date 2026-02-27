@@ -1,0 +1,105 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Application.Dtos;
+using AutoMapper;
+using Domain.Commands;
+using Domain.Handlers;
+using Domain.Interface;
+using Domain.Models;
+using Domain.Queries;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace Application.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
+    public class ProductsController : ControllerBase
+    {
+        private readonly IGenericRepository<Product> _repository;
+        private readonly IMapper _mapper;
+
+        public ProductsController(IGenericRepository<Product> repository, IMapper mapper)
+        {
+            _repository = repository;
+            _mapper = mapper;
+        }
+
+        [HttpGet("GetProducts")]
+        public async Task<IEnumerable<ProductDto>> GetNotDeleted()
+        {
+            var result = await (new GetListGenericHandler<Product>(_repository))
+                .Handle(
+                    new GetListGenericQuery<Product>(
+                        condition: x => true,
+                        includes: i => i.Include(x => x.Categorie)),
+                    new CancellationToken());
+
+            return _mapper.Map<IEnumerable<ProductDto>>(result);
+        }
+
+        [HttpGet("GetProduct/{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            var entity = await (new GetGenericHandler<Product>(_repository))
+                .Handle(
+                    new GetGenericQuery<Product>(
+                        condition: x => x.id_p == id,
+                        includes: i => i.Include(x => x.Categorie)),
+                    new CancellationToken());
+
+            if (entity == null) return NotFound();
+            return Ok(_mapper.Map<ProductDto>(entity));
+        }
+
+        [HttpPost("AddProduct")]
+        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        public async Task<IActionResult> Add([FromBody] ProductDto dto)
+        {
+            var product = _mapper.Map<Product>(dto);
+            product.id_p = Guid.NewGuid();
+            var handler = new AddGenericHandler<Product>(_repository);
+            var command = new AddGenericCommand<Product>(product);
+            var result = await handler.Handle(command, new CancellationToken());
+            return Ok(_mapper.Map<ProductDto>(result));
+        }
+
+        [HttpPut("UpdateProduct")]
+        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        public async Task<IActionResult> Update([FromBody] ProductDto dto)
+        {
+            if (dto.id_p == Guid.Empty)
+                return BadRequest(new { message = "id_p is required." });
+
+            var existing = await (new GetGenericHandler<Product>(_repository))
+                .Handle(
+                    new GetGenericQuery<Product>(condition: x => x.id_p == dto.id_p, includes: null),
+                    new CancellationToken());
+
+            if (existing == null)
+                return NotFound(new { message = "Product not found." });
+
+            _mapper.Map(dto, existing);
+
+            var handler = new PutGenericHandler<Product>(_repository);
+            var command = new PutGenericCommand<Product>(existing);
+            var result = await handler.Handle(command, new CancellationToken());
+            return Ok(_mapper.Map<ProductDto>(result));
+        }
+
+        [HttpDelete("DeleteProduct/{id}")]
+        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var handler = new RemoveGenericHandler<Product>(_repository);
+            var command = new RemoveGenericCommand(id);
+            var deleted = await handler.Handle(command, new CancellationToken());
+            if (deleted == null) return NotFound();
+            return NoContent();
+        }
+    }
+}

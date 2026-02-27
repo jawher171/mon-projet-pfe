@@ -7,6 +7,8 @@ export interface Alert {
   message: string;
   dateCreation: Date;
   resolue: boolean;
+  /** Stock FK — required by backend */
+  stockId?: string | number;
   /** Whether the user has read/viewed this alert */
   isRead?: boolean;
   produitNom?: string;

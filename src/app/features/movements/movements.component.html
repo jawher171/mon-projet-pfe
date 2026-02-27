@@ -181,31 +181,90 @@
         @if (modalMode() === 'add') {
           <!-- Add Form -->
           <div class="form-grid">
-            <div class="form-group">
+            <!-- Product Search & Selection -->
+            <div class="form-group full-width product-search-group">
               <label>Produit *</label>
-              <input 
-                type="text" 
-                placeholder="Nom du produit"
-                [value]="formData().productName"
-                (input)="updateFormField('productName', $any($event.target).value)"
-              >
-            </div>
-            
-            
-            <div class="form-group">
-              <label>Code-barres</label>
-              <div class="input-with-icon">
-                <input 
-                  type="text" 
-                  placeholder="Scanner ou saisir le code-barres"
-                  [value]="formData().barcode"
-                  (input)="updateFormField('barcode', $any($event.target).value)"
-                >
-                <button class="scan-btn" title="Scanner">
-                  <span class="material-icons">qr_code_scanner</span>
-                </button>
+              <div class="product-search-wrapper">
+                <div class="input-with-icon">
+                  <span class="material-icons search-icon">search</span>
+                  <input 
+                    type="text" 
+                    placeholder="Rechercher un produit par nom, code-barres..."
+                    [value]="productSearch()"
+                    (input)="onProductSearch($event)"
+                    (focus)="showProductDropdown.set(true)"
+                    autocomplete="off"
+                  >
+                </div>
+                @if (showProductDropdown() && filteredProducts().length > 0) {
+                  <div class="product-dropdown">
+                    @for (product of filteredProducts(); track product.id) {
+                      <div class="product-dropdown-item" (click)="selectProduct(product)">
+                        <div class="dropdown-product-info">
+                          <span class="dropdown-product-name">{{ product.nom }}</span>
+                          <span class="dropdown-product-details">
+                            @if (product.codeBarre) {
+                              <span class="dropdown-barcode">
+                                <span class="material-icons">qr_code</span>
+                                {{ product.codeBarre }}
+                              </span>
+                            }
+                            @if (product.categorieLibelle) {
+                              <span class="dropdown-category">{{ product.categorieLibelle }}</span>
+                            }
+                          </span>
+                        </div>
+                        <span class="dropdown-product-price">{{ product.prix | number:'1.2-2' }} DT</span>
+                      </div>
+                    }
+                  </div>
+                }
+                @if (showProductDropdown() && productSearch() && filteredProducts().length === 0) {
+                  <div class="product-dropdown">
+                    <div class="product-dropdown-empty">
+                      <span class="material-icons">search_off</span>
+                      Aucun produit trouvé
+                    </div>
+                  </div>
+                }
               </div>
             </div>
+
+            <!-- Selected Product Card -->
+            @if (selectedProduct(); as product) {
+              <div class="form-group full-width">
+                <div class="selected-product-card">
+                  <div class="selected-product-header">
+                    <span class="material-icons product-icon">inventory_2</span>
+                    <span class="selected-product-title">Produit sélectionné</span>
+                    <button class="remove-product-btn" (click)="clearSelectedProduct()" title="Retirer le produit">
+                      <span class="material-icons">close</span>
+                    </button>
+                  </div>
+                  <div class="selected-product-body">
+                    <div class="selected-product-name">{{ product.nom }}</div>
+                    <div class="selected-product-details">
+                      @if (product.codeBarre) {
+                        <div class="product-detail-item">
+                          <span class="material-icons">qr_code</span>
+                          <span>{{ product.codeBarre }}</span>
+                        </div>
+                      }
+                      @if (product.categorieLibelle) {
+                        <div class="product-detail-item">
+                          <span class="material-icons">category</span>
+                          <span>{{ product.categorieLibelle }}</span>
+                        </div>
+                      }
+                      <div class="product-detail-item">
+                        <span class="material-icons">payments</span>
+                        <span>{{ product.prix | number:'1.2-2' }} DT</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
             
             <div class="form-group">
               <label>Quantité *</label>

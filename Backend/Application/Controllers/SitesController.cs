@@ -1,15 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Dtos;
 using AutoMapper;
 using Domain.Commands;
-using Domain.Handlers;
-using Domain.Interface;
 using Domain.Models;
 using Domain.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace Application.Controllers
 {
@@ -18,22 +17,20 @@ namespace Application.Controllers
     [Authorize]
     public class SitesController : ControllerBase
     {
-        private readonly IGenericRepository<Site> _repository;
+        private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
-        public SitesController(IGenericRepository<Site> repository, IMapper mapper)
+        public SitesController(IMediator mediator, IMapper mapper)
         {
-            _repository = repository;
+            _mediator = mediator;
             _mapper = mapper;
         }
 
         [HttpGet("GetSites")]
-        public async Task<IEnumerable<SiteDto>> GetNotDeleted()
+        public async Task<IEnumerable<SiteDto>> GetSites()
         {
-            var result = await (new GetListGenericHandler<Site>(_repository))
-                .Handle(
-                    new GetListGenericQuery<Site>(condition: x => true, includes: null),
-                    new CancellationToken());
+            var result = await _mediator.Send(
+                new GetListGenericQuery<Site>(condition: x => true, includes: null));
 
             return _mapper.Map<IEnumerable<SiteDto>>(result);
         }
@@ -41,10 +38,8 @@ namespace Application.Controllers
         [HttpGet("GetSite/{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var entity = await (new GetGenericHandler<Site>(_repository))
-                .Handle(
-                    new GetGenericQuery<Site>(condition: x => x.Id_site == id, includes: null),
-                    new CancellationToken());
+            var entity = await _mediator.Send(
+                new GetGenericQuery<Site>(condition: x => x.Id_site == id, includes: null));
 
             if (entity == null) return NotFound();
             return Ok(_mapper.Map<SiteDto>(entity));
@@ -52,21 +47,30 @@ namespace Application.Controllers
 
         [HttpPost("AddSite")]
         [Authorize(Roles = "admin,gestionnaire_de_stock")]
-        public async Task<IActionResult> Add([FromBody] Site site)
+        public async Task<IActionResult> Add([FromBody] SiteDto dto)
         {
-            var handler = new AddGenericHandler<Site>(_repository);
-            var command = new AddGenericCommand<Site>(site);
-            var result = await handler.Handle(command, new CancellationToken());
+            var site = _mapper.Map<Site>(dto);
+            site.Id_site = Guid.NewGuid();
+            var result = await _mediator.Send(new AddGenericCommand<Site>(site));
             return Ok(_mapper.Map<SiteDto>(result));
         }
 
         [HttpPut("UpdateSite")]
         [Authorize(Roles = "admin,gestionnaire_de_stock")]
-        public async Task<IActionResult> Update([FromBody] Site site)
+        public async Task<IActionResult> Update([FromBody] SiteDto dto)
         {
-            var handler = new PutGenericHandler<Site>(_repository);
-            var command = new PutGenericCommand<Site>(site);
-            var result = await handler.Handle(command, new CancellationToken());
+            if (dto.Id_site == Guid.Empty)
+                return BadRequest(new { message = "Id_site is required." });
+
+            var existing = await _mediator.Send(
+                new GetGenericQuery<Site>(condition: x => x.Id_site == dto.Id_site, includes: null));
+
+            if (existing == null)
+                return NotFound(new { message = "Site not found." });
+
+            _mapper.Map(dto, existing);
+
+            var result = await _mediator.Send(new PutGenericCommand<Site>(existing));
             return Ok(_mapper.Map<SiteDto>(result));
         }
 
@@ -74,9 +78,7 @@ namespace Application.Controllers
         [Authorize(Roles = "admin,gestionnaire_de_stock")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var handler = new RemoveGenericHandler<Site>(_repository);
-            var command = new RemoveGenericCommand(id);
-            var deleted = await handler.Handle(command, new CancellationToken());
+            var deleted = await _mediator.Send(new RemoveGenericCommand<Site>(id));
             if (deleted == null) return NotFound();
             return NoContent();
         }

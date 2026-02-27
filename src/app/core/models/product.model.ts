@@ -8,11 +8,11 @@ export interface Product {
   description: string;
   codeBarre?: string;
   prix: number;
-  categorieId: number;
+  categorieId: number | string;
   categorieLibelle?: string;
 }
 
 export interface ProductFilter {
   search?: string;
-  categorieId?: number;
+  categorieId?: number | string;
 }

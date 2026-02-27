@@ -1,0 +1,60 @@
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Application.Dtos;
+using AutoMapper;
+using Domain.Commands;
+using Domain.Handlers;
+using Domain.Interface;
+using Domain.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Application.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
+    public class SitesController : ControllerBase
+    {
+        private readonly IGenericRepository<Site> _repository;
+        private readonly IMapper _mapper;
+
+        public SitesController(IGenericRepository<Site> repository, IMapper mapper)
+        {
+            _repository = repository;
+            _mapper = mapper;
+        }
+
+        [HttpPost("AddSite")]
+        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        public async Task<IActionResult> Add([FromBody] Site site)
+        {
+            var handler = new AddGenericHandler<Site>(_repository);
+            var command = new AddGenericCommand<Site>(site);
+            var result = await handler.Handle(command, new CancellationToken());
+            return Ok(_mapper.Map<SiteDto>(result));
+        }
+
+        [HttpPut("UpdateSite")]
+        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        public async Task<IActionResult> Update([FromBody] Site site)
+        {
+            var handler = new PutGenericHandler<Site>(_repository);
+            var command = new PutGenericCommand<Site>(site);
+            var result = await handler.Handle(command, new CancellationToken());
+            return Ok(_mapper.Map<SiteDto>(result));
+        }
+
+        [HttpDelete("DeleteSite/{id}")]
+        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var handler = new RemoveGenericHandler<Site>(_repository);
+            var command = new RemoveGenericCommand(id);
+            var deleted = await handler.Handle(command, new CancellationToken());
+            if (deleted == null) return NotFound();
+            return NoContent();
+        }
+    }
+}

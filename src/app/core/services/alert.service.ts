@@ -3,14 +3,56 @@
  * Sujet PFE: alertes automatiques selon règles métier
  */
 import { Injectable, signal, computed } from '@angular/core';
+import { inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { Alert, AlertFilter, AlertStats, AlertSeverity, ALERT_TYPES, SEVERITY_CONFIG } from '../models/alert.model';
+import { API_BASE_URL, USE_BACKEND } from '../../app.config';
+
+interface AlertDto {
+  id_a?: string;
+  id?: string;
+  type: string;
+  message: string;
+  dateCreation: string | Date;
+  resolue: boolean;
+  id_s?: string;
+  produitNom?: string;
+  siteNom?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AlertService {
+  private readonly http = inject(HttpClient);
   private alertsSignal = signal<Alert[]>([]);
 
   getAlerts() {
     return this.alertsSignal;
+  }
+
+  private dtoToAlert(dto: AlertDto): Alert {
+    return {
+      id: dto.id ?? dto.id_a ?? '',
+      type: dto.type,
+      message: dto.message,
+      dateCreation: new Date(dto.dateCreation),
+      resolue: dto.resolue,
+      stockId: dto.id_s,
+      isRead: false,
+      produitNom: dto.produitNom,
+      siteNom: dto.siteNom
+    };
+  }
+
+  async fetchAlerts(): Promise<Alert[]> {
+    if (!USE_BACKEND) {
+      return this.alertsSignal();
+    }
+
+    const dtos = await firstValueFrom(this.http.get<AlertDto[]>(`${API_BASE_URL}/api/Alerts/GetAlerts`));
+    const mapped = (dtos ?? []).map(d => this.dtoToAlert(d));
+    this.alertsSignal.set(mapped);
+    return mapped;
   }
 
   getActiveAlerts() {
@@ -57,6 +99,25 @@ export class AlertService {
     return newAlert;
   }
 
+  async createAlertApi(alert: Omit<Alert, 'id'>): Promise<Alert> {
+    if (USE_BACKEND) {
+      const dto: Partial<AlertDto> = {
+        type: alert.type,
+        message: alert.message,
+        dateCreation: alert.dateCreation instanceof Date ? alert.dateCreation.toISOString() : alert.dateCreation,
+        resolue: alert.resolue ?? false,
+        id_s: alert.stockId ? String(alert.stockId) : undefined
+      };
+      const result = await firstValueFrom(
+        this.http.post<AlertDto>(`${API_BASE_URL}/api/Alerts/AddAlert`, dto)
+      );
+      const created = this.dtoToAlert(result);
+      this.alertsSignal.update(alerts => [created, ...alerts]);
+      return created;
+    }
+    return this.createAlert(alert);
+  }
+
   resolveAlert(id: string | number, _user?: string, _notes?: string): boolean {
     const index = this.alertsSignal().findIndex(a => String(a.id) === String(id));
     if (index === -1) return false;
@@ -68,7 +129,38 @@ export class AlertService {
     return true;
   }
 
+  async resolveAlertApi(id: string | number): Promise<boolean> {
+    if (USE_BACKEND) {
+      const alert = this.alertsSignal().find(a => String(a.id) === String(id));
+      if (!alert) return false;
+      const dto: Partial<AlertDto> = {
+        id_a: String(id),
+        type: alert.type,
+        message: alert.message,
+        dateCreation: alert.dateCreation instanceof Date ? alert.dateCreation.toISOString() : alert.dateCreation,
+        resolue: true,
+        id_s: alert.stockId ? String(alert.stockId) : undefined
+      };
+      await firstValueFrom(
+        this.http.put<AlertDto>(`${API_BASE_URL}/api/Alerts/UpdateAlert`, dto)
+      );
+      this.resolveAlert(id);
+      return true;
+    }
+    return this.resolveAlert(id);
+  }
+
   deleteAlert(id: string | number): boolean {
+    this.alertsSignal.update(alerts => alerts.filter(a => String(a.id) !== String(id)));
+    return true;
+  }
+
+  async deleteAlertApi(id: string | number): Promise<boolean> {
+    if (USE_BACKEND) {
+      await firstValueFrom(
+        this.http.delete(`${API_BASE_URL}/api/Alerts/DeleteAlert/${id}`)
+      );
+    }
     this.alertsSignal.update(alerts => alerts.filter(a => String(a.id) !== String(id)));
     return true;
   }

@@ -91,7 +91,7 @@
               </div>
 
               <div class="product-actions">
-                <button class="icon-btn" title="Voir">
+                <button class="icon-btn" title="Voir" (click)="openDetailsModal(product)">
                   <span class="material-icons">visibility</span>
                 </button>
                 <button class="icon-btn" title="Modifier" (click)="openEditModal(product)">
@@ -160,6 +160,32 @@
                   <option [value]="category.id">{{ category.libelle }}</option>
                 }
               </select>
+
+              @if (!isAddingCategory()) {
+                <button type="button" class="add-category-btn" (click)="startAddCategory()">
+                  <span class="material-icons">add</span>
+                  Ajouter une catégorie
+                </button>
+              } @else {
+                <div class="add-category-inline">
+                  <input
+                    type="text"
+                    class="form-input"
+                    placeholder="Nom de la catégorie"
+                    [value]="newCategoryName()"
+                    (input)="onNewCategoryInput($event)"
+                  >
+                  <div class="add-category-actions">
+                    <button type="button" class="btn btn-primary" (click)="addCategoryFromForm()" [disabled]="!newCategoryName().trim()">
+                      Enregistrer
+                    </button>
+                    <button type="button" class="btn btn-outline" (click)="cancelAddCategory()">
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              }
+
               @if (productForm.get('categorieId')?.touched && productForm.get('categorieId')?.errors?.['required']) {
                 <span class="form-error">La catégorie est requise</span>
               }
@@ -202,6 +228,58 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  }
+
+  <!-- Product Details Modal -->
+  @if (showDetailsModal() && selectedProduct()) {
+    <div class="modal-overlay" (click)="closeDetailsModal()">
+      <div class="modal-content details-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">
+            <span class="material-icons">inventory_2</span>
+            Détails du produit
+          </h2>
+          <button class="modal-close" (click)="closeDetailsModal()">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body details-body">
+          <div class="details-grid">
+            <div class="detail-item">
+              <span class="detail-label">Nom</span>
+              <span class="detail-value">{{ selectedProduct()!.nom }}</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Catégorie</span>
+              <span class="detail-value">{{ selectedProduct()!.categorieLibelle || '—' }}</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Prix</span>
+              <span class="detail-value">{{ selectedProduct()!.prix.toFixed(2) }} DH</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Code-barres</span>
+              <span class="detail-value">{{ selectedProduct()!.codeBarre || '—' }}</span>
+            </div>
+
+            <div class="detail-item full-width">
+              <span class="detail-label">Description</span>
+              <span class="detail-value">{{ selectedProduct()!.description || '—' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeDetailsModal()">
+            Fermer
+          </button>
+        </div>
       </div>
     </div>
   }

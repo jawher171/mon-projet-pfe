@@ -1,0 +1,91 @@
+﻿using System;
+using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
+using Application.Dtos;
+using Domain.Commands;
+using Domain.Handlers;
+using Domain.Interface;
+using Domain.Models;
+using Domain.Queries;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Application.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
+    public class ProfileController : ControllerBase
+    {
+        private readonly IGenericRepository<User> _userRepository;
+        private readonly IGenericRepository<Role> _roleRepository;
+
+        public ProfileController(IGenericRepository<User> userRepository, IGenericRepository<Role> roleRepository)
+        {
+            _userRepository = userRepository;
+            _roleRepository = roleRepository;
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User not authenticated." });
+
+            if (!Guid.TryParse(userId, out var guid))
+                return Unauthorized(new { message = "Invalid user ID." });
+
+            var user = await (new GetGenericHandler<User>(_userRepository))
+                .Handle(
+                    new GetGenericQuery<User>(condition: u => u.Id_u == guid, includes: null),
+                    new CancellationToken());
+
+            if (user == null)
+                return NotFound(new { message = "User not found." });
+
+            if (request?.Nom != null) user.Nom = request.Nom.Trim();
+            if (request?.Prenom != null) user.Prenom = request.Prenom.Trim();
+            if (request?.Email != null)
+            {
+                var trimmed = request.Email.Trim();
+                if (trimmed != user.Email)
+                {
+                    var existing = _userRepository.Get(u => u.Email == trimmed);
+                    if (existing != null)
+                        return BadRequest(new { message = "A user with this email already exists." });
+                    user.Email = trimmed;
+                }
+            }
+            if (!string.IsNullOrEmpty(request?.Password))
+                user.MotDePasse = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+            var putHandler = new PutGenericHandler<User>(_userRepository);
+            var putCommand = new PutGenericCommand<User>(user);
+            var updated = await putHandler.Handle(putCommand, new CancellationToken());
+
+            var role = _roleRepository.Get(r => r.RoleId == updated.RoleId);
+            var dto = new UserDto
+            {
+                Id = updated.Id_u.ToString(),
+                Nom = updated.Nom,
+                Prenom = updated.Prenom,
+                Email = updated.Email,
+                Role = role?.Nom ?? string.Empty,
+                Status = updated.Status ? "active" : "inactive",
+                LastLogin = updated.LastLogin
+            };
+
+            return Ok(dto);
+        }
+    }
+
+    public class UpdateProfileRequest
+    {
+        public string? Nom { get; set; }
+        public string? Prenom { get; set; }
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+    }
+}

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Infra\\Infra.csproj": {}
+    "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Infra\\Infra.csproj": {}
   },
   "projects": {
-    "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Infra\\Infra.csproj": {
+    "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Infra\\Infra.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Infra\\Infra.csproj",
+        "projectUniqueName": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Infra\\Infra.csproj",
         "projectName": "Infra",
-        "projectPath": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Infra\\Infra.csproj",
+        "projectPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Infra\\Infra.csproj",
         "packagesPath": "C:\\Users\\jawher\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\jawher\\Downloads\\ApplicationS\\ApplicationS\\Infra\\obj\\",
+        "outputPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Infra\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -52,7 +52,7 @@
           "dependencies": {
             "Microsoft.Extensions.DependencyInjection": {
               "target": "Package",
-              "version": "[7.0.0, )"
+              "version": "[3.1.32, )"
             }
           },
           "imports": [

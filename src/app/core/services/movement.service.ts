@@ -4,13 +4,34 @@
  * Provides filtering and summary statistics for stock movements.
  */
 
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { MouvementStock, MouvementFilter, MovementSummary, MovementReason, MOVEMENT_REASONS } from '../models/movement.model';
+import { API_BASE_URL, USE_BACKEND } from '../../app.config';
+
+interface MovementDto {
+  id_sm?: string;
+  id?: string;
+  dateMouvement: string | Date;
+  raison: string;
+  quantite: number;
+  type?: 'entry' | 'exit' | string;
+  note?: string;
+  Id_s?: string;
+  Id_u?: string;
+  productId?: string;
+  siteId?: string;
+  produitNom?: string;
+  siteNom?: string;
+  utilisateurNom?: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class MovementService {
+  private readonly http = inject(HttpClient);
   /** All stock movements */
   private movementsSignal = signal<MouvementStock[]>([]);
   
@@ -23,6 +44,35 @@ export class MovementService {
    */
   getMovements() {
     return this.movementsSignal;
+  }
+
+  private dtoToMovement(dto: MovementDto): MouvementStock {
+    return {
+      id: dto.id ?? dto.id_sm ?? '',
+      dateMouvement: new Date(dto.dateMouvement),
+      raison: dto.raison,
+      quantite: Number(dto.quantite ?? 0),
+      type: dto.type === 'exit' ? 'exit' : 'entry',
+      note: dto.note,
+      stockId: dto.Id_s,
+      userId: dto.Id_u,
+      productId: dto.productId,
+      siteId: dto.siteId,
+      produitNom: dto.produitNom,
+      siteNom: dto.siteNom,
+      utilisateurNom: dto.utilisateurNom
+    };
+  }
+
+  async fetchMovements(): Promise<MouvementStock[]> {
+    if (!USE_BACKEND) {
+      return this.movementsSignal();
+    }
+
+    const dtos = await firstValueFrom(this.http.get<MovementDto[]>(`${API_BASE_URL}/api/StockMovements/GetStockMovements`));
+    const mapped = (dtos ?? []).map(d => this.dtoToMovement(d));
+    this.movementsSignal.set(mapped);
+    return mapped;
   }
 
   /**
@@ -87,7 +137,27 @@ export class MovementService {
    * @param movement Movement data without auto-generated fields
    * @returns Created movement object
    */
-  addMovement(movement: Omit<MouvementStock, 'id'>): MouvementStock {
+  async addMovement(movement: Omit<MouvementStock, 'id'>): Promise<MouvementStock> {
+    if (USE_BACKEND) {
+      const dto: Partial<MovementDto> = {
+        dateMouvement: movement.dateMouvement instanceof Date ? movement.dateMouvement.toISOString() as unknown as Date : movement.dateMouvement,
+        raison: movement.raison,
+        quantite: movement.quantite,
+        type: movement.type ?? 'entry',
+        note: movement.note,
+        Id_s: movement.stockId ? String(movement.stockId) : undefined,
+        Id_u: movement.userId ? String(movement.userId) : undefined,
+        productId: movement.productId ? String(movement.productId) : undefined,
+        siteId: movement.siteId ? String(movement.siteId) : undefined
+      };
+      const result = await firstValueFrom(
+        this.http.post<MovementDto>(`${API_BASE_URL}/api/StockMovements/AddStockMovement`, dto)
+      );
+      const created = this.dtoToMovement(result);
+      this.movementsSignal.update(movements => [created, ...movements]);
+      return created;
+    }
+
     const newMovement: MouvementStock = {
       ...movement,
       id: this.generateId(),
@@ -104,7 +174,34 @@ export class MovementService {
    * @param updates Partial movement data to update
    * @returns true if successful, false if movement not found
    */
-  updateMovement(id: string, updates: Partial<MouvementStock>): boolean {
+  async updateMovement(id: string, updates: Partial<MouvementStock>): Promise<boolean> {
+    if (USE_BACKEND) {
+      const current = this.movementsSignal().find(m => m.id === id);
+      if (!current) return false;
+      const merged = { ...current, ...updates };
+      const dto: Partial<MovementDto> = {
+        id_sm: String(id),
+        dateMouvement: merged.dateMouvement instanceof Date ? merged.dateMouvement.toISOString() as unknown as Date : merged.dateMouvement,
+        raison: merged.raison,
+        quantite: merged.quantite,
+        type: merged.type ?? 'entry',
+        note: merged.note,
+        Id_u: merged.userId ? String(merged.userId) : undefined
+      };
+      const result = await firstValueFrom(
+        this.http.put<MovementDto>(`${API_BASE_URL}/api/StockMovements/UpdateStockMovement`, dto)
+      );
+      const updated = this.dtoToMovement(result);
+      this.movementsSignal.update(movements => {
+        const idx = movements.findIndex(m => m.id === id);
+        if (idx === -1) return movements;
+        const copy = [...movements];
+        copy[idx] = updated;
+        return copy;
+      });
+      return true;
+    }
+
     const index = this.movementsSignal().findIndex(m => m.id === id);
     if (index === -1) return false;
 
@@ -121,7 +218,15 @@ export class MovementService {
     return true;
   }
 
-  deleteMovement(id: string): boolean {
+  async deleteMovement(id: string): Promise<boolean> {
+    if (USE_BACKEND) {
+      await firstValueFrom(
+        this.http.delete(`${API_BASE_URL}/api/StockMovements/DeleteStockMovement/${id}`)
+      );
+      this.movementsSignal.update(movements => movements.filter(m => m.id !== id));
+      return true;
+    }
+
     const index = this.movementsSignal().findIndex(m => m.id === id);
     if (index === -1) return false;
 /**

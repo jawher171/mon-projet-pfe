@@ -6,13 +6,14 @@
 import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { SiteService } from '../../core/services/site.service';
 import { Site, SiteFilter, SiteType, SITE_TYPES } from '../../core/models/site.model';
 
 @Component({
   selector: 'app-sites',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './sites.component.html',
   styleUrls: ['./sites.component.scss']
 })

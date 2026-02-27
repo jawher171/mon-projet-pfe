@@ -1,0 +1,17 @@
+﻿using System;
+
+namespace Application.Dtos
+{
+    /// <summary>DTO for StockMovement API responses. Type: entry | exit.</summary>
+    public class StockMovementDto
+    {
+        public Guid id_sm { get; set; }
+        public DateTime DateMouvement { get; set; }
+        public string Raison { get; set; } = string.Empty;
+        public int Quantite { get; set; }
+        public string Type { get; set; } = "entry";
+        public string? Note { get; set; }
+        public Guid Id_s { get; set; }
+        public Guid Id_u { get; set; }
+    }
+}

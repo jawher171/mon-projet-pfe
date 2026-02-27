@@ -35,5 +35,19 @@ namespace Domain.Interface
 
         Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate);
         Task<IEnumerable<TEntity>> GetListAsync(Expression<Func<TEntity, bool>> predicate, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null);
+
+        /// <summary>Count entities matching condition.</summary>
+        Task<int> CountAsync(Expression<Func<TEntity, bool>> condition, CancellationToken cancellationToken = default);
+
+        /// <summary>Check if any entity matches condition.</summary>
+        Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> condition, CancellationToken cancellationToken = default);
+
+        /// <summary>Get paged list with optional includes, ordering by condition.</summary>
+        Task<(IEnumerable<TEntity> Items, int TotalCount)> GetPagedListAsync(
+            Expression<Func<TEntity, bool>> condition,
+            int page,
+            int pageSize,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes = null,
+            CancellationToken cancellationToken = default);
     }
 }

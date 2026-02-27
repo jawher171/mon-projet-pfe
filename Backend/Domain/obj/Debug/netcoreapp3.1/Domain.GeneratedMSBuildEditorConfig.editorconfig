@@ -1,6 +1,6 @@
 is_global = true
 build_property.RootNamespace = Domain
-build_property.ProjectDir = C:\Users\jawher\Desktop\INVENTAIRE\mon-projet-pfe\Backend\Domain\
+build_property.ProjectDir = C:\Users\jawher\Documents\inventaire\pfe-inventaire\Backend\Domain\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.CsWinRTUseWindowsUIXamlProjections = false

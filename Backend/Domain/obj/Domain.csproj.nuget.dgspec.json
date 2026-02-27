@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj": {}
+    "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Domain\\Domain.csproj": {}
   },
   "projects": {
-    "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj": {
+    "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Domain\\Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj",
+        "projectUniqueName": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Domain\\Domain.csproj",
         "projectName": "Domain",
-        "projectPath": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj",
+        "projectPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Domain\\Domain.csproj",
         "packagesPath": "C:\\Users\\jawher\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Domain\\obj\\",
+        "outputPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -52,11 +52,7 @@
           "dependencies": {
             "MediatR": {
               "target": "Package",
-              "version": "[8.0.0, )"
-            },
-            "MediatR.Extensions.Microsoft.DependencyInjection": {
-              "target": "Package",
-              "version": "[8.0.0, )"
+              "version": "[9.0.0, )"
             },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",

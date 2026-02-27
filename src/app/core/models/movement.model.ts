@@ -11,6 +11,8 @@ export interface MouvementStock {
   siteNom?: string;
   productId?: string | number;
   siteId?: string | number;
+  stockId?: string | number;
+  userId?: string | number;
   utilisateurNom?: string;
   type?: 'entry' | 'exit';
 }

@@ -1,51 +1,40 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Application.Services;
+using Application.Commands;
 using Application.Dtos;
 using AutoMapper;
-using Domain.Commands;
-using Domain.Handlers;
-using Domain.Interface;
 using Domain.Models;
 using Domain.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Controllers
 {
+    /// <summary>Thin controller: delegates business logic to dedicated CQRS handlers via MediatR.</summary>
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
     public class StockMovementsController : ControllerBase
     {
-        private readonly IGenericRepository<StockMovement> _repository;
-        private readonly IGenericRepository<Stock> _stockRepository;
-        private readonly IAlertTriggerService _alertTriggerService;
+        private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
-        public StockMovementsController(
-            IGenericRepository<StockMovement> repository,
-            IGenericRepository<Stock> stockRepository,
-            IAlertTriggerService alertTriggerService,
-            IMapper mapper)
+        public StockMovementsController(IMediator mediator, IMapper mapper)
         {
-            _repository = repository;
-            _stockRepository = stockRepository;
-            _alertTriggerService = alertTriggerService;
+            _mediator = mediator;
             _mapper = mapper;
         }
 
         [HttpGet("GetStockMovements")]
         public async Task<IEnumerable<StockMovementDto>> GetNotDeleted()
         {
-            var result = await (new GetListGenericHandler<StockMovement>(_repository))
-                .Handle(
-                    new GetListGenericQuery<StockMovement>(
-                        condition: x => true,
-                        includes: i => i.Include(x => x.Stock).Include(x => x.Utilisateur)),
-                    new CancellationToken());
+            var result = await _mediator.Send(
+                new GetListGenericQuery<StockMovement>(
+                    condition: x => true,
+                    includes: i => i.Include(x => x.Stock).Include(x => x.Utilisateur)));
 
             return _mapper.Map<IEnumerable<StockMovementDto>>(result);
         }
@@ -53,12 +42,10 @@ namespace Application.Controllers
         [HttpGet("GetStockMovement/{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var entity = await (new GetGenericHandler<StockMovement>(_repository))
-                .Handle(
-                    new GetGenericQuery<StockMovement>(
-                        condition: x => x.id_sm == id,
-                        includes: i => i.Include(x => x.Stock).Include(x => x.Utilisateur)),
-                    new CancellationToken());
+            var entity = await _mediator.Send(
+                new GetGenericQuery<StockMovement>(
+                    condition: x => x.id_sm == id,
+                    includes: i => i.Include(x => x.Stock).Include(x => x.Utilisateur)));
 
             if (entity == null) return NotFound();
             return Ok(_mapper.Map<StockMovementDto>(entity));
@@ -66,186 +53,46 @@ namespace Application.Controllers
 
         [HttpPost("AddStockMovement")]
         [Authorize(Roles = "admin,gestionnaire_de_stock,operateur")]
-        public async Task<IActionResult> Add([FromBody] StockMovement stockMovement)
+        public async Task<IActionResult> Add([FromBody] StockMovementDto dto)
         {
-            if (stockMovement == null)
-                return BadRequest(new { message = "Stock movement is required." });
+            var result = await _mediator.Send(new CreateStockMovementCommand(dto));
 
-            if (stockMovement.id_sm == Guid.Empty)
-                stockMovement.id_sm = Guid.NewGuid();
+            if (!result.Success)
+                return BadRequest(new { message = result.ErrorMessage });
 
-            var stock = await (new GetGenericHandler<Stock>(_stockRepository))
-                .Handle(
-                    new GetGenericQuery<Stock>(
-                        condition: x => x.id_s == stockMovement.Id_s,
-                        includes: i => i.Include(x => x.Produit).Include(x => x.Site)),
-                    new CancellationToken());
-
-            if (stock == null)
-                return BadRequest(new { message = "Stock not found." });
-
-            var type = stockMovement.Type?.Trim() ?? "entry";
-            var isExit = type.Equals("exit", StringComparison.OrdinalIgnoreCase)
-                || type.Equals("sortie", StringComparison.OrdinalIgnoreCase);
-            var isEntry = type.Equals("entry", StringComparison.OrdinalIgnoreCase)
-                || type.Equals("entrée", StringComparison.OrdinalIgnoreCase)
-                || type.Equals("entree", StringComparison.OrdinalIgnoreCase);
-
-            if (!isExit && !isEntry)
-                return BadRequest(new { message = "Type must be 'entry' or 'exit' (or 'entrée'/'sortie')." });
-
-            stockMovement.Type = isExit ? "exit" : "entry";
-
-            if (isExit)
-            {
-                stock.QuantiteDisponible -= stockMovement.Quantite;
-                if (stock.QuantiteDisponible < 0)
-                    stock.QuantiteDisponible = 0;
-            }
-            else
-            {
-                stock.QuantiteDisponible += stockMovement.Quantite;
-            }
-
-            var addMovementHandler = new AddGenericHandler<StockMovement>(_repository);
-            var addMovementCommand = new AddGenericCommand<StockMovement>(stockMovement);
-            var result = await addMovementHandler.Handle(addMovementCommand, new CancellationToken());
-
-            var putStockHandler = new PutGenericHandler<Stock>(_stockRepository);
-            var putStockCommand = new PutGenericCommand<Stock>(stock);
-            await putStockHandler.Handle(putStockCommand, new CancellationToken());
-
-            if (isExit)
-                await _alertTriggerService.TryCreateLowStockAlertAsync(stock);
-
-            return Ok(_mapper.Map<StockMovementDto>(result));
+            return Ok(result.Movement);
         }
 
         [HttpPut("UpdateStockMovement")]
         [Authorize(Roles = "admin,gestionnaire_de_stock,operateur")]
-        public async Task<IActionResult> Update([FromBody] StockMovement stockMovement)
+        public async Task<IActionResult> Update([FromBody] StockMovementDto dto)
         {
-            if (stockMovement == null)
-                return BadRequest(new { message = "Stock movement is required." });
+            var result = await _mediator.Send(new UpdateStockMovementCommand(dto));
 
-            var existing = await (new GetGenericHandler<StockMovement>(_repository))
-                .Handle(
-                    new GetGenericQuery<StockMovement>(
-                        condition: x => x.id_sm == stockMovement.id_sm,
-                        includes: null),
-                    new CancellationToken());
-
-            if (existing == null)
-                return NotFound(new { message = "Movement not found." });
-
-            var stock = await (new GetGenericHandler<Stock>(_stockRepository))
-                .Handle(
-                    new GetGenericQuery<Stock>(
-                        condition: x => x.id_s == existing.Id_s,
-                        includes: i => i.Include(x => x.Produit).Include(x => x.Site)),
-                    new CancellationToken());
-
-            if (stock == null)
-                return BadRequest(new { message = "Stock not found." });
-
-            var oldExit = IsExitType(existing.Type);
-            var newType = stockMovement.Type?.Trim() ?? existing.Type;
-            var newExit = newType.Equals("exit", StringComparison.OrdinalIgnoreCase)
-                || newType.Equals("sortie", StringComparison.OrdinalIgnoreCase);
-            var newEntry = newType.Equals("entry", StringComparison.OrdinalIgnoreCase)
-                || newType.Equals("entrée", StringComparison.OrdinalIgnoreCase)
-                || newType.Equals("entree", StringComparison.OrdinalIgnoreCase);
-
-            if (!newExit && !newEntry)
-                return BadRequest(new { message = "Type must be 'entry' or 'exit' (or 'entrée'/'sortie')." });
-
-            if (oldExit)
-                stock.QuantiteDisponible += existing.Quantite;
-            else
-                stock.QuantiteDisponible -= existing.Quantite;
-
-            stockMovement.Type = newExit ? "exit" : "entry";
-            if (newExit)
+            if (!result.Success)
             {
-                stock.QuantiteDisponible -= stockMovement.Quantite;
-                if (stock.QuantiteDisponible < 0)
-                    stock.QuantiteDisponible = 0;
-            }
-            else
-            {
-                stock.QuantiteDisponible += stockMovement.Quantite;
+                if (result.NotFound)
+                    return NotFound(new { message = result.ErrorMessage });
+                return BadRequest(new { message = result.ErrorMessage });
             }
 
-            stockMovement.id_sm = existing.id_sm;
-            stockMovement.Id_s = existing.Id_s;
-            if (stockMovement.Id_u == Guid.Empty)
-                stockMovement.Id_u = existing.Id_u;
-            if (string.IsNullOrEmpty(stockMovement.Raison))
-                stockMovement.Raison = existing.Raison;
-            if (stockMovement.DateMouvement == default)
-                stockMovement.DateMouvement = existing.DateMouvement;
-
-            var putMovementHandler = new PutGenericHandler<StockMovement>(_repository);
-            await putMovementHandler.Handle(new PutGenericCommand<StockMovement>(stockMovement), new CancellationToken());
-
-            var putStockHandler = new PutGenericHandler<Stock>(_stockRepository);
-            await putStockHandler.Handle(new PutGenericCommand<Stock>(stock), new CancellationToken());
-
-            if (newExit)
-                await _alertTriggerService.TryCreateLowStockAlertAsync(stock);
-
-            return Ok(_mapper.Map<StockMovementDto>(stockMovement));
+            return Ok(result.Movement);
         }
 
         [HttpDelete("DeleteStockMovement/{id}")]
         [Authorize(Roles = "admin,gestionnaire_de_stock")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var existing = await (new GetGenericHandler<StockMovement>(_repository))
-                .Handle(
-                    new GetGenericQuery<StockMovement>(
-                        condition: x => x.id_sm == id,
-                        includes: null),
-                    new CancellationToken());
+            var result = await _mediator.Send(new DeleteStockMovementCommand(id));
 
-            if (existing == null)
-                return NotFound(new { message = "Movement not found." });
-
-            var stock = await (new GetGenericHandler<Stock>(_stockRepository))
-                .Handle(
-                    new GetGenericQuery<Stock>(
-                        condition: x => x.id_s == existing.Id_s,
-                        includes: i => i.Include(x => x.Produit).Include(x => x.Site)),
-                    new CancellationToken());
-
-            if (stock != null)
+            if (!result.Success)
             {
-                var wasExit = IsExitType(existing.Type);
-                if (wasExit)
-                    stock.QuantiteDisponible += existing.Quantite;
-                else
-                    stock.QuantiteDisponible -= existing.Quantite;
-
-                if (stock.QuantiteDisponible < 0)
-                    stock.QuantiteDisponible = 0;
-
-                var putStockHandler = new PutGenericHandler<Stock>(_stockRepository);
-                await putStockHandler.Handle(new PutGenericCommand<Stock>(stock), new CancellationToken());
+                if (result.NotFound)
+                    return NotFound(new { message = result.ErrorMessage });
+                return BadRequest(new { message = result.ErrorMessage });
             }
 
-            var removeHandler = new RemoveGenericHandler<StockMovement>(_repository);
-            var deleted = await removeHandler.Handle(new RemoveGenericCommand(id), new CancellationToken());
-            if (deleted == null)
-                return NotFound();
             return NoContent();
-        }
-
-        private static bool IsExitType(string type)
-        {
-            if (string.IsNullOrWhiteSpace(type)) return false;
-            var t = type.Trim();
-            return t.Equals("exit", StringComparison.OrdinalIgnoreCase)
-                || t.Equals("sortie", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

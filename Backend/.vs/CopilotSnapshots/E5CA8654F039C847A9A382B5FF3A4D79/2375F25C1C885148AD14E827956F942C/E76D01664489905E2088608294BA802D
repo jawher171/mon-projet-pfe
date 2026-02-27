@@ -1,0 +1,9 @@
+﻿namespace Application.Dtos
+{
+    /// <summary>DTO for Category API requests/responses.</summary>
+    public class CategoryDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Libelle { get; set; } = string.Empty;
+    }
+}

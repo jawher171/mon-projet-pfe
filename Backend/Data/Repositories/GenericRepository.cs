@@ -195,8 +195,13 @@ namespace Data.Repositories
 
         public async Task<TEntity> PutAsync(TEntity entity, System.Threading.CancellationToken cancellationToken = default)
         {
-            table.Attach(entity);
-            context.Entry(entity).State = EntityState.Modified;
+            var entry = context.Entry(entity);
+            if (entry.State == EntityState.Detached)
+            {
+                table.Attach(entity);
+                entry = context.Entry(entity);
+            }
+            entry.State = EntityState.Modified;
             await context.SaveChangesAsync(cancellationToken);
             return entity;
         }
@@ -209,6 +214,36 @@ namespace Data.Repositories
             table.Remove(entity);
             await context.SaveChangesAsync(cancellationToken);
             return entity;
+        }
+
+        public async Task<int> CountAsync(Expression<Func<TEntity, bool>> condition, System.Threading.CancellationToken cancellationToken = default)
+        {
+            if (condition != null)
+                return await table.CountAsync(condition, cancellationToken);
+            return await table.CountAsync(cancellationToken);
+        }
+
+        public async Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> condition, System.Threading.CancellationToken cancellationToken = default)
+        {
+            return await table.AnyAsync(condition, cancellationToken);
+        }
+
+        public async Task<(IEnumerable<TEntity> Items, int TotalCount)> GetPagedListAsync(
+            Expression<Func<TEntity, bool>> condition,
+            int page,
+            int pageSize,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes = null,
+            System.Threading.CancellationToken cancellationToken = default)
+        {
+            IQueryable<TEntity> query = table;
+            if (includes != null)
+                query = includes(query);
+            if (condition != null)
+                query = query.Where(condition);
+
+            var totalCount = await query.CountAsync(cancellationToken);
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
+            return (items, totalCount);
         }
     }
 }

@@ -4,11 +4,14 @@
  * Allows recording, viewing, and filtering inventory transactions.
  */
 
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { MovementService } from '../../core/services/movement.service';
 import { SiteService } from '../../core/services/site.service';
+import { ProductService } from '../../core/services/product.service';
+import { Product } from '../../core/models/product.model';
 import { MouvementStock, MouvementFilter, MovementReason } from '../../core/models/movement.model';
 
 @Component({
@@ -18,7 +21,7 @@ import { MouvementStock, MouvementFilter, MovementReason } from '../../core/mode
   templateUrl: './movements.component.html',
   styleUrls: ['./movements.component.scss']
 })
-export class MovementsComponent {
+export class MovementsComponent implements OnInit {
   // Filter signals
   /** Search term for movement number or product name */
   searchTerm = signal('');
@@ -48,6 +51,7 @@ export class MovementsComponent {
   // Form data
   /** Form fields for new movement */
   formData = signal({
+    stockId: '',
     productId: '',
     productName: '',
     quantity: 0,
@@ -67,6 +71,31 @@ export class MovementsComponent {
   /** New custom reason input */
   newCustomReason = signal('');
 
+  // Product selection
+  /** Search term for product dropdown */
+  productSearch = signal('');
+  
+  /** Whether the product dropdown is visible */
+  showProductDropdown = signal(false);
+  
+  /** Currently selected product */
+  selectedProduct = signal<Product | null>(null);
+  
+  /** All available products from service */
+  allProducts = computed(() => this.productService.getProducts()());
+  
+  /** Filtered products based on search */
+  filteredProducts = computed(() => {
+    const search = this.productSearch().toLowerCase();
+    const products = this.allProducts();
+    if (!search) return products;
+    return products.filter(p =>
+      p.nom.toLowerCase().includes(search) ||
+      (p.codeBarre?.toLowerCase().includes(search) ?? false) ||
+      (p.categorieLibelle?.toLowerCase().includes(search) ?? false)
+    );
+  });
+
   // Get data from services
   sites = computed(() => this.siteService.getActiveSites()());
   
@@ -82,8 +111,61 @@ export class MovementsComponent {
 
   constructor(
     private movementService: MovementService,
-    private siteService: SiteService
+    private siteService: SiteService,
+    private productService: ProductService,
+    private route: ActivatedRoute
   ) {}
+
+  ngOnInit(): void {
+    // Read query params from SiteStocksComponent navigation
+    const params = this.route.snapshot.queryParams;
+    if (params['mode'] && (params['mode'] === 'entry' || params['mode'] === 'exit')) {
+      const mode = params['mode'] as 'entry' | 'exit';
+      this.movementType.set(mode);
+      this.modalMode.set('add');
+
+      // Pre-fill form from query params
+      const stockId = params['stockId'] ?? '';
+      const siteId = params['siteId'] ?? '';
+      const productId = params['productId'] ?? '';
+      const productName = params['productName'] ?? '';
+      const siteName = params['siteName'] ?? '';
+
+      this.formData.update(f => ({
+        ...f,
+        stockId,
+        siteId,
+        productId,
+        productName
+      }));
+
+      // Try to find the product to set selectedProduct
+      if (productId) {
+        const product = this.allProducts().find(p => String(p.id) === String(productId));
+        if (product) {
+          this.selectedProduct.set(product);
+          this.productSearch.set(product.nom);
+          this.formData.update(fd => ({
+            ...fd,
+            productName: product.nom,
+            barcode: product.codeBarre || ''
+          }));
+        } else if (productName) {
+          this.productSearch.set(productName);
+        }
+      }
+
+      this.showModal.set(true);
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.product-search-group')) {
+      this.showProductDropdown.set(false);
+    }
+  }
 
   /**
    * Handle search input changes
@@ -132,6 +214,7 @@ export class MovementsComponent {
 
   resetForm() {
     this.formData.set({
+      stockId: '',
       productId: '',
       productName: '',
       quantity: 0,
@@ -141,6 +224,48 @@ export class MovementsComponent {
       barcode: '',
       notes: ''
     });
+    this.selectedProduct.set(null);
+    this.productSearch.set('');
+    this.showProductDropdown.set(false);
+  }
+
+  /**
+   * Handle product search input
+   */
+  onProductSearch(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.productSearch.set(input.value);
+    this.showProductDropdown.set(true);
+    // Clear selection if user modifies the search
+    if (this.selectedProduct() && input.value !== this.selectedProduct()!.nom) {
+      this.selectedProduct.set(null);
+      this.updateFormField('productId', '');
+      this.updateFormField('productName', '');
+      this.updateFormField('barcode', '');
+    }
+  }
+
+  /**
+   * Select a product from the dropdown
+   */
+  selectProduct(product: Product) {
+    this.selectedProduct.set(product);
+    this.productSearch.set(product.nom);
+    this.showProductDropdown.set(false);
+    this.updateFormField('productId', String(product.id));
+    this.updateFormField('productName', product.nom);
+    this.updateFormField('barcode', product.codeBarre || '');
+  }
+
+  /**
+   * Remove the selected product
+   */
+  clearSelectedProduct() {
+    this.selectedProduct.set(null);
+    this.productSearch.set('');
+    this.updateFormField('productId', '');
+    this.updateFormField('productName', '');
+    this.updateFormField('barcode', '');
   }
 
   updateFormField(field: string, value: string | number) {
@@ -169,13 +294,13 @@ export class MovementsComponent {
   saveMovement() {
     const form = this.formData();
     const site = this.sites().find(s => s.id === form.siteId);
+    const product = this.selectedProduct();
     
-    if (!form.productName || !form.quantity || !form.reason || !form.siteId) {
+    if (!product || !form.quantity || !form.reason || !form.siteId) {
       return;
     }
 
-    // Generate or use existing product ID
-    const productId = form.productId || 'prod_' + Math.random().toString(36).substring(2, 8);
+    const productId = String(product.id);
     
     // Calculate current stock from movement history
     const previousStock = this.movementService.getCurrentStock(productId, form.siteId);
