@@ -32,16 +32,16 @@
       </div>
       <div class="stat-content">
         <span class="stat-value">{{ stats().high }}</span>
-        <span class="stat-label">Élevées</span>
+        <span class="stat-label">Avertissements</span>
       </div>
     </div>
-    <div class="stat-card medium">
+    <div class="stat-card info">
       <div class="stat-icon">
         <span class="material-icons">info</span>
       </div>
       <div class="stat-content">
         <span class="stat-value">{{ stats().medium }}</span>
-        <span class="stat-label">Moyennes</span>
+        <span class="stat-label">Info</span>
       </div>
     </div>
     <div class="stat-card unread">
@@ -55,215 +55,130 @@
     </div>
   </div>
 
-  <!-- Tabs -->
-  <div class="tabs-section">
-    <div class="tabs">
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="severity-filters">
       <button 
-        class="tab-btn" 
-        [class.active]="activeTab() === 'alerts'"
-        (click)="setActiveTab('alerts')"
-      >
-        <span class="material-icons">notifications</span>
-        Alertes
-        @if (unreadCount() > 0) {
-          <span class="badge">{{ unreadCount() }}</span>
-        }
-      </button>
+        class="severity-btn all" 
+        [class.active]="selectedSeverity() === 'all'"
+        (click)="onSeverityChange('all')"
+      >Toutes</button>
       <button 
-        class="tab-btn" 
-        [class.active]="activeTab() === 'rules'"
-        (click)="setActiveTab('rules')"
-      >
-        <span class="material-icons">rule</span>
-        Règles
-      </button>
+        class="severity-btn critical" 
+        [class.active]="selectedSeverity() === 'critical'"
+        (click)="onSeverityChange('critical')"
+      >Critiques</button>
+      <button 
+        class="severity-btn high" 
+        [class.active]="selectedSeverity() === 'warning'"
+        (click)="onSeverityChange('warning')"
+      >Avertissements</button>
+      <button 
+        class="severity-btn medium" 
+        [class.active]="selectedSeverity() === 'info'"
+        (click)="onSeverityChange('info')"
+      >Info</button>
     </div>
+    
+    <select class="filter-select" (change)="onSiteChange($event)">
+      <option value="">Tous les sites</option>
+      @for (site of sites(); track site.id) {
+        <option [value]="site.id">{{ site.nom }}</option>
+      }
+    </select>
+    
+    <label class="checkbox-label">
+      <input 
+        type="checkbox" 
+        [checked]="showResolved()"
+        (change)="showResolved.set(!showResolved())"
+      >
+      Afficher résolues
+    </label>
   </div>
 
-  @if (activeTab() === 'alerts') {
-    <!-- Filters -->
-    <div class="filters-section">
-      <div class="severity-filters">
-        <button 
-          class="severity-btn all" 
-          [class.active]="selectedSeverity() === 'all'"
-          (click)="onSeverityChange('all')"
-        >Toutes</button>
-        <button 
-          class="severity-btn critical" 
-          [class.active]="selectedSeverity() === 'critical'"
-          (click)="onSeverityChange('critical')"
-        >Critiques</button>
-        <button 
-          class="severity-btn high" 
-          [class.active]="selectedSeverity() === 'high'"
-          (click)="onSeverityChange('high')"
-        >Élevées</button>
-        <button 
-          class="severity-btn medium" 
-          [class.active]="selectedSeverity() === 'medium'"
-          (click)="onSeverityChange('medium')"
-        >Moyennes</button>
-        <button 
-          class="severity-btn low" 
-          [class.active]="selectedSeverity() === 'low'"
-          (click)="onSeverityChange('low')"
-        >Basses</button>
-      </div>
-      
-      <select class="filter-select" (change)="onSiteChange($event)">
-        <option value="">Tous les sites</option>
-        @for (site of sites(); track site.id) {
-          <option [value]="site.id">{{ site.nom }}</option>
-        }
-      </select>
-      
-      <label class="checkbox-label">
-        <input 
-          type="checkbox" 
-          [checked]="showResolved()"
-          (change)="showResolved.set(!showResolved())"
-        >
-        Afficher résolues
-      </label>
-    </div>
-
-    <!-- Alerts List -->
-    <div class="alerts-list">
-      @for (alert of alerts(); track alert.id) {
-        <div 
-          class="alert-card" 
-          [class]="getSeverityForAlert(alert)"
-          [class.unread]="!alert.resolue"
-          [class.resolved]="alert.resolue"
-          (click)="openAlertModal(alert)"
-        >
-          <div class="alert-indicator"></div>
-          
-          <div class="alert-icon">
-            <span class="material-icons">{{ getAlertTypeConfig(alert.type)?.icon }}</span>
-          </div>
-          
-          <div class="alert-content">
-            <div class="alert-header">
-              <h3 class="alert-title">{{ getAlertTypeConfig(alert.type)?.label || alert.type }}</h3>
-              <div class="alert-badges">
-                <span class="severity-badge" [class]="getSeverityForAlert(alert)">
-                  {{ getSeverityConfig(getSeverityForAlert(alert))?.label }}
-                </span>
-                @if (alert.resolue) {
-                  <span class="resolved-badge">Résolu</span>
-                }
-              </div>
-            </div>
-            <p class="alert-message">{{ alert.message }}</p>
-            <div class="alert-meta">
-              @if (alert.siteNom) {
-                <span class="meta-item">
-                  <span class="material-icons">location_on</span>
-                  {{ alert.siteNom }}
-                </span>
-              }
-              @if (alert.produitNom) {
-                <span class="meta-item">
-                  <span class="material-icons">inventory_2</span>
-                  {{ alert.produitNom }}
-                </span>
-              }
-              <span class="meta-item time">
-                <span class="material-icons">schedule</span>
-                {{ getTimeAgo(alert.dateCreation) }}
+  <!-- Alerts List -->
+  <div class="alerts-list">
+    @for (alert of alerts(); track alert.id) {
+      <div 
+        class="alert-card" 
+        [ngClass]="getSeverityForAlert(alert)"
+        [class.unread]="!alert.resolue"
+        [class.resolved]="alert.resolue"
+        (click)="openAlertModal(alert)"
+      >
+        <div class="alert-indicator"></div>
+        
+        <div class="alert-icon">
+          <span class="material-icons">{{ getAlertTypeConfig(alert.type)?.icon }}</span>
+        </div>
+        
+        <div class="alert-content">
+          <div class="alert-header">
+            <h3 class="alert-title">{{ getAlertTypeConfig(alert.type)?.label || alert.type }}</h3>
+            <div class="alert-badges">
+              <span class="severity-badge" [ngClass]="getSeverityForAlert(alert)">
+                {{ getSeverityConfig(getSeverityForAlert(alert))?.label }}
               </span>
+              @if (alert.resolue) {
+                <span class="resolved-badge">Résolu</span>
+              }
             </div>
           </div>
-          
-          <div class="alert-actions" (click)="$event.stopPropagation()">
-            @if (!alert.resolue) {
-              <button 
-                class="action-btn resolve"
-                (click)="openAlertModal(alert)"
-                title="Résoudre"
-              >
-                <span class="material-icons">check_circle</span>
-              </button>
+          <p class="alert-message">{{ alert.message }}</p>
+          <div class="alert-meta">
+            @if (alert.siteNom) {
+              <span class="meta-item">
+                <span class="material-icons">location_on</span>
+                {{ alert.siteNom }}
+              </span>
             }
+            @if (alert.produitNom) {
+              <span class="meta-item">
+                <span class="material-icons">inventory_2</span>
+                {{ alert.produitNom }}
+              </span>
+            }
+            <span class="meta-item time">
+              <span class="material-icons">schedule</span>
+              {{ getTimeAgo(alert.dateCreation) }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="alert-actions" (click)="$event.stopPropagation()">
+          @if (!alert.resolue) {
             <button 
-              class="action-btn delete"
-              (click)="deleteAlert(alert)"
-              title="Supprimer"
+              class="action-btn resolve"
+              (click)="openAlertModal(alert)"
+              title="Résoudre"
             >
-              <span class="material-icons">delete</span>
+              <span class="material-icons">check_circle</span>
             </button>
-          </div>
+          }
+          <button 
+            class="action-btn delete"
+            (click)="deleteAlert(alert)"
+            title="Supprimer"
+          >
+            <span class="material-icons">delete</span>
+          </button>
         </div>
-      } @empty {
-        <div class="empty-state">
-          <span class="material-icons">notifications_off</span>
-          <p>Aucune alerte</p>
-          <span class="empty-hint">Les alertes apparaîtront ici lorsque des conditions seront détectées</span>
-        </div>
-      }
-    </div>
-  } @else {
-    <!-- Rules List -->
-    <div class="rules-container">
-      <div class="rules-header">
-        <h2>Règles d'Alertes Automatiques</h2>
-        <p>Configurez les conditions qui déclenchent les alertes</p>
       </div>
-      
-      <div class="rules-list">
-        @for (rule of rules(); track rule.id) {
-          <div class="rule-card" [class.disabled]="!rule.isEnabled">
-            <div class="rule-toggle">
-              <label class="switch">
-                <input 
-                  type="checkbox" 
-                  [checked]="rule.isEnabled"
-                  (change)="toggleRule(rule.id)"
-                >
-                <span class="slider"></span>
-              </label>
-            </div>
-            
-            <div class="rule-icon">
-              <span class="material-icons">{{ getAlertTypeConfig(rule.type)?.icon }}</span>
-            </div>
-            
-            <div class="rule-content">
-              <h3 class="rule-name">{{ rule.name }}</h3>
-              <p class="rule-type">{{ getAlertTypeConfig(rule.type)?.label }}</p>
-              <div class="rule-meta">
-                <span class="meta-item">
-                  <span class="material-icons">filter_list</span>
-                  {{ rule.conditions.length }} condition(s)
-                </span>
-                <span class="meta-item">
-                  <span class="material-icons">flash_on</span>
-                  {{ rule.actions.length }} action(s)
-                </span>
-                <span class="meta-item">
-                  <span class="material-icons">category</span>
-                  {{ rule.appliesTo === 'all' ? 'Tous les produits' : 'Sélection' }}
-                </span>
-              </div>
-            </div>
-            
-            <div class="rule-status">
-              <span class="status-indicator" [class.active]="rule.isEnabled"></span>
-              {{ rule.isEnabled ? 'Active' : 'Inactive' }}
-            </div>
-          </div>
-        }
+    } @empty {
+      <div class="empty-state">
+        <span class="material-icons">notifications_off</span>
+        <p>Aucune alerte</p>
+        <span class="empty-hint">Les alertes apparaîtront ici lorsque des conditions seront détectées</span>
       </div>
-    </div>
-  }
+    }
+  </div>
 </div>
 
 <!-- Alert Detail Modal -->
 @if (showModal() && selectedAlert(); as alert) {
   <div class="modal-overlay" (click)="closeModal()">
-    <div class="modal-content" [class]="getSeverityForAlert(alert)" (click)="$event.stopPropagation()">
+    <div class="modal-content" [ngClass]="getSeverityForAlert(alert)" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <div class="modal-title-section">
           <div class="alert-type-icon" [style.background]="getSeverityConfig(getSeverityForAlert(alert))?.bgColor">
@@ -273,7 +188,7 @@
           </div>
           <div>
             <h2>{{ getAlertTypeConfig(alert.type)?.label || alert.type }}</h2>
-            <span class="severity-label" [class]="getSeverityForAlert(alert)">
+            <span class="severity-label" [ngClass]="getSeverityForAlert(alert)">
               {{ getSeverityConfig(getSeverityForAlert(alert))?.label }}
             </span>
           </div>

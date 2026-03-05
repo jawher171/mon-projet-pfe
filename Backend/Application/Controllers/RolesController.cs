@@ -54,7 +54,7 @@ namespace Application.Controllers
             var role = await _context.role
                 .Include(r => r.RolePermissions)
                 .ThenInclude(rp => rp.Permission)
-                .FirstOrDefaultAsync(r => r.Nom == roleName.Trim());
+                .FirstOrDefaultAsync(r => r.Nom.ToLower() == roleName.Trim().ToLower());
 
             if (role == null)
                 return NotFound(new { message = "Role not found." });
@@ -63,6 +63,20 @@ namespace Application.Controllers
             var existingPermIds = await _context.permission
                 .Where(p => permissions.Contains(p.Code_p))
                 .ToDictionaryAsync(p => p.Code_p, p => p.permissionId);
+
+            // Auto-create any permission codes that don't exist yet in the Permission table
+            var missingCodes = permissions.Distinct().Where(c => !existingPermIds.ContainsKey(c)).ToList();
+            foreach (var code in missingCodes)
+            {
+                var newPerm = new Domain.Models.Permission
+                {
+                    permissionId = Guid.NewGuid(),
+                    Code_p = code,
+                    Description = code
+                };
+                _context.permission.Add(newPerm);
+                existingPermIds[code] = newPerm.permissionId;
+            }
 
             _context.rolepermission.RemoveRange(role.RolePermissions);
 

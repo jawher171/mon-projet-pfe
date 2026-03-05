@@ -44,10 +44,6 @@
           <div class="error-banner">{{ errorMessage() }}</div>
         }
 
-        @if (backendMode) {
-          <div class="error-banner">Mode backend: rôles autorisés = admin, gestionnaire_de_stock, operateur.</div>
-        }
-
         <form class="user-form" (ngSubmit)="saveUser()">
           <div class="form-group">
             <label>Prénom *</label>

@@ -2,6 +2,6 @@
  * Categorie - Diagram: libelle
  */
 export interface Category {
-  id: number | string;
-  libelle: string;
+  id_c: number | string;
+  categorieLibelle: string;
 }

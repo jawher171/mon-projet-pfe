@@ -46,19 +46,19 @@
 
   <!-- Products Count -->
   <div class="results-info">
-    <span class="results-count">{{ filteredProducts().length }} produits trouvés</span>
+    <span class="results-count">{{ listProducts.length }} produits trouvés</span>
   </div>
 
   <!-- Products Grid/List -->
   <div class="products-container" [class.list-view]="viewMode() === 'list'">
-    @if (filteredProducts().length === 0) {
+    @if (listProducts.length === 0) {
       <div class="empty-state">
         <span class="material-icons empty-icon">inventory_2</span>
         <h3>Aucun produit trouvé</h3>
         <p>Essayez d'ajuster votre recherche ou vos filtres</p>
       </div>
     } @else {
-      @for (product of filteredProducts(); track product.id) {
+      @for (product of listProducts; track product.id_p) {
         <div class="product-card">
           <div class="product-image">
             @if (getProductImage(product)) {
@@ -97,7 +97,7 @@
                 <button class="icon-btn" title="Modifier" (click)="openEditModal(product)">
                   <span class="material-icons">edit</span>
                 </button>
-                <button class="icon-btn danger" title="Supprimer" (click)="deleteProduct(product.id)">
+                <button class="icon-btn danger" title="Supprimer" (click)="deleteProduct(product.id_p)">
                   <span class="material-icons">delete</span>
                 </button>
               </div>
@@ -154,10 +154,10 @@
             <!-- Category -->
             <div class="form-group">
               <label for="categorieId" class="form-label">Catégorie *</label>
-              <select id="categorieId" formControlName="categorieId" class="form-select">
+              <select id="categorieId" formControlName="id_c" class="form-select">
                 <option [ngValue]="null">Sélectionner une catégorie</option>
-                @for (category of categories(); track category.id) {
-                  <option [value]="category.id">{{ category.libelle }}</option>
+                @for (category of listCategories; track category.id_c) {
+                  <option [value]="category.id_c">{{ category.categorieLibelle }}</option>
                 }
               </select>
 
@@ -186,7 +186,7 @@
                 </div>
               }
 
-              @if (productForm.get('categorieId')?.touched && productForm.get('categorieId')?.errors?.['required']) {
+              @if (productForm.get('id_c')?.touched && productForm.get('id_c')?.errors?.['required']) {
                 <span class="form-error">La catégorie est requise</span>
               }
             </div>

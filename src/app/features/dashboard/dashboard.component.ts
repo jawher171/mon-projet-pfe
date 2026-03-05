@@ -86,7 +86,9 @@ export class DashboardComponent implements OnInit {
     private movementService: MovementService
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.alertService.fetchAlerts();
+  }
 
   getTimeAgo(date: Date): string {
     const seconds = Math.floor((Date.now() - date.getTime()) / 1000);

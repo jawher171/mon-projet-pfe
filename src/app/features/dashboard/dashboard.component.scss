@@ -109,11 +109,13 @@
 .stat-icon {
   width: 60px;
   height: 60px;
+  min-width: 60px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
 
   .material-icons {
     font-size: 2rem;
@@ -435,10 +437,13 @@
 .summary-icon {
   width: 48px;
   height: 48px;
+  min-width: 48px;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
 
   .entries & {
     background: rgba(76, 175, 80, 0.1);

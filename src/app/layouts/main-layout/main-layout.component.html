@@ -51,14 +51,14 @@
       <div class="header-right">
     <div>
     <img src="Poulina.png" alt="Poulina" class="poulina"/>  
-    
-    
     </div>
-    
-          
-          
-    
-        
+
+        <button class="notification-bell" (click)="navigateTo('/alerts')" title="Alertes">
+          <span class="material-icons">notifications</span>
+          @if (unreadAlertCount() > 0) {
+            <span class="bell-badge">{{ unreadAlertCount() > 99 ? '99+' : unreadAlertCount() }}</span>
+          }
+        </button>
         <div class="user-menu-container">
           <button class="user-avatar" (click)="toggleUserMenu()">
             <span class="avatar-text">{{ userName.split(' ')[0]?.charAt(0) || '' }}{{ userName.split(' ')[1]?.charAt(0) || '' }}</span>

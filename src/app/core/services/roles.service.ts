@@ -4,6 +4,7 @@
  */
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { API_BASE_URL, USE_BACKEND } from '../../app.config';
 import { Permission, RoleWithLabel, ROLES } from '../models/role.model';
 
@@ -30,7 +31,8 @@ export class RolesService {
     }
     this.loadingSignal.set(true);
     try {
-      const dtos = await this.http.get<RoleDto[]>(`${API_BASE_URL}/api/Roles`).toPromise();
+      const dtos = await firstValueFrom(this.http.get<RoleDto[]>(`${API_BASE_URL}/api/Roles`));
+      console.log('[RolesService] GET /api/Roles response:', dtos);
       if (dtos?.length) {
         const merged: Record<string, RoleWithLabel> = {};
         for (const dto of dtos) {
@@ -48,7 +50,8 @@ export class RolesService {
         }
         this.rolesSignal.set(merged);
       }
-    } catch {
+    } catch (err) {
+      console.error('[RolesService] fetchRoles FAILED:', err);
       // Keep local defaults on error
     } finally {
       this.loadingSignal.set(false);
@@ -69,19 +72,24 @@ export class RolesService {
       return true;
     }
     try {
-      await this.http.put(`${API_BASE_URL}/api/Roles/${encodeURIComponent(roleName)}/permissions`, {
+      console.log('[RolesService] PUT /api/Roles/' + roleName + '/permissions', permissions);
+      const response = await firstValueFrom(this.http.put<RoleDto>(`${API_BASE_URL}/api/Roles/${encodeURIComponent(roleName)}/permissions`, {
         permissions
-      }).toPromise();
+      }));
+      console.log('[RolesService] PUT response:', response);
+      // Use the response from the backend to ensure we're in sync
+      const backendPermissions = (response?.permissions ?? permissions) as Permission[];
       this.rolesSignal.update(roles => {
         const updated = { ...roles };
         const key = roleName.toLowerCase();
         if (updated[key]) {
-          updated[key] = { ...updated[key], permissions: [...permissions] };
+          updated[key] = { ...updated[key], permissions: [...backendPermissions] };
         }
         return updated;
       });
       return true;
-    } catch {
+    } catch (err) {
+      console.error('[RolesService] updateRolePermissions FAILED:', err);
       return false;
     }
   }

@@ -1,3 +1,5 @@
+@import 'material-icons/iconfont/material-icons.css';
+
 /* Global Styles */
 * {
   margin: 0;
@@ -173,9 +175,9 @@ table tbody td {
 .status-warning { color: var(--warning); }
 .status-danger { color: var(--danger); }
 
-/* Material Icons */
+/* Material Icons - ensure proper rendering */
 .material-icons {
-  font-family: 'Material Icons';
+  font-family: 'Material Icons' !important;
   font-weight: normal;
   font-style: normal;
   font-size: 24px;
@@ -187,6 +189,9 @@ table tbody td {
   word-wrap: normal;
   direction: ltr;
   -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 

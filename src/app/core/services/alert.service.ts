@@ -16,6 +16,8 @@ interface AlertDto {
   message: string;
   dateCreation: string | Date;
   resolue: boolean;
+  severity?: string;
+  status?: string;
   id_s?: string;
   produitNom?: string;
   siteNom?: string;
@@ -25,20 +27,36 @@ interface AlertDto {
 export class AlertService {
   private readonly http = inject(HttpClient);
   private alertsSignal = signal<Alert[]>([]);
+  private readonly READ_IDS_KEY = 'alerts_read_ids';
+
+  private getReadIds(): Set<string> {
+    try {
+      const raw = localStorage.getItem(this.READ_IDS_KEY);
+      return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch { return new Set(); }
+  }
+
+  private saveReadIds(ids: Set<string>): void {
+    localStorage.setItem(this.READ_IDS_KEY, JSON.stringify([...ids]));
+  }
 
   getAlerts() {
     return this.alertsSignal;
   }
 
   private dtoToAlert(dto: AlertDto): Alert {
+    const id = dto.id ?? dto.id_a ?? '';
+    const readIds = this.getReadIds();
     return {
-      id: dto.id ?? dto.id_a ?? '',
+      id,
       type: dto.type,
       message: dto.message,
       dateCreation: new Date(dto.dateCreation),
       resolue: dto.resolue,
+      severity: (dto.severity ?? 'Info').toLowerCase(),
+      status: dto.status ?? 'Open',
       stockId: dto.id_s,
-      isRead: false,
+      isRead: readIds.has(String(id)),
       produitNom: dto.produitNom,
       siteNom: dto.siteNom
     };
@@ -72,6 +90,9 @@ export class AlertService {
       if (filter.type) {
         alerts = alerts.filter(a => a.type === filter.type);
       }
+      if (filter.severity) {
+        alerts = alerts.filter(a => a.severity === filter.severity);
+      }
       return alerts.sort((a, b) =>
         new Date(b.dateCreation).getTime() - new Date(a.dateCreation).getTime()
       );
@@ -83,14 +104,15 @@ export class AlertService {
   }
 
   getAlertStats(): AlertStats {
-    const alerts = this.alertsSignal().filter(a => !a.resolue);
-    const unread = this.alertsSignal().filter(a => !(a.isRead ?? false));
+    const allAlerts = this.alertsSignal();
+    const unresolved = allAlerts.filter(a => !a.resolue);
+    const unread = allAlerts.filter(a => !(a.isRead ?? false));
     const byType: Record<string, number> = {};
-    ALERT_TYPES.forEach(t => { byType[t.value] = alerts.filter(a => a.type === t.value).length; });
-    const critical = alerts.filter(a => a.type === 'out_of_stock').length;
-    const high = alerts.filter(a => a.type === 'low_stock').length;
-    const medium = alerts.filter(a => a.type === 'reorder_point').length;
-    return { total: alerts.length, unread: unread.length, critical, high, medium, byType };
+    ALERT_TYPES.forEach(t => { byType[t.value] = allAlerts.filter(a => a.type === t.value).length; });
+    const critical = allAlerts.filter(a => a.severity === 'critical').length;
+    const high = allAlerts.filter(a => a.severity === 'warning').length;
+    const medium = allAlerts.filter(a => a.severity === 'info').length;
+    return { total: unresolved.length, unread: unread.length, critical, high, medium, byType };
   }
 
   createAlert(alert: Omit<Alert, 'id'>): Alert {
@@ -176,6 +198,9 @@ export class AlertService {
   markAsRead(id: string | number): void {
     const index = this.alertsSignal().findIndex(a => String(a.id) === String(id));
     if (index === -1) return;
+    const readIds = this.getReadIds();
+    readIds.add(String(id));
+    this.saveReadIds(readIds);
     this.alertsSignal.update(alerts => {
       const updated = [...alerts];
       updated[index] = { ...updated[index], isRead: true };
@@ -184,6 +209,9 @@ export class AlertService {
   }
 
   markAllAsRead(): void {
+    const readIds = this.getReadIds();
+    this.alertsSignal().forEach(a => readIds.add(String(a.id)));
+    this.saveReadIds(readIds);
     this.alertsSignal.update(alerts =>
       alerts.map(a => ({ ...a, isRead: true }))
     );

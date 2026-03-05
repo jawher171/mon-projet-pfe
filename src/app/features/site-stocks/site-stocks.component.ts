@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { StockService } from '../../core/services/stock.service';
 import { SiteService } from '../../core/services/site.service';
+import { AlertService } from '../../core/services/alert.service';
 import { Stock } from '../../core/models/stock.model';
 import { Site } from '../../core/models/site.model';
 
@@ -25,6 +26,7 @@ export class SiteStocksComponent implements OnInit {
   private router = inject(Router);
   private stockService = inject(StockService);
   private siteService = inject(SiteService);
+  private alertService = inject(AlertService);
 
   siteId = signal<string>('');
   site = signal<Site | null>(null);
@@ -131,6 +133,8 @@ export class SiteStocksComponent implements OnInit {
         seuilMaximum: form.seuilMaximum
       };
       await this.stockService.updateStock(updated);
+      // Refresh alerts (threshold change may trigger new alerts)
+      await this.alertService.fetchAlerts();
       // Refresh list
       const freshStocks = await this.stockService.fetchStocksBySite(this.siteId());
       this.stocks.set(freshStocks);

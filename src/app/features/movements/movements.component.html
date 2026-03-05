@@ -198,7 +198,7 @@
                 </div>
                 @if (showProductDropdown() && filteredProducts().length > 0) {
                   <div class="product-dropdown">
-                    @for (product of filteredProducts(); track product.id) {
+                    @for (product of filteredProducts(); track product.id_p) {
                       <div class="product-dropdown-item" (click)="selectProduct(product)">
                         <div class="dropdown-product-info">
                           <span class="dropdown-product-name">{{ product.nom }}</span>

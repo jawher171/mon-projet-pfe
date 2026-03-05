@@ -461,3 +461,11 @@ C:\Users\jawher\Documents\inventaire\pfe-inventaire\Backend\Application\obj\Debu
 C:\Users\jawher\Documents\inventaire\pfe-inventaire\Backend\Application\obj\Debug\netcoreapp3.1\Application.genruntimeconfig.cache
 C:\Users\jawher\Documents\inventaire\pfe-inventaire\Backend\Application\bin\Debug\netcoreapp3.1\MediatR.dll
 C:\Users\jawher\Documents\inventaire\pfe-inventaire\Backend\Application\bin\Debug\netcoreapp3.1\MediatR.Extensions.Microsoft.DependencyInjection.dll
+C:\Users\jawher\Documents\ApplicationS\ApplicationS\Application\bin\Debug\netcoreapp3.1\MediatR.dll
+C:\Users\jawher\Documents\ApplicationS\ApplicationS\Application\bin\Debug\netcoreapp3.1\MediatR.Extensions.Microsoft.DependencyInjection.dll
+C:\Users\jawher\Documents\ApplicationS\ApplicationS\Application\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.Abstractions.dll
+C:\Users\jawher\Documents\ApplicationS\ApplicationS\Application\bin\Debug\netcoreapp3.1\System.Text.Encodings.Web.dll
+C:\Users\jawher\Documents\ApplicationS\ApplicationS\Application\bin\Debug\netcoreapp3.1\System.Text.Json.dll
+C:\Users\jawher\Documents\inventaire\pfe-inventaire\Backend\Application\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.Abstractions.dll
+C:\Users\jawher\Documents\inventaire\pfe-inventaire\Backend\Application\bin\Debug\netcoreapp3.1\System.Text.Encodings.Web.dll
+C:\Users\jawher\Documents\inventaire\pfe-inventaire\Backend\Application\bin\Debug\netcoreapp3.1\System.Text.Json.dll

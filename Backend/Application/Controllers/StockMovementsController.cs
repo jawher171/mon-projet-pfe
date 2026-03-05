@@ -34,7 +34,10 @@ namespace Application.Controllers
             var result = await _mediator.Send(
                 new GetListGenericQuery<StockMovement>(
                     condition: x => true,
-                    includes: i => i.Include(x => x.Stock).Include(x => x.Utilisateur)));
+                    includes: i => i
+                        .Include(x => x.Stock).ThenInclude(s => s.Produit)
+                        .Include(x => x.Stock).ThenInclude(s => s.Site)
+                        .Include(x => x.Utilisateur)));
 
             return _mapper.Map<IEnumerable<StockMovementDto>>(result);
         }
@@ -45,7 +48,10 @@ namespace Application.Controllers
             var entity = await _mediator.Send(
                 new GetGenericQuery<StockMovement>(
                     condition: x => x.id_sm == id,
-                    includes: i => i.Include(x => x.Stock).Include(x => x.Utilisateur)));
+                    includes: i => i
+                        .Include(x => x.Stock).ThenInclude(s => s.Produit)
+                        .Include(x => x.Stock).ThenInclude(s => s.Site)
+                        .Include(x => x.Utilisateur)));
 
             if (entity == null) return NotFound();
             return Ok(_mapper.Map<StockMovementDto>(entity));

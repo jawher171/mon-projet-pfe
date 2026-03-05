@@ -55,6 +55,30 @@ namespace Application.Handlers
                         condition: x => x.id_p == productId && x.Id_site == siteId,
                         includes: i => i.Include(x => x.Produit).Include(x => x.Site)),
                     cancellationToken);
+
+                // Auto-create Stock if it doesn't exist for this product+site
+                if (stock == null)
+                {
+                    stock = new Stock
+                    {
+                        id_s = Guid.NewGuid(),
+                        id_p = productId,
+                        Id_site = siteId,
+                        QuantiteDisponible = 0,
+                        SeuilAlerte = 10,
+                        SeuilSecurite = 5,
+                        SeuilMinimum = 0,
+                        SeuilMaximum = 0
+                    };
+                    stock = await _mediator.Send(new AddGenericCommand<Stock>(stock), cancellationToken);
+
+                    // Re-fetch with includes so Produit and Site are loaded
+                    stock = await _mediator.Send(
+                        new GetGenericQuery<Stock>(
+                            condition: x => x.id_s == stock.id_s,
+                            includes: i => i.Include(x => x.Produit).Include(x => x.Site)),
+                        cancellationToken);
+                }
             }
 
             if (stock == null)
@@ -93,6 +117,9 @@ namespace Application.Handlers
             // Persist
             var result = await _mediator.Send(new AddGenericCommand<StockMovement>(stockMovement), cancellationToken);
             await _mediator.Send(new PutGenericCommand<Stock>(stock), cancellationToken);
+
+            // Attach loaded stock (with Produit and Site) so AutoMapper can resolve ProduitNom/SiteNom
+            result.Stock = stock;
 
             // Publish domain event for alert engine
             await _mediator.Publish(new StockChangedEvent

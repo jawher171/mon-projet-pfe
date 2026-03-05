@@ -53,26 +53,29 @@ namespace Application.Handlers
             var qty = notification.NewQuantity;
 
             // ═══════════════════════════════════════════════════
-            // A) INFORMATIONAL ALERT — always created
+            // A) INFORMATIONAL ALERT — only for actual movements (skip threshold/stock updates)
             // ═══════════════════════════════════════════════════
-            if (notification.MovementType.Equals("entry", StringComparison.OrdinalIgnoreCase)
-                || notification.MovementType.Equals("IN", StringComparison.OrdinalIgnoreCase))
+            if (!notification.MovementType.Equals("update", StringComparison.OrdinalIgnoreCase))
             {
-                await _alertService.CreateInfoAlertAsync(
-                    stock.id_s,
-                    nameof(AlertType.ENTRY_VALIDATED),
-                    $"Mouvement d'entrée validé pour {produitNom} au site {siteNom}. " +
-                    $"Quantité ajoutée: {Math.Abs(notification.DeltaQuantity)}. Nouveau stock: {qty}.",
-                    cancellationToken);
-            }
-            else
-            {
-                await _alertService.CreateInfoAlertAsync(
-                    stock.id_s,
-                    nameof(AlertType.EXIT_VALIDATED),
-                    $"Mouvement de sortie validé pour {produitNom} au site {siteNom}. " +
-                    $"Quantité retirée: {Math.Abs(notification.DeltaQuantity)}. Nouveau stock: {qty}.",
-                    cancellationToken);
+                if (notification.MovementType.Equals("entry", StringComparison.OrdinalIgnoreCase)
+                    || notification.MovementType.Equals("IN", StringComparison.OrdinalIgnoreCase))
+                {
+                    await _alertService.CreateInfoAlertAsync(
+                        stock.id_s,
+                        nameof(AlertType.ENTRY_VALIDATED),
+                        $"Mouvement d'entrée validé pour {produitNom} au site {siteNom}. " +
+                        $"Quantité ajoutée: {Math.Abs(notification.DeltaQuantity)}. Nouveau stock: {qty}.",
+                        cancellationToken);
+                }
+                else
+                {
+                    await _alertService.CreateInfoAlertAsync(
+                        stock.id_s,
+                        nameof(AlertType.EXIT_VALIDATED),
+                        $"Mouvement de sortie validé pour {produitNom} au site {siteNom}. " +
+                        $"Quantité retirée: {Math.Abs(notification.DeltaQuantity)}. Nouveau stock: {qty}.",
+                        cancellationToken);
+                }
             }
 
             // ═══════════════════════════════════════════════════

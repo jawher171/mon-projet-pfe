@@ -114,6 +114,10 @@
       .stat-icon { background: #e3f2fd; .material-icons { color: #1976d2; } }
       .stat-value { color: #1976d2; }
     }
+    &.info {
+      .stat-icon { background: #e3f2fd; .material-icons { color: #1976d2; } }
+      .stat-value { color: #1976d2; }
+    }
   }
 }
 
@@ -259,7 +263,7 @@
     .alert-indicator { background: #d32f2f; }
     .alert-icon { background: #ffebee; .material-icons { color: #d32f2f; } }
   }
-  &.high {
+  &.high, &.warning {
     .alert-indicator { background: #f57c00; }
     .alert-icon { background: #fff3e0; .material-icons { color: #f57c00; } }
   }
@@ -318,7 +322,7 @@
       font-weight: 500;
 
       &.critical { background: #ffebee; color: #d32f2f; }
-      &.high { background: #fff3e0; color: #f57c00; }
+      &.high, &.warning { background: #fff3e0; color: #f57c00; }
       &.medium { background: #fffde7; color: #9e9d24; }
       &.low { background: #e8f5e9; color: #388e3c; }
       &.info { background: #e3f2fd; color: #1976d2; }
@@ -554,9 +558,10 @@
   flex-direction: column;
 
   &.critical .modal-header { border-top: 4px solid #d32f2f; }
-  &.high .modal-header { border-top: 4px solid #f57c00; }
+  &.high .modal-header, &.warning .modal-header { border-top: 4px solid #f57c00; }
   &.medium .modal-header { border-top: 4px solid #fbc02d; }
   &.low .modal-header { border-top: 4px solid #388e3c; }
+  &.info .modal-header { border-top: 4px solid #1976d2; }
 }
 
 .modal-header {
@@ -593,9 +598,10 @@
       border-radius: 10px;
 
       &.critical { background: #ffebee; color: #d32f2f; }
-      &.high { background: #fff3e0; color: #f57c00; }
+      &.high, &.warning { background: #fff3e0; color: #f57c00; }
       &.medium { background: #fffde7; color: #9e9d24; }
       &.low { background: #e8f5e9; color: #388e3c; }
+      &.info { background: #e3f2fd; color: #1976d2; }
     }
   }
 

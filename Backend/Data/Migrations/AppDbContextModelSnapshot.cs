@@ -25,8 +25,16 @@ namespace Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("DateCreation")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Fingerprint")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(300)")
+                        .HasMaxLength(300);
 
                     b.Property<string>("Message")
                         .IsRequired()
@@ -34,6 +42,18 @@ namespace Data.Migrations
 
                     b.Property<bool>("Resolue")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(20)")
+                        .HasMaxLength(20);
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(20)")
+                        .HasMaxLength(20)
+                        .HasDefaultValue("Open");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -45,6 +65,9 @@ namespace Data.Migrations
                     b.HasKey("Id_a");
 
                     b.HasIndex("id_s");
+
+                    b.HasIndex("Fingerprint", "Status")
+                        .HasName("IX_Alert_Fingerprint_Status");
 
                     b.ToTable("alerts");
                 });

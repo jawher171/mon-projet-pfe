@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Category } from '../models/category.model';
 import { API_BASE_URL, USE_BACKEND } from '../../app.config';
 
@@ -9,13 +10,14 @@ interface CategoryDto {
   libelle: string;
 }
 
+
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
   private readonly http = inject(HttpClient);
   private categories = signal<Category[]>([
-    { id: 1, libelle: 'Électronique' },
-    { id: 2, libelle: 'Consommables' },
-    { id: 3, libelle: 'Pièces de rechange' }
+    { id_c: 1, categorieLibelle: 'Électronique' },
+    { id_c: 2, categorieLibelle: 'Consommables' },
+    { id_c: 3, categorieLibelle: 'Pièces de rechange' }
   ]);
 
   getCategories() {
@@ -24,9 +26,14 @@ export class CategoryService {
 
   private dtoToCategory(dto: CategoryDto): Category {
     return {
-      id: dto.id ?? this.generateId(),
-      libelle: dto.libelle
+      id_c: dto.id ?? this.generateId(),
+      categorieLibelle: dto.libelle
     };
+  }
+  getCtegories(): Observable<Category[]> {
+    return this.http.get<CategoryDto[]>(`${API_BASE_URL}/api/Categories/GetCategories`).pipe(
+      map(dtos => (dtos ?? []).map(dto => this.dtoToCategory(dto)))
+    );
   }
 
   async fetchCategories(): Promise<Category[]> {
@@ -48,13 +55,13 @@ export class CategoryService {
     }
 
     await this.delay(200);
-    return this.categories().find(c => String(c.id) === String(id));
+    return this.categories().find(c => String(c.id_c) === String(id));
   }
 
   addCategorySync(libelle: string): Category {
     const normalized = libelle.trim();
     const existing = this.categories().find(
-      c => c.libelle.toLowerCase() === normalized.toLowerCase()
+      c => c.categorieLibelle.toLowerCase() === normalized.toLowerCase()
     );
 
     if (existing) {
@@ -62,8 +69,8 @@ export class CategoryService {
     }
 
     const newCategory: Category = {
-      id: this.generateId(),
-      libelle: normalized
+      id_c: this.generateId(),
+      categorieLibelle: normalized
     };
 
     this.categories.update(categories => [...categories, newCategory]);
@@ -73,7 +80,7 @@ export class CategoryService {
   async addCategoryApi(libelle: string): Promise<Category> {
     const normalized = libelle.trim();
     const existing = this.categories().find(
-      c => c.libelle.toLowerCase() === normalized.toLowerCase()
+      c => c.categorieLibelle.toLowerCase() === normalized.toLowerCase()
     );
     if (existing) return existing;
 
@@ -98,12 +105,12 @@ export class CategoryService {
         this.http.put<CategoryDto>(`${API_BASE_URL}/api/Categories/UpdateCategory`, dto)
       );
       const updated = this.dtoToCategory(result);
-      this.categories.update(cats => cats.map(c => String(c.id) === String(id) ? updated : c));
+      this.categories.update(cats => cats.map(c => String(c.id_c) === String(id) ? updated : c));
       return updated;
     }
     // Local mode
-    const updated: Category = { id, libelle: normalized };
-    this.categories.update(cats => cats.map(c => String(c.id) === String(id) ? updated : c));
+    const updated: Category = { id_c: id, categorieLibelle: normalized };
+    this.categories.update(cats => cats.map(c => String(c.id_c) === String(id) ? updated : c));
     return updated;
   }
 
@@ -114,13 +121,13 @@ export class CategoryService {
         this.http.delete(`${API_BASE_URL}/api/Categories/DeleteCategory/${id}`)
       );
     }
-    this.categories.update(cats => cats.filter(c => String(c.id) !== String(id)));
+    this.categories.update(cats => cats.filter(c => String(c.id_c) !== String(id)));
     return true;
   }
 
   private generateId(): number {
     const maxId = this.categories().reduce((max, category) => {
-      const numericId = Number(category.id);
+      const numericId = Number(category.id_c);
       return Number.isFinite(numericId) ? Math.max(max, numericId) : max;
     }, 0);
 

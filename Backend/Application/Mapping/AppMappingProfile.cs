@@ -56,6 +56,7 @@ namespace Application.Mapping
                 .ForMember(d => d.ProductId, o => o.MapFrom(s => s.Stock != null ? s.Stock.id_p : (Guid?)null))
                 .ForMember(d => d.SiteId, o => o.MapFrom(s => s.Stock != null ? s.Stock.Id_site : (Guid?)null));
             CreateMap<StockMovementDto, StockMovement>()
+                .ForMember(d => d.id_sm, o => o.Ignore())
                 .ForMember(d => d.Stock, o => o.Ignore())
                 .ForMember(d => d.Utilisateur, o => o.Ignore());
 

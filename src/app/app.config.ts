@@ -12,10 +12,10 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 
 /** API base URL - set when backend is ready */
-export const API_BASE_URL = 'http://localhost:5000';
+export const API_BASE_URL = 'https://localhost:44353';
 
 /** When false, app uses mock data and works without backend */
-export const USE_BACKEND = false;
+export const USE_BACKEND = true;
 
 /** 
  * Application configuration object that contains all providers.

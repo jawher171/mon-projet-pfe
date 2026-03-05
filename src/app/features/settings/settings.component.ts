@@ -104,10 +104,17 @@ export class SettingsComponent implements OnInit {
   }
 
   /** Toggle a permission for a role - persists to backend */
-  async togglePermission(roleName: string, permission: Permission): Promise<void> {
+  async togglePermission(roleName: string, permission: Permission, event: Event): Promise<void> {
+    // Prevent native checkbox toggle — we control it via signal
+    const cb = event.target as HTMLInputElement;
     const roles = this.authorizationService.rolesSignal();
-    const role = roles[roleName];
-    if (!role) return;
+    const key = roleName.toLowerCase();
+    const role = roles[key];
+    if (!role) {
+      console.error('[Settings] Role not found for key:', key, 'available keys:', Object.keys(roles));
+      cb.checked = !cb.checked; // revert
+      return;
+    }
 
     const has = role.permissions.includes(permission);
     const newPermissions = has
@@ -115,11 +122,12 @@ export class SettingsComponent implements OnInit {
       : [...role.permissions, permission];
 
     try {
-      await this.authorizationService.updateRolePermissions(roleName, newPermissions);
+      await this.authorizationService.updateRolePermissions(key, newPermissions);
       this.saved.set(true);
       setTimeout(() => this.saved.set(false), 2000);
-    } catch {
-      // Error handled by service
+    } catch (err) {
+      console.error('[Settings] togglePermission failed:', err);
+      cb.checked = !cb.checked; // revert checkbox on failure
     }
   }
 

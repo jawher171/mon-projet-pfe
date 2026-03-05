@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Dtos;
+using Application.Events;
 using AutoMapper;
 using Domain.Commands;
 using Domain.Models;
@@ -107,6 +108,17 @@ namespace Application.Controllers
             existing.Id_site = dto.Id_site;
 
             var result = await _mediator.Send(new PutGenericCommand<Stock>(existing));
+
+            // Re-evaluate alert rules after threshold/quantity changes
+            await _mediator.Publish(new StockChangedEvent
+            {
+                StockId = result.id_s,
+                MovementId = Guid.Empty,
+                MovementType = "update",
+                DeltaQuantity = 0,
+                NewQuantity = result.QuantiteDisponible,
+                OccurredAt = DateTime.UtcNow
+            });
 
             // Re-fetch with includes for the response
             var stockWithIncludes = await _mediator.Send(

@@ -30,11 +30,7 @@ export class AlertsComponent implements OnInit {
   selectedSite = signal('');
   
   /** Show resolved alerts */
-  showResolved = signal(false);
-
-  // View controls
-  /** Active tab (alerts or rules) */
-  activeTab = signal<'alerts' | 'rules'>('alerts');
+  showResolved = signal(true);
 
   // Modal state
   /** Show alert detail modal */
@@ -58,7 +54,8 @@ export class AlertsComponent implements OnInit {
   /** Computed filter object */
   filter = computed<AlertFilter>(() => ({
     type: this.selectedType() === 'all' ? undefined : this.selectedType(),
-    resolue: this.showResolved() ? undefined : false
+    resolue: this.showResolved() ? undefined : false,
+    severity: this.selectedSeverity() === 'all' ? undefined : this.selectedSeverity()
   }));
 
   /** Filtered alerts */
@@ -66,9 +63,6 @@ export class AlertsComponent implements OnInit {
   
   /** Alert statistics */
   stats = computed(() => this.alertService.getAlertStats());
-  
-  /** Alert rules (diagram: no AlertRule) */
-  rules = computed(() => this.alertService.getRules());
   
   /** Count of unread alerts */
   unreadCount = computed(() => this.alertService.getUnreadAlerts()().length);
@@ -78,7 +72,9 @@ export class AlertsComponent implements OnInit {
     private siteService: SiteService
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.alertService.fetchAlerts();
+  }
 
   /**
    * Filter by alert type
@@ -106,14 +102,6 @@ export class AlertsComponent implements OnInit {
   }
 
   /**
-   * Switch active tab
-   * @param tab Tab to activate (alerts or rules)
-   */
-  setActiveTab(tab: 'alerts' | 'rules') {
-    this.activeTab.set(tab);
-  }
-
-  /**
    * Open alert modal and mark as read
    * @param alert Alert to display
    */
@@ -131,26 +119,22 @@ export class AlertsComponent implements OnInit {
     this.resolveNotes.set('');
   }
 
-  resolveAlert() {
+  async resolveAlert() {
     const alert = this.selectedAlert();
     if (alert) {
-      this.alertService.resolveAlert(alert.id);
+      await this.alertService.resolveAlertApi(alert.id);
       this.closeModal();
     }
   }
 
-  deleteAlert(alert: Alert) {
+  async deleteAlert(alert: Alert) {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette alerte ?')) {
-      this.alertService.deleteAlert(alert.id);
+      await this.alertService.deleteAlertApi(alert.id);
     }
   }
 
   markAllAsRead() {
     this.alertService.markAllAsRead();
-  }
-
-  toggleRule(ruleId: string) {
-    this.alertService.toggleRule(ruleId);
   }
 
   getAlertTypeConfig(type: AlertType) {
@@ -161,15 +145,9 @@ export class AlertsComponent implements OnInit {
     return this.alertService.getSeverityConfig(severity);
   }
 
-  /** Derive severity from alert type (diagram has type only) */
+  /** Return severity string for CSS class and config lookup (already lowercase from dtoToAlert) */
   getSeverityForAlert(alert: Alert): string {
-    const typeToSeverity: Record<string, string> = {
-      out_of_stock: 'critical',
-      low_stock: 'high',
-      reorder_point: 'medium',
-      overstock: 'low'
-    };
-    return typeToSeverity[alert.type] || 'info';
+    return alert.severity ?? 'info';
   }
 
   getTimeAgo(date: Date): string {

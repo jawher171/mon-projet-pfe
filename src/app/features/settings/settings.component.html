@@ -76,7 +76,7 @@
                     <input
                       type="checkbox"
                       [checked]="hasPermission(role, perm.key)"
-                      (change)="togglePermission(role.nom, perm.key)"
+                      (change)="togglePermission(role.nom, perm.key, $event)"
                     >
                     <span class="checkmark" [style.--check-color]="getRoleColor(role)"></span>
                   </label>

@@ -4,10 +4,11 @@
  * Serves as the wrapper for all authenticated pages.
  */
 
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { AlertService } from '../../core/services/alert.service';
 import { Permission } from '../../core/models/role.model';
 
 /** Menu item structure for navigation */
@@ -27,7 +28,7 @@ interface MenuItem {
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss']
 })
-export class MainLayoutComponent {
+export class MainLayoutComponent implements OnInit {
   /** Track sidebar collapsed state */
   isSidebarCollapsed = signal(false);
   
@@ -36,6 +37,9 @@ export class MainLayoutComponent {
   
   /** Current authenticated user */
   currentUser = computed(() => this.authService.currentUser());
+
+  /** Unread alert count for notification bell */
+  unreadAlertCount = computed(() => this.alertService.getUnreadAlerts()().length);
 
   /** All navigation menu items with permissions */
   private allMenuItems: MenuItem[] = [
@@ -80,8 +84,13 @@ export class MainLayoutComponent {
 
   constructor(
     private authService: AuthService,
+    private alertService: AlertService,
     private router: Router
   ) {}
+
+  ngOnInit(): void {
+    this.alertService.fetchAlerts();
+  }
 
   /**
    * Toggle sidebar collapsed/expanded state

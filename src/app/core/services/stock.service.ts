@@ -19,7 +19,7 @@ interface StockDto {
   seuilMaximum?: number;
   id_p?: string;
   produitId?: string;
-  Id_site?: string;
+  id_site?: string;
   siteId?: string;
   produitNom?: string;
   siteNom?: string;
@@ -43,7 +43,7 @@ export class StockService {
       seuilMinimum: dto.seuilMinimum ?? 0,
       seuilMaximum: dto.seuilMaximum ?? 0,
       produitId: dto.produitId ?? dto.id_p ?? '',
-      siteId: dto.siteId ?? dto.Id_site ?? '',
+      siteId: dto.siteId ?? dto.id_site ?? '',
       produitNom: dto.produitNom,
       siteNom: dto.siteNom
     };
@@ -96,14 +96,14 @@ export class StockService {
       return stock;
     }
     const body = {
-      id_s: stock.id,
-      QuantiteDisponible: stock.quantiteDisponible,
-      SeuilAlerte: stock.seuilAlerte,
-      SeuilSecurite: stock.seuilSecurite,
-      SeuilMinimum: stock.seuilMinimum,
-      SeuilMaximum: stock.seuilMaximum,
-      id_p: stock.produitId,
-      Id_site: stock.siteId
+      id_s: String(stock.id),
+      quantiteDisponible: stock.quantiteDisponible,
+      seuilAlerte: stock.seuilAlerte,
+      seuilSecurite: stock.seuilSecurite,
+      seuilMinimum: stock.seuilMinimum,
+      seuilMaximum: stock.seuilMaximum,
+      id_p: String(stock.produitId),
+      id_site: String(stock.siteId)
     };
     const dto = await firstValueFrom(
       this.http.put<StockDto>(`${API_BASE_URL}/api/Stocks/UpdateStock`, body)
@@ -128,14 +128,13 @@ export class StockService {
       return newStock;
     }
     const body = {
-      id_s: crypto.randomUUID ? crypto.randomUUID() : '00000000-0000-0000-0000-000000000000',
-      QuantiteDisponible: stock.quantiteDisponible,
-      SeuilAlerte: stock.seuilAlerte,
-      SeuilSecurite: stock.seuilSecurite,
-      SeuilMinimum: stock.seuilMinimum,
-      SeuilMaximum: stock.seuilMaximum,
-      id_p: stock.produitId,
-      Id_site: stock.siteId
+      quantiteDisponible: stock.quantiteDisponible,
+      seuilAlerte: stock.seuilAlerte,
+      seuilSecurite: stock.seuilSecurite,
+      seuilMinimum: stock.seuilMinimum,
+      seuilMaximum: stock.seuilMaximum,
+      id_p: String(stock.produitId),
+      id_site: String(stock.siteId)
     };
     const dto = await firstValueFrom(
       this.http.post<StockDto>(`${API_BASE_URL}/api/Stocks/AddStock`, body)

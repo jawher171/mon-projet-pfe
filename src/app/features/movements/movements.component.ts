@@ -11,6 +11,8 @@ import { ActivatedRoute } from '@angular/router';
 import { MovementService } from '../../core/services/movement.service';
 import { SiteService } from '../../core/services/site.service';
 import { ProductService } from '../../core/services/product.service';
+import { AuthService } from '../../core/services/auth.service';
+import { AlertService } from '../../core/services/alert.service';
 import { Product } from '../../core/models/product.model';
 import { MouvementStock, MouvementFilter, MovementReason } from '../../core/models/movement.model';
 
@@ -113,10 +115,24 @@ export class MovementsComponent implements OnInit {
     private movementService: MovementService,
     private siteService: SiteService,
     private productService: ProductService,
+    private authService: AuthService,
+    private alertService: AlertService,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
+    // Fetch data from backend
+    this.loadData();
+  }
+
+  private async loadData(): Promise<void> {
+    // Fetch all data from backend in parallel
+    await Promise.all([
+      this.movementService.fetchMovements(),
+      this.siteService.fetchSites(),
+      this.productService.fetchProducts()
+    ]);
+
     // Read query params from SiteStocksComponent navigation
     const params = this.route.snapshot.queryParams;
     if (params['mode'] && (params['mode'] === 'entry' || params['mode'] === 'exit')) {
@@ -141,7 +157,7 @@ export class MovementsComponent implements OnInit {
 
       // Try to find the product to set selectedProduct
       if (productId) {
-        const product = this.allProducts().find(p => String(p.id) === String(productId));
+        const product = this.allProducts().find(p => String(p.id_p) === String(productId));
         if (product) {
           this.selectedProduct.set(product);
           this.productSearch.set(product.nom);
@@ -252,7 +268,7 @@ export class MovementsComponent implements OnInit {
     this.selectedProduct.set(product);
     this.productSearch.set(product.nom);
     this.showProductDropdown.set(false);
-    this.updateFormField('productId', String(product.id));
+    this.updateFormField('productId', String(product.id_p));
     this.updateFormField('productName', product.nom);
     this.updateFormField('barcode', product.codeBarre || '');
   }
@@ -291,7 +307,7 @@ export class MovementsComponent implements OnInit {
     this.closeAddReasonModal();
   }
 
-  saveMovement() {
+  async saveMovement() {
     const form = this.formData();
     const site = this.sites().find(s => s.id === form.siteId);
     const product = this.selectedProduct();
@@ -300,7 +316,7 @@ export class MovementsComponent implements OnInit {
       return;
     }
 
-    const productId = String(product.id);
+    const productId = String(product.id_p);
     
     // Calculate current stock from movement history
     const previousStock = this.movementService.getCurrentStock(productId, form.siteId);
@@ -310,7 +326,9 @@ export class MovementsComponent implements OnInit {
       ? previousStock + form.quantity 
       : previousStock - form.quantity;
 
-    this.movementService.addMovement({
+    const currentUser = this.authService.currentUser();
+
+    await this.movementService.addMovement({
       dateMouvement: new Date(),
       raison: form.reason as MovementReason,
       quantite: form.quantity,
@@ -319,11 +337,16 @@ export class MovementsComponent implements OnInit {
       siteNom: site?.nom || '',
       productId: productId,
       siteId: form.siteId,
+      stockId: form.stockId || undefined,
+      userId: currentUser?.id ? String(currentUser.id) : undefined,
       type: this.movementType(),
-      utilisateurNom: 'Utilisateur courant'
+      utilisateurNom: currentUser ? `${currentUser.prenom} ${currentUser.nom}` : 'Utilisateur courant'
     });
 
     this.closeModal();
+    await this.movementService.fetchMovements();
+    // Refresh alerts — backend creates them automatically via StockChangedEvent
+    await this.alertService.fetchAlerts();
   }
 
   getReasonLabel(reason: MovementReason): string {

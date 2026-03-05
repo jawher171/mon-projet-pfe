@@ -185,7 +185,7 @@ export class ScannerComponent implements OnInit {
     if (!site || !this.selectedReason()) return;
     
     // Calculate current stock from movement history
-    const previousStock = this.movementService.getCurrentStock(String(scan.product.id), String(site.id));
+    const previousStock = this.movementService.getCurrentStock(String(scan.product.id_p), String(site.id));
     
     // Calculate new stock after this movement
     const newStock = mode === 'entry' 
@@ -198,7 +198,7 @@ export class ScannerComponent implements OnInit {
       quantite: this.quantity(),
       produitNom: scan.product.nom,
       siteNom: site.nom,
-      productId: scan.product.id,
+      productId: scan.product.id_p,
       siteId: site.id,
       type: mode,
       utilisateurNom: 'Utilisateur courant'

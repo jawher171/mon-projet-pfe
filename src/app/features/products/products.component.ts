@@ -4,7 +4,7 @@
  * Allows searching, filtering by status, and switching between grid and list views.
  */
 
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -79,22 +79,39 @@ export class ProductsComponent implements OnInit {
   constructor(
     private productService: ProductService,
     private categoryService: CategoryService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) {}
+  listCategories: Category[] = [];
+  listProducts: Product[] = [];
 
   ngOnInit(): void {
     this.initForm();
-  }
-
+    this.getCategories(); 
+    this.getproducts();
+    console.log('ProductsComponent initialized',this.listProducts.length);
+   }
+getCategories() {
+     this.categoryService.getCtegories().subscribe(categories => {
+      this.listCategories = categories as Category[];
+      this.cdr.detectChanges();
+     });
+}
+getproducts() {
+     this.productService.getProduit().subscribe(products => {
+      this.listProducts = products as Product[];
+      this.cdr.detectChanges();
+     });
+}
   /**
    * Initialize product form
    */
   initForm() {
     this.productForm = this.fb.group({
-      id: [''],
+      id_p: [''],
       nom: ['', Validators.required],
       description: [''],
-      categorieId: [null, Validators.required],
+      id_c: [null, Validators.required],
       prix: [0, [Validators.required, Validators.min(0)]],
       codeBarre: ['']
     });
@@ -131,10 +148,11 @@ export class ProductsComponent implements OnInit {
   openAddModal() {
     this.isEditMode.set(false);
     this.productForm.reset({
+      id_p: '',
       prix: 0,
       nom: '',
       description: '',
-      categorieId: null,
+      id_c: null,
       codeBarre: ''
     });
     this.showModal.set(true);
@@ -190,62 +208,65 @@ export class ProductsComponent implements OnInit {
     this.newCategoryName.set('');
   }
 
-  addCategoryFromForm() {
+  async addCategoryFromForm() {
     const libelle = this.newCategoryName().trim();
     if (!libelle) {
       return;
     }
 
-    const category = this.categoryService.addCategorySync(libelle);
-    this.productForm.patchValue({ categorieId: category.id });
-    this.productForm.get('categorieId')?.markAsTouched();
+    const category = await this.categoryService.addCategoryApi(libelle);
+    this.productForm.patchValue({ id_c: category.id_c });
+    this.productForm.get('id_c')?.markAsTouched();
+    this.getCategories();
     this.cancelAddCategory();
   }
 
   /**
    * Handle form submission
    */
-  onSubmit() {
+  async onSubmit() {
     if (this.productForm.invalid) {
       this.productForm.markAllAsTouched();
       return;
     }
 
     const formValue = this.productForm.value;
-    const category = this.categories().find(c => String(c.id) === String(formValue.categorieId));
-    const categorieLibelle = category?.libelle;
+    const category = this.categories().find(c => String(c.id_c) === String(formValue.id_c));
+    const categorieLibelle = category?.categorieLibelle ?? 'Unknown';
 
     if (this.isEditMode()) {
-      this.productService.updateProductSync(formValue.id, {
+      await this.productService.updateProduct(formValue.id_p, {
         nom: formValue.nom,
         description: formValue.description ?? '',
         codeBarre: formValue.codeBarre,
         prix: formValue.prix,
-        categorieId: formValue.categorieId,
+        id_c: formValue.id_c,
         categorieLibelle
       });
     } else {
-      const newProduct: Omit<Product, 'id'> = {
+      const newProduct: Omit<Product, 'id_p'> = {
         nom: formValue.nom,
         description: formValue.description ?? '',
         codeBarre: formValue.codeBarre,
         prix: formValue.prix,
-        categorieId: formValue.categorieId,
+        id_c: formValue.id_c,
         categorieLibelle
       };
-      this.productService.addProduct(newProduct);
+      await this.productService.addProduct(newProduct);
     }
 
     this.closeModal();
+    this.getproducts();
   }
 
   /**
    * Delete product
    * @param productId Product ID to delete
    */
-  deleteProduct(productId: string | number) {
+  async deleteProduct(productId: string | number) {
     if (confirm('Are you sure you want to delete this product?')) {
-      this.productService.deleteProductSync(productId);
+      await this.productService.deleteProduct(productId);
+      this.getproducts();
     }
   }
 

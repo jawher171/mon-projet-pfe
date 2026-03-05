@@ -3,7 +3,7 @@
  * Sujet PFE: multi-magasin
  */
 
-import { Component, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -17,7 +17,7 @@ import { Site, SiteFilter, SiteType, SITE_TYPES } from '../../core/models/site.m
   templateUrl: './sites.component.html',
   styleUrls: ['./sites.component.scss']
 })
-export class SitesComponent {
+export class SitesComponent implements OnInit {
   searchTerm = signal('');
   selectedType = signal<SiteType | 'all'>('all');
   viewMode = signal<'grid' | 'list'>('grid');
@@ -48,6 +48,10 @@ export class SitesComponent {
   siteStats = computed(() => this.siteService.getSiteStats()());
 
   constructor(private siteService: SiteService) {}
+
+  ngOnInit(): void {
+    this.siteService.fetchSites();
+  }
 
   onSearch(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -115,7 +119,7 @@ export class SitesComponent {
     this.formData.update(data => ({ ...data, [field]: value }));
   }
 
-  saveSite() {
+  async saveSite() {
     const form = this.formData();
     if (!form.nom || !form.ville) return;
 
@@ -132,16 +136,18 @@ export class SitesComponent {
     };
 
     if (this.modalMode() === 'add') {
-      this.siteService.addSite(siteData);
+      await this.siteService.addSiteApi(siteData);
     } else if (this.modalMode() === 'edit' && this.selectedSite()) {
-      this.siteService.updateSite(this.selectedSite()!.id, siteData);
+      await this.siteService.updateSiteApi(this.selectedSite()!.id, siteData);
     }
     this.closeModal();
+    await this.siteService.fetchSites();
   }
 
-  deleteSite(site: Site) {
+  async deleteSite(site: Site) {
     if (confirm(`Êtes-vous sûr de vouloir supprimer le site "${site.nom}" ?`)) {
-      this.siteService.deleteSite(site.id);
+      await this.siteService.deleteSiteApi(site.id);
+      await this.siteService.fetchSites();
     }
   }
 
