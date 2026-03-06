@@ -23,5 +23,5 @@ export interface SiteFilter {
 
 export const SITE_TYPES: { value: SiteType; label: string; icon: string }[] = [
   { value: 'warehouse', label: 'Entrepôt', icon: 'warehouse' },
-  { value: 'store', label: 'Magasin', icon: 'store' },
+  { value: 'store', label: 'Magasin', icon: 'storefront' },
 ];

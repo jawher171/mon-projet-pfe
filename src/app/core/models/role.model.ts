@@ -78,7 +78,7 @@ export const ROLES: Record<UserRole, RoleWithLabel> = {
     label: 'Opérateur',
     description: 'Basic operations',
     color: '#4caf50',
-    icon: 'construction_worker',
+    icon: 'engineering',
     permissions: ['view_products', 'scan_barcode', 'basic_entry_exit']
   }
 };

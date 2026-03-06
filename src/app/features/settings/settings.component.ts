@@ -29,7 +29,7 @@ export class SettingsComponent implements OnInit {
   permissionGroups: PermissionGroup[] = [
     {
       label: 'Tableau de Bord',
-      icon: 'dashboard',
+      icon: 'space_dashboard',
       permissions: [
         { key: 'view_dashboard', label: 'Voir' }
       ]
@@ -44,7 +44,7 @@ export class SettingsComponent implements OnInit {
     },
     {
       label: 'Mouvements',
-      icon: 'swap_vert',
+      icon: 'sync_alt',
       permissions: [
         { key: 'view_movements', label: 'Voir' },
         { key: 'manage_movements', label: 'Gestion' }
@@ -52,7 +52,7 @@ export class SettingsComponent implements OnInit {
     },
     {
       label: 'Sites',
-      icon: 'store',
+      icon: 'apartment',
       permissions: [
         { key: 'view_sites', label: 'Voir' },
         { key: 'manage_sites', label: 'Gestion' }
@@ -60,7 +60,7 @@ export class SettingsComponent implements OnInit {
     },
     {
       label: 'Alertes',
-      icon: 'notifications',
+      icon: 'notifications_active',
       permissions: [
         { key: 'view_alerts', label: 'Voir' },
         { key: 'manage_alerts', label: 'Gestion' }
@@ -75,7 +75,7 @@ export class SettingsComponent implements OnInit {
     },
     {
       label: 'Utilisateurs',
-      icon: 'people',
+      icon: 'manage_accounts',
       permissions: [
         { key: 'manage_users', label: 'Gestion Utilisateurs' },
         { key: 'manage_roles', label: 'Gestion Rôles' }
@@ -83,7 +83,7 @@ export class SettingsComponent implements OnInit {
     },
     {
       label: 'Autres',
-      icon: 'more_horiz',
+      icon: 'widgets',
       permissions: [
         { key: 'basic_entry_exit', label: 'Entrée/Sortie basique' },
         { key: 'view_reports', label: 'Voir Rapports' }

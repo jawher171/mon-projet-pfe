@@ -221,6 +221,17 @@ getproducts() {
     this.cancelAddCategory();
   }
 
+  async deleteCategory(id: string | number) {
+    if (!id) return;
+    const category = this.listCategories.find(c => String(c.id_c) === String(id));
+    const name = category?.categorieLibelle ?? 'cette catégorie';
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer "${name}" ?`)) return;
+
+    await this.categoryService.deleteCategoryApi(id);
+    this.productForm.patchValue({ id_c: null });
+    this.getCategories();
+  }
+
   /**
    * Handle form submission
    */

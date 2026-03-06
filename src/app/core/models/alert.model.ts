@@ -38,17 +38,17 @@ export interface AlertStats {
 }
 
 export const ALERT_TYPES: { value: string; label: string; icon: string }[] = [
-  { value: 'OUT_OF_STOCK', label: 'Rupture de Stock', icon: 'error' },
+  { value: 'OUT_OF_STOCK', label: 'Rupture de Stock', icon: 'report' },
   { value: 'MIN_STOCK', label: 'Stock Minimum', icon: 'warning' },
-  { value: 'STOCK_SECURITE', label: 'Seuil de Sécurité', icon: 'shield' },
+  { value: 'STOCK_SECURITE', label: 'Seuil de Sécurité', icon: 'verified_user' },
   { value: 'STOCK_ALERTE', label: 'Seuil d\'Alerte', icon: 'notifications_active' },
-  { value: 'STOCK_MAXIMUM', label: 'Stock Maximum', icon: 'inventory' },
+  { value: 'STOCK_MAXIMUM', label: 'Stock Maximum', icon: 'inventory_2' },
   { value: 'ENTRY_VALIDATED', label: 'Entrée Validée', icon: 'add_circle' },
-  { value: 'EXIT_VALIDATED', label: 'Sortie Validée', icon: 'remove_circle' },
+  { value: 'EXIT_VALIDATED', label: 'Sortie Validée', icon: 'do_not_disturb_on' },
 ];
 
 export const SEVERITY_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: string }> = {
-  critical: { label: 'Critique', color: '#d32f2f', bgColor: '#ffebee', icon: 'error' },
+  critical: { label: 'Critique', color: '#d32f2f', bgColor: '#ffebee', icon: 'report' },
   warning: { label: 'Élevée', color: '#f57c00', bgColor: '#fff3e0', icon: 'warning' },
   info: { label: 'Info', color: '#1976d2', bgColor: '#e3f2fd', icon: 'info' }
 };

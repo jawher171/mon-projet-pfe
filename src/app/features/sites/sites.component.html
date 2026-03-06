@@ -1,244 +1,175 @@
-<div class="sites-page">
-  <div class="page-header">
-    <div class="header-content">
-      <h1 class="page-title">Gestion des Sites</h1>
-      <p class="page-subtitle">Administrer les magasins et entrepôts</p>
+<div class="max-w-[1400px] mx-auto">
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-foreground">Gestion des Sites</h1>
+      <p class="text-muted-foreground">Administrer les magasins et entrepôts</p>
     </div>
-    <div class="header-actions">
-      <button class="btn btn-primary" (click)="openAddModal()">
-        <span class="material-icons">add</span>
-        Nouveau Site
-      </button>
+    <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors" (click)="openAddModal()">
+      <span class="material-symbols-rounded text-lg">add</span>
+      Nouveau Site
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="bg-card border border-border rounded-xl p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center">
+        <span class="material-symbols-rounded text-teal-600">pin_drop</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-2xl font-bold text-foreground">{{ siteStats().total }}</span>
+        <span class="text-sm text-muted-foreground">Total de Sites</span>
+      </div>
+    </div>
+    <div class="bg-card border border-border rounded-xl p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center">
+        <span class="material-symbols-rounded text-orange-500">warehouse</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-2xl font-bold text-foreground">{{ siteStats().warehouses }}</span>
+        <span class="text-sm text-muted-foreground">Entrepôts</span>
+      </div>
+    </div>
+    <div class="bg-card border border-border rounded-xl p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center">
+        <span class="material-symbols-rounded text-blue-500">storefront</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-2xl font-bold text-foreground">{{ siteStats().stores }}</span>
+        <span class="text-sm text-muted-foreground">Magasins</span>
+      </div>
     </div>
   </div>
 
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon total">
-        <span class="material-icons">location_on</span>
-      </div>
-      <div class="stat-content">
-        <span class="stat-value">{{ siteStats().total }}</span>
-        <span class="stat-label">Total de Sites</span>
-      </div>
+  <!-- Filters -->
+  <div class="flex flex-wrap items-center gap-4 mb-6">
+    <div class="flex-1 min-w-[250px] relative">
+      <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">search</span>
+      <input type="text" placeholder="Rechercher par nom, ville..." class="w-full pl-11 pr-4 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="searchTerm()" (input)="onSearch($event)">
     </div>
-    <div class="stat-card">
-      <div class="stat-icon warehouse">
-        <span class="material-icons">warehouse</span>
-      </div>
-      <div class="stat-content">
-        <span class="stat-value">{{ siteStats().warehouses }}</span>
-        <span class="stat-label">Entrepôts</span>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon store">
-        <span class="material-icons">store</span>
-      </div>
-      <div class="stat-content">
-        <span class="stat-value">{{ siteStats().stores }}</span>
-        <span class="stat-label">Magasins</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="filters-section">
-    <div class="search-box">
-      <span class="material-icons">search</span>
-      <input 
-        type="text" 
-        placeholder="Rechercher par nom, ville..."
-        [value]="searchTerm()"
-        (input)="onSearch($event)"
-      >
-    </div>
-    <div class="filter-chips">
-      <button class="chip" [class.active]="selectedType() === 'all'" (click)="onTypeChange('all')">Tous</button>
+    <div class="flex gap-2 flex-wrap">
+      <button class="inline-flex items-center gap-1 px-4 py-2 border rounded-full text-sm font-medium transition-colors" [class]="selectedType() === 'all' ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border text-muted-foreground hover:text-foreground'" (click)="onTypeChange('all')">Tous</button>
       @for (type of siteTypes; track type.value) {
-        <button class="chip" [class.active]="selectedType() === type.value" (click)="onTypeChange(type.value)">
-          <span class="material-icons">{{ type.icon }}</span>
+        <button class="inline-flex items-center gap-1 px-4 py-2 border rounded-full text-sm font-medium transition-colors" [class]="selectedType() === type.value ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border text-muted-foreground hover:text-foreground'" (click)="onTypeChange(type.value)">
+          <span class="material-symbols-rounded text-base">{{ type.icon }}</span>
           {{ type.label }}
         </button>
       }
     </div>
-    <button class="view-toggle" (click)="toggleViewMode()">
-      <span class="material-icons">{{ viewMode() === 'grid' ? 'view_list' : 'grid_view' }}</span>
+    <button class="p-2 border border-border rounded-lg bg-background hover:bg-muted transition-colors" (click)="toggleViewMode()">
+      <span class="material-symbols-rounded">{{ viewMode() === 'grid' ? 'view_list' : 'grid_view' }}</span>
     </button>
   </div>
 
-  <div class="sites-container" [class]="viewMode()">
+  <!-- Sites Grid/List -->
+  <div [class]="viewMode() === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5' : 'flex flex-col gap-4'">
     @for (site of sites(); track site.id) {
-      <div class="site-card">
-        <div class="card-header">
-          <div class="site-icon" [class]="site.type">
-            <span class="material-icons">{{ getSiteTypeIcon(site.type) }}</span>
+      <div class="bg-card border border-border rounded-xl overflow-hidden hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-4 p-5 border-b border-border">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center" [ngClass]="{'bg-orange-50': site.type === 'warehouse', 'bg-blue-50': site.type === 'store', 'bg-emerald-50': site.type === 'distribution_center', 'bg-pink-50': site.type === 'production'}">
+            <span class="material-symbols-rounded" [ngClass]="{'text-orange-500': site.type === 'warehouse', 'text-blue-500': site.type === 'store', 'text-emerald-500': site.type === 'distribution_center', 'text-pink-500': site.type === 'production'}">{{ getSiteTypeIcon(site.type) }}</span>
           </div>
-          <div class="site-info">
-            <h3 class="site-name">{{ site.nom }}</h3>
-            <span class="site-location">{{ site.ville }}</span>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-semibold text-foreground truncate">{{ site.nom }}</h3>
+            <span class="text-sm text-muted-foreground">{{ site.ville }}</span>
           </div>
-          <div class="card-actions">
-            <a class="action-btn stocks" [routerLink]="['/sites', site.id, 'stocks']" title="Stocks">
-              <span class="material-icons">inventory</span>
+          <div class="flex gap-1">
+            <a class="p-2 rounded-md hover:bg-emerald-50 text-muted-foreground hover:text-emerald-600 transition-colors" [routerLink]="['/sites', site.id, 'stocks']" title="Stocks">
+              <span class="material-symbols-rounded text-xl">inventory</span>
             </a>
-            <button class="action-btn" (click)="openViewModal(site)" title="Voir">
-              <span class="material-icons">visibility</span>
+            <button class="p-2 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" (click)="openViewModal(site)" title="Voir">
+              <span class="material-symbols-rounded text-xl">visibility</span>
             </button>
-            <button class="action-btn" (click)="openEditModal(site)" title="Modifier">
-              <span class="material-icons">edit</span>
+            <button class="p-2 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" (click)="openEditModal(site)" title="Modifier">
+              <span class="material-symbols-rounded text-xl">edit</span>
             </button>
-            <button class="action-btn delete" (click)="deleteSite(site)" title="Supprimer">
-              <span class="material-icons">delete</span>
+            <button class="p-2 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" (click)="deleteSite(site)" title="Supprimer">
+              <span class="material-symbols-rounded text-xl">delete</span>
             </button>
           </div>
         </div>
-        <div class="card-body">
-          <div class="site-type-badge" [class]="site.type">
-            {{ getSiteTypeLabel(site.type) }}
-          </div>
-          <div class="site-location">
-            <span class="material-icons">location_on</span>
+        <div class="p-5">
+          <span class="inline-block px-3 py-1 rounded-full text-xs font-medium mb-3" [ngClass]="{'bg-orange-50 text-orange-700': site.type === 'warehouse', 'bg-blue-50 text-blue-700': site.type === 'store', 'bg-emerald-50 text-emerald-700': site.type === 'distribution_center', 'bg-pink-50 text-pink-700': site.type === 'production'}">{{ getSiteTypeLabel(site.type) }}</span>
+          <div class="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+            <span class="material-symbols-rounded text-base">pin_drop</span>
             {{ site.adresse }}, {{ site.ville }} {{ site.codeFiscale }}
           </div>
           @if (site.capacite) {
-            <div class="capacity-info">
-              <span class="material-icons">inventory</span>
-              Capacité: {{ site.capacite }} unités
+            <div class="mt-3 pt-3 border-t border-border">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-xs font-medium text-muted-foreground">Capacité</span>
+                <span class="text-xs font-semibold" [class]="getCapacityPercent(site) >= 90 ? 'text-red-600' : getCapacityPercent(site) >= 70 ? 'text-orange-600' : 'text-foreground'">{{ getUsedCapacity(site) }} / {{ site.capacite }} unités</span>
+              </div>
+              <div class="w-full h-2.5 bg-muted rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500 ease-out" [class]="getCapacityColor(site)" [style.width.%]="getCapacityPercent(site)"></div>
+              </div>
+              <div class="flex items-center justify-between mt-1">
+                <span class="text-[10px] text-muted-foreground">{{ getCapacityPercent(site) }}% utilisé</span>
+                @if (getCapacityPercent(site) >= 90) {
+                  <span class="text-[10px] font-medium text-red-600">⚠ Presque plein</span>
+                } @else if (getCapacityPercent(site) >= 70) {
+                  <span class="text-[10px] font-medium text-orange-600">Attention</span>
+                }
+              </div>
             </div>
           }
         </div>
       </div>
     } @empty {
-      <div class="empty-state">
-        <span class="material-icons">location_off</span>
+      <div class="col-span-full text-center py-12 text-muted-foreground">
+        <span class="material-symbols-rounded text-5xl mb-2 block">wrong_location</span>
         <p>Aucun site trouvé</p>
       </div>
     }
   </div>
 </div>
 
+<!-- Modal -->
 @if (showModal()) {
-  <div class="modal-overlay" (click)="closeModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2>
-          @if (modalMode() === 'add') {
-            Nouveau Site
-          } @else if (modalMode() === 'edit') {
-            Modifier le Site
-          } @else {
-            Détails du Site
-          }
+  <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="closeModal()">
+    <div class="bg-card border border-border rounded-2xl w-full max-w-[600px] max-h-[90vh] flex flex-col animate-in" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-border">
+        <h2 class="text-lg font-semibold text-foreground">
+          @if (modalMode() === 'add') { Nouveau Site }
+          @else if (modalMode() === 'edit') { Modifier le Site }
+          @else { Détails du Site }
         </h2>
-        <button class="close-btn" (click)="closeModal()">
-          <span class="material-icons">close</span>
+        <button class="p-2 rounded-md hover:bg-muted text-muted-foreground transition-colors" (click)="closeModal()">
+          <span class="material-symbols-rounded">close</span>
         </button>
       </div>
-      <div class="modal-body">
+      <div class="p-6 overflow-y-auto">
         @if (modalMode() === 'view' && selectedSite(); as site) {
-          <div class="detail-grid">
-            <div class="detail-item">
-              <label>Nom</label>
-              <span>{{ site.nom }}</span>
-            </div>
-            <div class="detail-item">
-              <label>Type</label>
-              <span>{{ getSiteTypeLabel(site.type) }}</span>
-            </div>
-            <div class="detail-item full-width">
-              <label>Adresse</label>
-              <span>{{ site.adresse }}, {{ site.ville }} {{ site.codeFiscale }}</span>
-            </div>
-            @if (site.telephone) {
-              <div class="detail-item">
-                <label>Téléphone</label>
-                <span>{{ site.telephone }}</span>
-              </div>
-            }
-            @if (site.email) {
-              <div class="detail-item">
-                <label>Email</label>
-                <span>{{ site.email }}</span>
-              </div>
-            }
-            @if (site.responsableSite) {
-              <div class="detail-item">
-                <label>Responsable</label>
-                <span>{{ site.responsableSite }}</span>
-              </div>
-            }
-            @if (site.capacite) {
-              <div class="detail-item">
-                <label>Capacité</label>
-                <span>{{ site.capacite }} unités</span>
-              </div>
-            }
+          <div class="grid grid-cols-2 gap-4">
+            <div><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Nom</label><span class="text-sm">{{ site.nom }}</span></div>
+            <div><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Type</label><span class="text-sm">{{ getSiteTypeLabel(site.type) }}</span></div>
+            <div class="col-span-2"><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Adresse</label><span class="text-sm">{{ site.adresse }}, {{ site.ville }} {{ site.codeFiscale }}</span></div>
+            @if (site.telephone) { <div><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Téléphone</label><span class="text-sm">{{ site.telephone }}</span></div> }
+            @if (site.email) { <div><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Email</label><span class="text-sm">{{ site.email }}</span></div> }
+            @if (site.responsableSite) { <div><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Responsable</label><span class="text-sm">{{ site.responsableSite }}</span></div> }
+            @if (site.capacite) { <div><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Capacité</label><span class="text-sm">{{ site.capacite }} unités</span></div> }
           </div>
         } @else {
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Nom *</label>
-              <input type="text" placeholder="Nom du site" [value]="formData().nom"
-                (input)="updateFormField('nom', $any($event.target).value)">
-            </div>
-            <div class="form-group">
-              <label>Type *</label>
-              <select [value]="formData().type"
-                (change)="updateFormField('type', $any($event.target).value)">
-                @for (type of siteTypes; track type.value) {
-                  <option [value]="type.value">{{ type.label }}</option>
-                }
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Capacité</label>
-              <input type="number" min="0" placeholder="Capacité en unités" [value]="formData().capacite"
-                (input)="updateFormField('capacite', +$any($event.target).value)">
-            </div>
-            <div class="form-group full-width">
-              <label>Adresse</label>
-              <input type="text" placeholder="Adresse complète" [value]="formData().adresse"
-                (input)="updateFormField('adresse', $any($event.target).value)">
-            </div>
-            <div class="form-group">
-              <label>Ville *</label>
-              <input type="text" placeholder="Ville" [value]="formData().ville"
-                (input)="updateFormField('ville', $any($event.target).value)">
-            </div>
-            <div class="form-group">
-              <label>Code Postal</label>
-              <input type="text" placeholder="Code fiscale" [value]="formData().codeFiscale"
-                (input)="updateFormField('codeFiscale', $any($event.target).value)">
-            </div>
-            <div class="form-group">
-              <label>Téléphone</label>
-              <input type="tel" placeholder="+212 5XX XXX XXX" [value]="formData().telephone"
-                (input)="updateFormField('telephone', $any($event.target).value)">
-            </div>
-            <div class="form-group">
-              <label>Email</label>
-              <input type="email" placeholder="email&#64;example.com" [value]="formData().email"
-                (input)="updateFormField('email', $any($event.target).value)">
-            </div>
-            <div class="form-group">
-              <label>Responsable</label>
-              <input type="text" placeholder="Nom du responsable" [value]="formData().responsableSite"
-                (input)="updateFormField('responsableSite', $any($event.target).value)">
-            </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div><label class="block text-sm font-medium text-foreground mb-1.5">Nom *</label><input type="text" placeholder="Nom du site" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().nom" (input)="updateFormField('nom', $any($event.target).value)"></div>
+            <div><label class="block text-sm font-medium text-foreground mb-1.5">Type *</label><select class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().type" (change)="updateFormField('type', $any($event.target).value)">@for (type of siteTypes; track type.value) { <option [value]="type.value">{{ type.label }}</option> }</select></div>
+            <div><label class="block text-sm font-medium text-foreground mb-1.5">Capacité</label><input type="number" min="0" placeholder="Capacité en unités" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().capacite" (input)="updateFormField('capacite', +$any($event.target).value)"></div>
+            <div class="col-span-2"><label class="block text-sm font-medium text-foreground mb-1.5">Adresse</label><input type="text" placeholder="Adresse complète" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().adresse" (input)="updateFormField('adresse', $any($event.target).value)"></div>
+            <div><label class="block text-sm font-medium text-foreground mb-1.5">Ville *</label><input type="text" placeholder="Ville" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().ville" (input)="updateFormField('ville', $any($event.target).value)"></div>
+            <div><label class="block text-sm font-medium text-foreground mb-1.5">Code Postal</label><input type="text" placeholder="Code fiscale" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().codeFiscale" (input)="updateFormField('codeFiscale', $any($event.target).value)"></div>
+            <div><label class="block text-sm font-medium text-foreground mb-1.5">Téléphone</label><input type="tel" placeholder="+212 5XX XXX XXX" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().telephone" (input)="updateFormField('telephone', $any($event.target).value)"></div>
+            <div><label class="block text-sm font-medium text-foreground mb-1.5">Email</label><input type="email" placeholder="email&#64;example.com" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().email" (input)="updateFormField('email', $any($event.target).value)"></div>
+            <div><label class="block text-sm font-medium text-foreground mb-1.5">Responsable</label><input type="text" placeholder="Nom du responsable" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().responsableSite" (input)="updateFormField('responsableSite', $any($event.target).value)"></div>
           </div>
         }
       </div>
-      <div class="modal-footer">
+      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
         @if (modalMode() === 'view') {
-          <button class="btn btn-secondary" (click)="closeModal()">Fermer</button>
-          <button class="btn btn-primary" (click)="openEditModal(selectedSite()!)">
-            <span class="material-icons">edit</span> Modifier
-          </button>
+          <button class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="closeModal()">Fermer</button>
+          <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors" (click)="openEditModal(selectedSite()!)"><span class="material-symbols-rounded text-lg">edit</span> Modifier</button>
         } @else {
-          <button class="btn btn-secondary" (click)="closeModal()">Annuler</button>
-          <button class="btn btn-primary" (click)="saveSite()">
-            <span class="material-icons">save</span> Enregistrer
-          </button>
+          <button class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="closeModal()">Annuler</button>
+          <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors" (click)="saveSite()"><span class="material-symbols-rounded text-lg">save</span> Enregistrer</button>
         }
       </div>
     </div>

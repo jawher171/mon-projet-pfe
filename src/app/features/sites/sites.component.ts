@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { SiteService } from '../../core/services/site.service';
+import { StockService } from '../../core/services/stock.service';
 import { Site, SiteFilter, SiteType, SITE_TYPES } from '../../core/models/site.model';
 
 @Component({
@@ -47,10 +48,41 @@ export class SitesComponent implements OnInit {
   sites = computed(() => this.siteService.getFilteredSites(this.filter())());
   siteStats = computed(() => this.siteService.getSiteStats()());
 
-  constructor(private siteService: SiteService) {}
+  /** Map of siteId → total stock quantity, updated on init */
+  siteStockUsage = signal<Record<string, number>>({});
+
+  constructor(private siteService: SiteService, private stockService: StockService) {}
 
   ngOnInit(): void {
     this.siteService.fetchSites();
+    this.loadStockUsage();
+  }
+
+  async loadStockUsage() {
+    const stocks = await this.stockService.fetchStocks();
+    const usage: Record<string, number> = {};
+    for (const stock of stocks) {
+      const key = String(stock.siteId);
+      usage[key] = (usage[key] || 0) + stock.quantiteDisponible;
+    }
+    this.siteStockUsage.set(usage);
+  }
+
+  getUsedCapacity(site: Site): number {
+    return this.siteStockUsage()[String(site.id)] || 0;
+  }
+
+  getCapacityPercent(site: Site): number {
+    if (!site.capacite || site.capacite <= 0) return 0;
+    return Math.min(100, Math.round((this.getUsedCapacity(site) / site.capacite) * 100));
+  }
+
+  getCapacityColor(site: Site): string {
+    const pct = this.getCapacityPercent(site);
+    if (pct >= 90) return 'bg-red-500';
+    if (pct >= 70) return 'bg-orange-500';
+    if (pct >= 50) return 'bg-yellow-500';
+    return 'bg-emerald-500';
   }
 
   onSearch(event: Event) {

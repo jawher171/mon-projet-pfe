@@ -1,92 +1,71 @@
-<div class="movements-page">
+<div class="max-w-[1400px] mx-auto">
   <!-- Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1 class="page-title">Mouvements de Stock</h1>
-      <p class="page-subtitle">Gérer les entrées et sorties de stock</p>
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-foreground">Mouvements de Stock</h1>
+      <p class="text-muted-foreground">Gérer les entrées et sorties de stock</p>
     </div>
-    <div class="header-actions">
-      <button class="btn btn-success" (click)="openAddModal('entry')">
-        <span class="material-icons">add_circle</span>
+    <div class="flex gap-3">
+      <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors" (click)="openAddModal('entry')">
+        <span class="material-symbols-rounded text-lg">add_circle</span>
         Entrée
       </button>
-      <button class="btn btn-danger" (click)="openAddModal('exit')">
-        <span class="material-icons">remove_circle</span>
+      <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors" (click)="openAddModal('exit')">
+        <span class="material-symbols-rounded text-lg">do_not_disturb_on</span>
         Sortie
       </button>
-      <button class="btn btn-outline" (click)="openAddReasonModal()">
-        <span class="material-icons">edit_note</span>
+      <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border-2 border-primary bg-background text-primary hover:bg-accent transition-colors" (click)="openAddReasonModal()">
+        <span class="material-symbols-rounded text-lg">list_alt</span>
         Gérer Raisons
       </button>
     </div>
   </div>
 
   <!-- Summary Cards -->
-  <div class="summary-cards">
-    <div class="summary-card entry">
-      <div class="card-icon">
-        <span class="material-icons">arrow_downward</span>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="bg-card border border-border rounded-xl p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center">
+        <span class="material-symbols-rounded text-emerald-500">south</span>
       </div>
-      <div class="card-content">
-        <span class="card-value">{{ summary().totalEntries }}</span>
-        <span class="card-label">Entrées</span>
+      <div class="flex flex-col">
+        <span class="text-2xl font-bold text-foreground">{{ summary().totalEntries }}</span>
+        <span class="text-sm text-muted-foreground">Entrées</span>
       </div>
-      <div class="card-qty">+{{ summary().entriesQuantity }} unités</div>
+      <div class="ml-auto text-sm font-medium px-3 py-1 rounded-full bg-emerald-50 text-emerald-600">+{{ summary().entriesQuantity }} unités</div>
     </div>
-    
-    <div class="summary-card exit">
-      <div class="card-icon">
-        <span class="material-icons">arrow_upward</span>
+    <div class="bg-card border border-border rounded-xl p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center">
+        <span class="material-symbols-rounded text-red-500">north</span>
       </div>
-      <div class="card-content">
-        <span class="card-value">{{ summary().totalExits }}</span>
-        <span class="card-label">Sorties</span>
+      <div class="flex flex-col">
+        <span class="text-2xl font-bold text-foreground">{{ summary().totalExits }}</span>
+        <span class="text-sm text-muted-foreground">Sorties</span>
       </div>
-      <div class="card-qty">-{{ summary().exitsQuantity }} unités</div>
+      <div class="ml-auto text-sm font-medium px-3 py-1 rounded-full bg-red-50 text-red-600">-{{ summary().exitsQuantity }} unités</div>
     </div>
-    
-    <div class="summary-card net" [class.positive]="summary().netChange >= 0" [class.negative]="summary().netChange < 0">
-      <div class="card-icon">
-        <span class="material-icons">{{ summary().netChange >= 0 ? 'trending_up' : 'trending_down' }}</span>
+    <div class="bg-card border border-border rounded-xl p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center" [class]="summary().netChange >= 0 ? 'bg-blue-50' : 'bg-orange-50'">
+        <span class="material-symbols-rounded" [class]="summary().netChange >= 0 ? 'text-blue-500' : 'text-orange-500'">{{ summary().netChange >= 0 ? 'trending_up' : 'trending_down' }}</span>
       </div>
-      <div class="card-content">
-        <span class="card-value">{{ summary().netChange >= 0 ? '+' : '' }}{{ summary().netChange }}</span>
-        <span class="card-label">Variation Nette</span>
+      <div class="flex flex-col">
+        <span class="text-2xl font-bold" [class]="summary().netChange >= 0 ? 'text-emerald-600' : 'text-red-600'">{{ summary().netChange >= 0 ? '+' : '' }}{{ summary().netChange }}</span>
+        <span class="text-sm text-muted-foreground">Variation Nette</span>
       </div>
     </div>
   </div>
 
   <!-- Filters -->
-  <div class="filters-section">
-    <div class="search-box">
-      <span class="material-icons">search</span>
-      <input 
-        type="text" 
-        placeholder="Rechercher par numéro, produit..."
-        [value]="searchTerm()"
-        (input)="onSearch($event)"
-      >
+  <div class="flex flex-wrap items-center gap-4 mb-6">
+    <div class="flex-1 min-w-[250px] relative">
+      <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">search</span>
+      <input type="text" placeholder="Rechercher par numéro, produit..." class="w-full pl-11 pr-4 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="searchTerm()" (input)="onSearch($event)">
     </div>
-    
-    <div class="filter-tabs">
-      <button 
-        class="tab-btn" 
-        [class.active]="selectedType() === 'all'"
-        (click)="onTypeChange('all')"
-      >Tous</button>
-      <button 
-        class="tab-btn entry" 
-        [class.active]="selectedType() === 'entry'"
-        (click)="onTypeChange('entry')"
-      >Entrées</button>
-      <button 
-        class="tab-btn exit" 
-        [class.active]="selectedType() === 'exit'"
-        (click)="onTypeChange('exit')"
-      >Sorties</button>
+    <div class="flex bg-card border border-border rounded-lg p-1">
+      <button class="px-4 py-2 rounded-md text-sm font-medium transition-colors" [class]="selectedType() === 'all' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'" (click)="onTypeChange('all')">Tous</button>
+      <button class="px-4 py-2 rounded-md text-sm font-medium transition-colors" [class]="selectedType() === 'entry' ? 'bg-emerald-600 text-white' : 'text-muted-foreground hover:text-foreground'" (click)="onTypeChange('entry')">Entrées</button>
+      <button class="px-4 py-2 rounded-md text-sm font-medium transition-colors" [class]="selectedType() === 'exit' ? 'bg-red-600 text-white' : 'text-muted-foreground hover:text-foreground'" (click)="onTypeChange('exit')">Sorties</button>
     </div>
-    
-    <select class="filter-select" (change)="onSiteChange($event)">
+    <select class="px-4 py-2.5 bg-background border border-input rounded-lg text-sm min-w-[180px] focus:outline-none focus:ring-2 focus:ring-ring" (change)="onSiteChange($event)">
       <option value="">Tous les sites</option>
       @for (site of sites(); track site.id) {
         <option [value]="site.id">{{ site.nom }}</option>
@@ -94,63 +73,57 @@
     </select>
   </div>
 
-  <!-- Movements Table -->
-  <div class="table-container">
-    <table class="movements-table">
+  <!-- Table -->
+  <div class="bg-card border border-border rounded-xl overflow-hidden">
+    <table class="w-full">
       <thead>
-        <tr>
-          <th>Numéro</th>
-          <th>Type</th>
-          <th>Produit</th>
-          <th>Quantité</th>
-          <th>Raison</th>
-          <th>Site</th>
-          <th>Date</th>
-          <th>Actions</th>
+        <tr class="border-b border-border bg-muted/50">
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Numéro</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Type</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Produit</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Quantité</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Raison</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Site</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Date</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Actions</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody class="divide-y divide-border">
         @for (movement of movements(); track movement.id) {
-          <tr>
-            <td class="movement-number">{{ movement.id }}</td>
-            <td>
-              <span class="type-badge" [class]="movement.type">
-                <span class="material-icons">
-                  {{ movement.type === 'entry' ? 'arrow_downward' : 'arrow_upward' }}
-                </span>
+          <tr class="hover:bg-muted/30 transition-colors">
+            <td class="px-4 py-3 font-mono font-medium text-primary">{{ movement.id }}</td>
+            <td class="px-4 py-3">
+              <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium" [class]="movement.type === 'entry' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'">
+                <span class="material-symbols-rounded text-sm">{{ movement.type === 'entry' ? 'south' : 'north' }}</span>
                 {{ movement.type === 'entry' ? 'Entrée' : 'Sortie' }}
               </span>
             </td>
-            <td>
-              <div class="product-info">
-                <span class="product-name">{{ movement.produitNom }}</span>
-              </div>
-            </td>
-            <td>
-              <span class="quantity" [class]="movement.type">
+            <td class="px-4 py-3 font-medium">{{ movement.produitNom }}</td>
+            <td class="px-4 py-3">
+              <span class="font-semibold text-sm" [class]="movement.type === 'entry' ? 'text-emerald-600' : 'text-red-600'">
                 {{ movement.type === 'entry' ? '+' : '-' }}{{ movement.quantite }}
               </span>
             </td>
-            <td>
-              <span class="reason-tag">{{ getReasonLabel(movement.raison) }}</span>
+            <td class="px-4 py-3">
+              <span class="bg-muted px-2 py-1 rounded text-xs">{{ getReasonLabel(movement.raison) }}</span>
             </td>
-            <td>{{ movement.siteNom }}</td>
-            <td>
-              <div class="date-info">
-                <span class="date-relative">{{ getTimeAgo(movement.dateMouvement) }}</span>
-                <span class="date-full">{{ formatDate(movement.dateMouvement) }}</span>
+            <td class="px-4 py-3 text-sm">{{ movement.siteNom }}</td>
+            <td class="px-4 py-3">
+              <div class="flex flex-col">
+                <span class="text-sm font-medium">{{ getTimeAgo(movement.dateMouvement) }}</span>
+                <span class="text-xs text-muted-foreground">{{ formatDate(movement.dateMouvement) }}</span>
               </div>
             </td>
-            <td>
-              <button class="action-btn" (click)="openViewModal(movement)">
-                <span class="material-icons">visibility</span>
+            <td class="px-4 py-3">
+              <button class="p-2 rounded-md hover:bg-accent text-muted-foreground hover:text-primary transition-colors" (click)="openViewModal(movement)">
+                <span class="material-symbols-rounded text-xl">visibility</span>
               </button>
             </td>
           </tr>
         } @empty {
           <tr>
-            <td colspan="8" class="empty-state">
-              <span class="material-icons">inbox</span>
+            <td colspan="8" class="text-center py-12 text-muted-foreground">
+              <span class="material-symbols-rounded text-5xl mb-2 block">inbox</span>
               <p>Aucun mouvement trouvé</p>
             </td>
           </tr>
@@ -162,228 +135,172 @@
 
 <!-- Modal -->
 @if (showModal()) {
-  <div class="modal-overlay" (click)="closeModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2>
+  <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="closeModal()">
+    <div class="bg-card border border-border rounded-2xl w-full max-w-[600px] max-h-[90vh] flex flex-col animate-in" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-border">
+        <h2 class="text-lg font-semibold text-foreground">
           @if (modalMode() === 'add') {
             {{ movementType() === 'entry' ? 'Nouvelle Entrée' : 'Nouvelle Sortie' }}
           } @else {
             Détails du Mouvement
           }
         </h2>
-        <button class="close-btn" (click)="closeModal()">
-          <span class="material-icons">close</span>
+        <button class="p-2 rounded-md hover:bg-muted text-muted-foreground transition-colors" (click)="closeModal()">
+          <span class="material-symbols-rounded">close</span>
         </button>
       </div>
-      
-      <div class="modal-body">
+
+      <div class="p-6 overflow-y-auto">
         @if (modalMode() === 'add') {
-          <!-- Add Form -->
-          <div class="form-grid">
-            <!-- Product Search & Selection -->
-            <div class="form-group full-width product-search-group">
-              <label>Produit *</label>
-              <div class="product-search-wrapper">
-                <div class="input-with-icon">
-                  <span class="material-icons search-icon">search</span>
-                  <input 
-                    type="text" 
-                    placeholder="Rechercher un produit par nom, code-barres..."
-                    [value]="productSearch()"
-                    (input)="onProductSearch($event)"
-                    (focus)="showProductDropdown.set(true)"
-                    autocomplete="off"
-                  >
-                </div>
-                @if (showProductDropdown() && filteredProducts().length > 0) {
-                  <div class="product-dropdown">
-                    @for (product of filteredProducts(); track product.id_p) {
-                      <div class="product-dropdown-item" (click)="selectProduct(product)">
-                        <div class="dropdown-product-info">
-                          <span class="dropdown-product-name">{{ product.nom }}</span>
-                          <span class="dropdown-product-details">
-                            @if (product.codeBarre) {
-                              <span class="dropdown-barcode">
-                                <span class="material-icons">qr_code</span>
-                                {{ product.codeBarre }}
-                              </span>
-                            }
-                            @if (product.categorieLibelle) {
-                              <span class="dropdown-category">{{ product.categorieLibelle }}</span>
-                            }
-                          </span>
-                        </div>
-                        <span class="dropdown-product-price">{{ product.prix | number:'1.2-2' }} DT</span>
-                      </div>
-                    }
-                  </div>
-                }
-                @if (showProductDropdown() && productSearch() && filteredProducts().length === 0) {
-                  <div class="product-dropdown">
-                    <div class="product-dropdown-empty">
-                      <span class="material-icons">search_off</span>
-                      Aucun produit trouvé
-                    </div>
-                  </div>
-                }
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Product Search -->
+            <div class="col-span-2 product-search-group">
+              <label class="block text-sm font-medium text-foreground mb-1.5">Produit *</label>
+              <div class="relative">
+                <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">search</span>
+                <input type="text" placeholder="Rechercher un produit par nom, code-barres..." class="w-full pl-10 pr-4 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="productSearch()" (input)="onProductSearch($event)" (focus)="showProductDropdown.set(true)" autocomplete="off">
               </div>
+              @if (showProductDropdown() && filteredProducts().length > 0) {
+                <div class="mt-1 bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto z-50 relative">
+                  @for (product of filteredProducts(); track product.id_p) {
+                    <div class="flex items-center justify-between px-4 py-3 hover:bg-muted/50 cursor-pointer transition-colors" (click)="selectProduct(product)">
+                      <div>
+                        <div class="font-medium text-sm">{{ product.nom }}</div>
+                        <div class="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                          @if (product.codeBarre) {
+                            <span class="inline-flex items-center gap-1"><span class="material-symbols-rounded text-xs">qr_code</span>{{ product.codeBarre }}</span>
+                          }
+                          @if (product.categorieLibelle) {
+                            <span>{{ product.categorieLibelle }}</span>
+                          }
+                        </div>
+                      </div>
+                      <span class="text-sm font-medium text-primary">{{ product.prix | number:'1.2-2' }} DT</span>
+                    </div>
+                  }
+                </div>
+              }
+              @if (showProductDropdown() && productSearch() && filteredProducts().length === 0) {
+                <div class="mt-1 bg-card border border-border rounded-lg p-4 text-center text-sm text-muted-foreground">
+                  <span class="material-symbols-rounded text-2xl mb-1 block">search_off</span>
+                  Aucun produit trouvé
+                </div>
+              }
             </div>
 
             <!-- Selected Product Card -->
             @if (selectedProduct(); as product) {
-              <div class="form-group full-width">
-                <div class="selected-product-card">
-                  <div class="selected-product-header">
-                    <span class="material-icons product-icon">inventory_2</span>
-                    <span class="selected-product-title">Produit sélectionné</span>
-                    <button class="remove-product-btn" (click)="clearSelectedProduct()" title="Retirer le produit">
-                      <span class="material-icons">close</span>
+              <div class="col-span-2">
+                <div class="bg-muted/30 border border-border rounded-lg p-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2 text-sm font-medium text-primary">
+                      <span class="material-symbols-rounded text-lg">inventory_2</span>
+                      Produit sélectionné
+                    </div>
+                    <button class="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" (click)="clearSelectedProduct()" title="Retirer le produit">
+                      <span class="material-symbols-rounded text-lg">close</span>
                     </button>
                   </div>
-                  <div class="selected-product-body">
-                    <div class="selected-product-name">{{ product.nom }}</div>
-                    <div class="selected-product-details">
-                      @if (product.codeBarre) {
-                        <div class="product-detail-item">
-                          <span class="material-icons">qr_code</span>
-                          <span>{{ product.codeBarre }}</span>
-                        </div>
-                      }
-                      @if (product.categorieLibelle) {
-                        <div class="product-detail-item">
-                          <span class="material-icons">category</span>
-                          <span>{{ product.categorieLibelle }}</span>
-                        </div>
-                      }
-                      <div class="product-detail-item">
-                        <span class="material-icons">payments</span>
-                        <span>{{ product.prix | number:'1.2-2' }} DT</span>
-                      </div>
-                    </div>
+                  <div class="font-semibold text-foreground mb-1">{{ product.nom }}</div>
+                  <div class="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                    @if (product.codeBarre) {
+                      <span class="inline-flex items-center gap-1"><span class="material-symbols-rounded text-sm">qr_code</span>{{ product.codeBarre }}</span>
+                    }
+                    @if (product.categorieLibelle) {
+                      <span class="inline-flex items-center gap-1"><span class="material-symbols-rounded text-sm">category</span>{{ product.categorieLibelle }}</span>
+                    }
+                    <span class="inline-flex items-center gap-1"><span class="material-symbols-rounded text-sm">payments</span>{{ product.prix | number:'1.2-2' }} DT</span>
                   </div>
                 </div>
               </div>
             }
-            
-            <div class="form-group">
-              <label>Quantité *</label>
-              <input 
-                type="number" 
-                min="1"
-                placeholder="Quantité"
-                [value]="formData().quantity"
-                (input)="updateFormField('quantity', +$any($event.target).value)"
-              >
+
+            <div>
+              <label class="block text-sm font-medium text-foreground mb-1.5">Quantité *</label>
+              <input type="number" min="1" placeholder="Quantité" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().quantity" (input)="updateFormField('quantity', +$any($event.target).value)">
             </div>
-            
-            <div class="form-group">
-              <label>Raison *</label>
-              <select 
-                [value]="formData().reason"
-                (change)="updateFormField('reason', $any($event.target).value)"
-              >
+            <div>
+              <label class="block text-sm font-medium text-foreground mb-1.5">Raison *</label>
+              <select class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().reason" (change)="updateFormField('reason', $any($event.target).value)">
                 <option value="">Sélectionner une raison</option>
                 @for (reason of getReasonsByType(movementType()); track reason.value) {
                   <option [value]="reason.value">{{ reason.label }}</option>
                 }
               </select>
             </div>
-            
-            <div class="form-group">
-              <label>Site *</label>
-              <select 
-                [value]="formData().siteId"
-                (change)="updateFormField('siteId', $any($event.target).value)"
-              >
+            <div>
+              <label class="block text-sm font-medium text-foreground mb-1.5">Site *</label>
+              <select class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().siteId" (change)="updateFormField('siteId', $any($event.target).value)">
                 <option value="">Sélectionner un site</option>
                 @for (site of sites(); track site.id) {
                   <option [value]="site.id">{{ site.nom }}</option>
                 }
               </select>
             </div>
-            
-            <div class="form-group">
-              <label>Référence</label>
-              <input 
-                type="text" 
-                placeholder="N° commande, bon de livraison..."
-                [value]="formData().reference"
-                (input)="updateFormField('reference', $any($event.target).value)"
-              >
+            <div>
+              <label class="block text-sm font-medium text-foreground mb-1.5">Référence</label>
+              <input type="text" placeholder="N° commande, bon de livraison..." class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().reference" (input)="updateFormField('reference', $any($event.target).value)">
             </div>
-            
-            <div class="form-group full-width">
-              <label>Notes</label>
-              <textarea 
-                rows="3"
-                placeholder="Notes additionnelles..."
-                [value]="formData().notes"
-                (input)="updateFormField('notes', $any($event.target).value)"
-              ></textarea>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-foreground mb-1.5">Notes</label>
+              <textarea rows="3" placeholder="Notes additionnelles..." class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" [value]="formData().notes" (input)="updateFormField('notes', $any($event.target).value)"></textarea>
             </div>
           </div>
         } @else {
-          <!-- View Details -->
           @if (selectedMovement(); as movement) {
-            <div class="detail-grid">
-              <div class="detail-item">
-                <label>Numéro</label>
-                <span>{{ movement.id }}</span>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Numéro</label>
+                <span class="text-sm text-foreground">{{ movement.id }}</span>
               </div>
-              <div class="detail-item">
-                <label>Type</label>
-                <span class="type-badge" [class]="movement.type">
-                  {{ movement.type === 'entry' ? 'Entrée' : 'Sortie' }}
-                </span>
+              <div>
+                <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Type</label>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium" [class]="movement.type === 'entry' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'">{{ movement.type === 'entry' ? 'Entrée' : 'Sortie' }}</span>
               </div>
-              <div class="detail-item">
-                <label>Produit</label>
-                <span>{{ movement.produitNom }}</span>
+              <div>
+                <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Produit</label>
+                <span class="text-sm text-foreground">{{ movement.produitNom }}</span>
               </div>
-
-              <div class="detail-item">
-                <label>Quantité</label>
-                <span class="quantity" [class]="movement.type">
-                  {{ movement.type === 'entry' ? '+' : '-' }}{{ movement.quantite }}
-                </span>
+              <div>
+                <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Quantité</label>
+                <span class="font-semibold text-sm" [class]="movement.type === 'entry' ? 'text-emerald-600' : 'text-red-600'">{{ movement.type === 'entry' ? '+' : '-' }}{{ movement.quantite }}</span>
               </div>
-              <div class="detail-item">
-                <label>Raison</label>
-                <span>{{ getReasonLabel(movement.raison) }}</span>
+              <div>
+                <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Raison</label>
+                <span class="text-sm text-foreground">{{ getReasonLabel(movement.raison) }}</span>
               </div>
-              <div class="detail-item">
-                <label>Site</label>
-                <span>{{ movement.siteNom }}</span>
+              <div>
+                <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Site</label>
+                <span class="text-sm text-foreground">{{ movement.siteNom }}</span>
               </div>
-              <div class="detail-item">
-                <label>Effectué par</label>
-                <span>{{ movement.utilisateurNom || '-' }}</span>
+              <div>
+                <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Effectué par</label>
+                <span class="text-sm text-foreground">{{ movement.utilisateurNom || '-' }}</span>
               </div>
-              <div class="detail-item">
-                <label>Date</label>
-                <span>{{ formatDate(movement.dateMouvement) }}</span>
+              <div>
+                <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Date</label>
+                <span class="text-sm text-foreground">{{ formatDate(movement.dateMouvement) }}</span>
               </div>
               @if (movement.note) {
-                <div class="detail-item full-width">
-                  <label>Notes</label>
-                  <span>{{ movement.note }}</span>
+                <div class="col-span-2">
+                  <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Notes</label>
+                  <span class="text-sm text-foreground">{{ movement.note }}</span>
                 </div>
               }
             </div>
           }
         }
       </div>
-      
-      <div class="modal-footer">
+
+      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
         @if (modalMode() === 'add') {
-          <button class="btn btn-secondary" (click)="closeModal()">Annuler</button>
-          <button class="btn btn-primary" (click)="saveMovement()">
-            <span class="material-icons">save</span>
+          <button class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="closeModal()">Annuler</button>
+          <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors" (click)="saveMovement()">
+            <span class="material-symbols-rounded text-lg">save</span>
             Enregistrer
           </button>
         } @else {
-          <button class="btn btn-secondary" (click)="closeModal()">Fermer</button>
+          <button class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="closeModal()">Fermer</button>
         }
       </div>
     </div>
@@ -392,41 +309,31 @@
 
 <!-- Add Custom Reason Modal -->
 @if (showAddReasonModal()) {
-  <div class="modal-overlay" (click)="closeAddReasonModal()">
-    <div class="modal-content small" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2>Ajouter une raison personnalisée</h2>
-        <button class="close-btn" (click)="closeAddReasonModal()">
-          <span class="material-icons">close</span>
+  <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="closeAddReasonModal()">
+    <div class="bg-card border border-border rounded-2xl w-full max-w-[450px] animate-in" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-border">
+        <h2 class="text-lg font-semibold text-foreground">Ajouter une raison personnalisée</h2>
+        <button class="p-2 rounded-md hover:bg-muted text-muted-foreground transition-colors" (click)="closeAddReasonModal()">
+          <span class="material-symbols-rounded">close</span>
         </button>
       </div>
-      
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Type de mouvement *</label>
-          <select [value]="reasonType()" (change)="reasonType.set($any($event.target).value)">
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-foreground mb-1.5">Type de mouvement *</label>
+          <select class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="reasonType()" (change)="reasonType.set($any($event.target).value)">
             <option value="entry">Entrée</option>
             <option value="exit">Sortie</option>
           </select>
         </div>
-        
-        <div class="form-group">
-          <label>Raison {{ reasonType() === 'entry' ? 'd\'entrée' : 'de sortie' }} *</label>
-          <input 
-            type="text" 
-            placeholder="Saisir la raison du mouvement..."
-            [value]="newCustomReason()"
-            (input)="newCustomReason.set($any($event.target).value)"
-            (keyup.enter)="saveCustomReason()"
-            autofocus
-          >
+        <div>
+          <label class="block text-sm font-medium text-foreground mb-1.5">Raison {{ reasonType() === 'entry' ? "d'entrée" : 'de sortie' }} *</label>
+          <input type="text" placeholder="Saisir la raison du mouvement..." class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="newCustomReason()" (input)="newCustomReason.set($any($event.target).value)" (keyup.enter)="saveCustomReason()" autofocus>
         </div>
       </div>
-      
-      <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="closeAddReasonModal()">Annuler</button>
-        <button class="btn btn-primary" (click)="saveCustomReason()" [disabled]="!newCustomReason().trim()">
-          <span class="material-icons">add</span>
+      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
+        <button class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="closeAddReasonModal()">Annuler</button>
+        <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors" (click)="saveCustomReason()" [disabled]="!newCustomReason().trim()">
+          <span class="material-symbols-rounded text-lg">add</span>
           Ajouter
         </button>
       </div>

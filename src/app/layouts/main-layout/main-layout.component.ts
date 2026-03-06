@@ -43,14 +43,14 @@ export class MainLayoutComponent implements OnInit {
 
   /** All navigation menu items with permissions */
   private allMenuItems: MenuItem[] = [
-    { icon: 'dashboard', label: 'Tableau de Bord', route: '/dashboard' },
+    { icon: 'space_dashboard', label: 'Tableau de Bord', route: '/dashboard' },
     { icon: 'inventory_2', label: 'Produits', route: '/products', permission: 'view_products' },
-    { icon: 'swap_vert', label: 'Mouvements', route: '/movements', permission: 'manage_movements' },
+    { icon: 'sync_alt', label: 'Mouvements', route: '/movements', permission: 'manage_movements' },
     { icon: 'qr_code_scanner', label: 'Scanner', route: '/scanner', permission: 'scan_barcode' },
-    { icon: 'store', label: 'Sites', route: '/sites', permission: 'view_sites' },
-    { icon: 'notifications', label: 'Alertes', route: '/alerts', permission: 'manage_alerts' },
-    { icon: 'people', label: 'Gestion Utilisateurs', route: '/user-management', adminOnly: true },
-    { icon: 'settings', label: 'Paramètres', route: '/settings' },
+    { icon: 'apartment', label: 'Sites', route: '/sites', permission: 'view_sites' },
+    { icon: 'notifications_active', label: 'Alertes', route: '/alerts', permission: 'manage_alerts' },
+    { icon: 'manage_accounts', label: 'Gestion Utilisateurs', route: '/user-management', adminOnly: true },
+    { icon: 'tune', label: 'Paramètres', route: '/settings' },
   ];
 
   /** Filtered menu items based on user permissions */
@@ -78,7 +78,7 @@ export class MainLayoutComponent implements OnInit {
 
   /** User dropdown menu items */
   userMenuItems = [
-    { icon: 'person', label: 'Profil', action: () => this.navigateTo('/profile') },
+    { icon: 'account_circle', label: 'Profil', action: () => this.navigateTo('/profile') },
     { icon: 'logout', label: 'Déconnexion', action: () => this.logout() }
   ];
 

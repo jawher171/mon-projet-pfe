@@ -1,33 +1,35 @@
-<div class="dashboard">
-  <div class="dashboard-header">
+<div class="max-w-[1400px] mx-auto space-y-6">
+  <!-- Header -->
+  <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
-      <h1 class="page-title">Tableau de Bord</h1>
-      <p class="page-subtitle">Vue d'ensemble de votre inventaire intelligent</p>
+      <h1 class="text-2xl font-bold tracking-tight text-foreground">Tableau de Bord</h1>
+      <p class="text-sm text-muted-foreground mt-1">Vue d'ensemble de votre inventaire intelligent</p>
     </div>
-    <div class="header-actions">
-      <button class="btn btn-outline" routerLink="/scanner">
-        <span class="material-icons">qr_code_scanner</span>
+    <div class="flex gap-3">
+      <a routerLink="/scanner" class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
+        <span class="material-symbols-rounded text-lg">qr_code_scanner</span>
         Scanner
-      </button>
-      <button class="btn btn-primary" routerLink="/movements">
-        <span class="material-icons">swap_vert</span>
+      </a>
+      <a routerLink="/movements" class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:brightness-110 shadow-sm transition-all">
+        <span class="material-symbols-rounded text-lg">sync_alt</span>
         Nouveau Mouvement
-      </button>
+      </a>
     </div>
   </div>
 
-  <!-- Stats Cards -->
-  <div class="stats-grid">
+  <!-- Stat Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
     @for (stat of stats(); track stat.title) {
-      <div class="stat-card">
-        <div class="stat-icon" [style.background]="stat.color + '20'">
-          <span class="material-icons" [style.color]="stat.color">{{ stat.icon }}</span>
+      <div class="group bg-card border border-border rounded-xl p-5 flex gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all">
+        <div class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0" [style.background]="stat.color + '15'">
+          <span class="material-symbols-rounded text-2xl" [style.color]="stat.color">{{ stat.icon }}</span>
         </div>
-        <div class="stat-content">
-          <div class="stat-label">{{ stat.title }}</div>
-          <div class="stat-value">{{ stat.value }}</div>
-          <div class="stat-change" [class.positive]="stat.trend === 'up'" [class.negative]="stat.trend === 'down'">
-            <span class="material-icons">{{ stat.trend === 'up' ? 'trending_up' : 'trending_down' }}</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm text-muted-foreground">{{ stat.title }}</p>
+          <p class="text-2xl font-bold text-foreground mt-0.5">{{ stat.value }}</p>
+          <div class="flex items-center gap-1 mt-1 text-xs font-semibold"
+            [class]="stat.trend === 'up' ? 'text-emerald-600' : 'text-red-500'">
+            <span class="material-symbols-rounded text-sm">{{ stat.trend === 'up' ? 'trending_up' : 'trending_down' }}</span>
             <span>{{ stat.change }}% ce mois</span>
           </div>
         </div>
@@ -35,219 +37,218 @@
     }
   </div>
 
-  <!-- Movement Summary Cards -->
-  <div class="movement-summary">
-    <div class="summary-card entries">
-      <div class="summary-icon">
-        <span class="material-icons">arrow_downward</span>
+  <!-- Movement Summary -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-3 relative overflow-hidden before:absolute before:left-0 before:inset-y-0 before:w-1 before:bg-emerald-500 before:rounded-r">
+      <div class="w-11 h-11 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
+        <span class="material-symbols-rounded">south</span>
       </div>
-      <div class="summary-content">
-        <span class="summary-value">{{ movementSummary().totalEntries }}</span>
-        <span class="summary-label">Entrées</span>
+      <div class="flex-1">
+        <span class="text-2xl font-bold text-foreground">{{ movementSummary().totalEntries }}</span>
+        <span class="block text-sm text-muted-foreground">Entrées</span>
       </div>
-      <span class="summary-qty">+{{ movementSummary().entriesQuantity }} unités</span>
+      <span class="text-xs font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-1 rounded">+{{ movementSummary().entriesQuantity }} unités</span>
     </div>
-    <div class="summary-card exits">
-      <div class="summary-icon">
-        <span class="material-icons">arrow_upward</span>
+
+    <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-3 relative overflow-hidden before:absolute before:left-0 before:inset-y-0 before:w-1 before:bg-red-500 before:rounded-r">
+      <div class="w-11 h-11 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 shrink-0">
+        <span class="material-symbols-rounded">north</span>
       </div>
-      <div class="summary-content">
-        <span class="summary-value">{{ movementSummary().totalExits }}</span>
-        <span class="summary-label">Sorties</span>
+      <div class="flex-1">
+        <span class="text-2xl font-bold text-foreground">{{ movementSummary().totalExits }}</span>
+        <span class="block text-sm text-muted-foreground">Sorties</span>
       </div>
-      <span class="summary-qty">-{{ movementSummary().exitsQuantity }} unités</span>
+      <span class="text-xs font-semibold text-red-600 bg-red-500/10 px-2 py-1 rounded">-{{ movementSummary().exitsQuantity }} unités</span>
     </div>
-    <div class="summary-card sites">
-      <div class="summary-icon">
-        <span class="material-icons">location_on</span>
+
+    <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-3 relative overflow-hidden before:absolute before:left-0 before:inset-y-0 before:w-1 before:bg-blue-500 before:rounded-r">
+      <div class="w-11 h-11 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0">
+        <span class="material-symbols-rounded">apartment</span>
       </div>
-      <div class="summary-content">
-        <span class="summary-value">{{ siteStats().active }}</span>
-        <span class="summary-label">Sites Actifs</span>
+      <div class="flex-1">
+        <span class="text-2xl font-bold text-foreground">{{ siteStats().active }}</span>
+        <span class="block text-sm text-muted-foreground">Sites Actifs</span>
       </div>
-      <span class="summary-info">{{ siteStats().total }} total</span>
+      <span class="text-xs font-semibold text-blue-600 bg-blue-500/10 px-2 py-1 rounded">{{ siteStats().total }} total</span>
     </div>
-    <div class="summary-card alerts-count">
-      <div class="summary-icon">
-        <span class="material-icons">notifications_active</span>
+
+    <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-3 relative overflow-hidden before:absolute before:left-0 before:inset-y-0 before:w-1 before:bg-amber-500 before:rounded-r">
+      <div class="w-11 h-11 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
+        <span class="material-symbols-rounded">notifications_active</span>
       </div>
-      <div class="summary-content">
-        <span class="summary-value">{{ alertStats().unread }}</span>
-        <span class="summary-label">Alertes Non Lues</span>
+      <div class="flex-1">
+        <span class="text-2xl font-bold text-foreground">{{ alertStats().unread }}</span>
+        <span class="block text-sm text-muted-foreground">Alertes Non Lues</span>
       </div>
-      <span class="summary-critical">{{ alertStats().critical }} critiques</span>
+      <span class="text-xs font-semibold text-amber-600 bg-amber-500/10 px-2 py-1 rounded">{{ alertStats().critical }} critiques</span>
     </div>
   </div>
 
-  <div class="content-grid-3">
-    <!-- Critical Alerts Section -->
-    <div class="card alerts-card">
-      <div class="card-header">
-        <h2 class="card-title">
-          <span class="material-icons title-icon">warning</span>
+  <!-- 3-Column Content -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Critical Alerts -->
+    <div class="bg-card border border-border rounded-xl overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-border">
+        <h2 class="text-base font-semibold text-foreground flex items-center gap-2">
+          <span class="material-symbols-rounded text-amber-500 text-lg">warning</span>
           Alertes Critiques
         </h2>
-        <a routerLink="/alerts" class="btn-text">Voir tout</a>
+        <a routerLink="/alerts" class="text-sm text-primary font-medium hover:underline">Voir tout</a>
       </div>
-      <div class="card-body">
-        <div class="alerts-list">
-          @for (alert of criticalAlerts(); track alert.id) {
-            <div class="alert-item" [class]="getSeverityForAlert(alert)">
-              <div class="alert-icon">
-                <span class="material-icons">{{ getAlertIcon(alert.type) }}</span>
-              </div>
-              <div class="alert-content">
-                <p class="alert-title">{{ alert.type }}</p>
-                <p class="alert-message">{{ alert.message }}</p>
-              </div>
-              <span class="alert-badge" [class]="getSeverityForAlert(alert)">
-                {{ severityConfig[getSeverityForAlert(alert)]?.label || alert.type }}
-              </span>
+      <div class="p-4 space-y-3">
+        @for (alert of criticalAlerts(); track alert.id) {
+          <div class="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+              [class]="getSeverityForAlert(alert) === 'critical' ? 'bg-red-100 text-red-600' : getSeverityForAlert(alert) === 'high' ? 'bg-orange-100 text-orange-600' : 'bg-yellow-100 text-yellow-600'">
+              <span class="material-symbols-rounded text-lg">{{ getAlertIcon(alert.type) }}</span>
             </div>
-          } @empty {
-            <div class="empty-alerts">
-              <span class="material-icons">check_circle</span>
-              <p>Aucune alerte critique</p>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-foreground">{{ alert.type }}</p>
+              <p class="text-xs text-muted-foreground truncate">{{ alert.message }}</p>
             </div>
-          }
-        </div>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+              [class]="getSeverityForAlert(alert) === 'critical' ? 'bg-red-100 text-red-700' : getSeverityForAlert(alert) === 'high' ? 'bg-orange-100 text-orange-700' : 'bg-yellow-100 text-yellow-700'">
+              {{ severityConfig[getSeverityForAlert(alert)]?.label || alert.type }}
+            </span>
+          </div>
+        } @empty {
+          <div class="flex flex-col items-center py-8 text-muted-foreground">
+            <span class="material-symbols-rounded text-4xl text-emerald-400 mb-2">check_circle</span>
+            <p class="text-sm">Aucune alerte critique</p>
+          </div>
+        }
       </div>
     </div>
 
-    <!-- Low Stock / Replenishment Section -->
-    <div class="card replenishment-card">
-      <div class="card-header">
-        <h2 class="card-title">
-          <span class="material-icons title-icon">inventory_2</span>
+    <!-- Replenishment -->
+    <div class="bg-card border border-border rounded-xl overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-border">
+        <h2 class="text-base font-semibold text-foreground flex items-center gap-2">
+          <span class="material-symbols-rounded text-primary text-lg">inventory_2</span>
           Réapprovisionnement
         </h2>
-        <a routerLink="/products" class="btn-text">Voir tout</a>
+        <a routerLink="/products" class="text-sm text-primary font-medium hover:underline">Voir tout</a>
       </div>
-      <div class="card-body">
-        <div class="stock-list">
-          @for (item of lowStockItems(); track item.id) {
-            <div class="stock-item">
-              <div class="stock-info">
-                <span class="stock-name">{{ item.name }}</span>
-                @if (item.sku) {
-                  <span class="stock-sku">{{ item.sku }}</span>
-                }
-              </div>
-              <div class="stock-level">
-                <div class="level-bar">
-                  <div 
-                    class="level-fill" 
-                    [class]="item.status"
-                    [style.width.%]="(item.currentStock / item.minStock) * 100"
-                  ></div>
-                </div>
-                <span class="level-text">{{ item.currentStock }} / {{ item.minStock }}</span>
-              </div>
-              <span class="stock-badge" [class]="item.status">
-                {{ getStockStatusLabel(item.status) }}
-              </span>
+      <div class="p-4 space-y-3">
+        @for (item of lowStockItems(); track item.id) {
+          <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
+            <div class="flex-1 min-w-0">
+              <span class="text-sm font-medium text-foreground block">{{ item.name }}</span>
+              @if (item.sku) {
+                <span class="text-xs text-muted-foreground">{{ item.sku }}</span>
+              }
             </div>
-          }
-        </div>
+            <div class="w-20">
+              <div class="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all"
+                  [class]="item.status === 'critical' ? 'bg-red-500' : item.status === 'warning' ? 'bg-amber-500' : 'bg-blue-500'"
+                  [style.width.%]="(item.currentStock / item.minStock) * 100"></div>
+              </div>
+              <span class="text-[10px] text-muted-foreground mt-0.5 block text-center">{{ item.currentStock }} / {{ item.minStock }}</span>
+            </div>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+              [class]="item.status === 'critical' ? 'bg-red-100 text-red-700' : item.status === 'warning' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'">
+              {{ getStockStatusLabel(item.status) }}
+            </span>
+          </div>
+        }
       </div>
     </div>
 
     <!-- Recent Activities -->
-    <div class="card recent-activities-card">
-      <div class="card-header">
-        <h2 class="card-title">
-          <span class="material-icons title-icon">history</span>
+    <div class="bg-card border border-border rounded-xl overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-border">
+        <h2 class="text-base font-semibold text-foreground flex items-center gap-2">
+          <span class="material-symbols-rounded text-muted-foreground text-lg">history</span>
           Activités Récentes
         </h2>
-        <a routerLink="/movements" class="btn-text">Voir tout</a>
+        <a routerLink="/movements" class="text-sm text-primary font-medium hover:underline">Voir tout</a>
       </div>
-      <div class="card-body">
-        <div class="activities-list">
-          @for (activity of recentActivities(); track activity.id) {
-            <div class="activity-item">
-              <div class="activity-icon" [style.background]="activity.color + '20'">
-                <span class="material-icons" [style.color]="activity.color">{{ activity.icon }}</span>
-              </div>
-              <div class="activity-content">
-                <p class="activity-message">{{ activity.message }}</p>
-                <span class="activity-time">{{ getTimeAgo(activity.timestamp) }}</span>
-              </div>
+      <div class="p-4 space-y-2">
+        @for (activity of recentActivities(); track activity.id) {
+          <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" [style.background]="activity.color + '15'">
+              <span class="material-symbols-rounded text-lg" [style.color]="activity.color">{{ activity.icon }}</span>
             </div>
-          }
-        </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm text-foreground">{{ activity.message }}</p>
+              <span class="text-xs text-muted-foreground">{{ getTimeAgo(activity.timestamp) }}</span>
+            </div>
+          </div>
+        }
       </div>
     </div>
   </div>
 
-  <div class="content-grid">
+  <!-- 2-Column Content -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Top Products -->
-    <div class="card top-products-card">
-      <div class="card-header">
-        <h2 class="card-title">Top Produits</h2>
-        <button class="btn-text">Voir tout</button>
+    <div class="bg-card border border-border rounded-xl overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-border">
+        <h2 class="text-base font-semibold text-foreground">Top Produits</h2>
+        <button class="text-sm text-primary font-medium hover:underline">Voir tout</button>
       </div>
-      <div class="card-body">
-        <div class="products-list">
-          @for (product of topProducts(); track product.name) {
-            <div class="product-item">
-              <div class="product-info">
-                <div class="product-name">{{ product.name }}</div>
-                <div class="product-sales">{{ product.sales }} ventes</div>
-              </div>
-              <div class="product-revenue">
-                <div class="revenue-value">{{ product.revenue }}</div>
-                <span class="material-icons trend-icon" [class.trend-up]="product.trend === 'up'" [class.trend-down]="product.trend === 'down'">
-                  {{ product.trend === 'up' ? 'trending_up' : 'trending_down' }}
-                </span>
-              </div>
+      <div class="p-4 space-y-1">
+        @for (product of topProducts(); track product.name) {
+          <div class="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors">
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-foreground">{{ product.name }}</div>
+              <div class="text-xs text-muted-foreground">{{ product.sales }} ventes</div>
             </div>
-          }
-        </div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-bold text-foreground">{{ product.revenue }}</span>
+              <span class="material-symbols-rounded text-lg"
+                [class]="product.trend === 'up' ? 'text-emerald-500' : 'text-red-500'">
+                {{ product.trend === 'up' ? 'trending_up' : 'trending_down' }}
+              </span>
+            </div>
+          </div>
+        }
       </div>
     </div>
 
     <!-- Quick Actions -->
-    <div class="card quick-actions-card">
-      <div class="card-header">
-        <h2 class="card-title">Actions Rapides</h2>
+    <div class="bg-card border border-border rounded-xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-border">
+        <h2 class="text-base font-semibold text-foreground">Actions Rapides</h2>
       </div>
-      <div class="card-body">
-        <div class="quick-actions-grid">
-          <a routerLink="/scanner" class="quick-action">
-            <div class="action-icon scanner">
-              <span class="material-icons">qr_code_scanner</span>
+      <div class="p-5">
+        <div class="grid grid-cols-3 gap-4">
+          <a routerLink="/scanner" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
+            <div class="w-12 h-12 rounded-xl bg-violet-500/10 text-violet-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <span class="material-symbols-rounded text-2xl">qr_code_scanner</span>
             </div>
-            <span class="action-label">Scanner</span>
+            <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Scanner</span>
           </a>
-          <a routerLink="/movements" class="quick-action">
-            <div class="action-icon entry">
-              <span class="material-icons">add_circle</span>
+          <a routerLink="/movements" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
+            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <span class="material-symbols-rounded text-2xl">add_circle</span>
             </div>
-            <span class="action-label">Entrée Stock</span>
+            <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Entrée Stock</span>
           </a>
-          <a routerLink="/movements" class="quick-action">
-            <div class="action-icon exit">
-              <span class="material-icons">remove_circle</span>
+          <a routerLink="/movements" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
+            <div class="w-12 h-12 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <span class="material-symbols-rounded text-2xl">do_not_disturb_on</span>
             </div>
-            <span class="action-label">Sortie Stock</span>
+            <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Sortie Stock</span>
           </a>
-          <a routerLink="/sites" class="quick-action">
-            <div class="action-icon transfer">
-              <span class="material-icons">swap_horiz</span>
+          <a routerLink="/sites" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
+            <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <span class="material-symbols-rounded text-2xl">swap_horiz</span>
             </div>
-            <span class="action-label">Transfert</span>
+            <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Transfert</span>
           </a>
-          <a routerLink="/alerts" class="quick-action">
-            <div class="action-icon alerts">
-              <span class="material-icons">notifications</span>
+          <a routerLink="/alerts" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
+            <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <span class="material-symbols-rounded text-2xl">notifications_active</span>
             </div>
-            <span class="action-label">Alertes</span>
+            <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Alertes</span>
           </a>
-          <a routerLink="/reports" class="quick-action">
-            <div class="action-icon reports">
-              <span class="material-icons">bar_chart</span>
+          <a routerLink="/reports" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
+            <div class="w-12 h-12 rounded-xl bg-teal-500/10 text-teal-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <span class="material-symbols-rounded text-2xl">monitoring</span>
             </div>
-            <span class="action-label">Rapports</span>
+            <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Rapports</span>
           </a>
         </div>
       </div>

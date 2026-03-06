@@ -1,22 +1,28 @@
-<div class="layout-container">
+<div class="flex h-screen overflow-hidden bg-background">
   <!-- Sidebar -->
-  <aside class="sidebar" [class.collapsed]="isSidebarCollapsed()">
-    <div class="sidebar-header">
-      <div class="logo">
-        <span class="logo-text">Inventory Pro</span>
-      </div>
+  <aside class="flex flex-col border-r border-border bg-[#0c1926] text-white transition-all duration-300 relative z-50"
+    [class]="isSidebarCollapsed() ? 'w-[72px]' : 'w-[264px]'">
+    
+    <div class="flex items-center justify-center px-7 py-6 border-b border-white/10">
+      @if (!isSidebarCollapsed()) {
+        <span class="text-xl font-extrabold tracking-tight whitespace-nowrap"><span class="text-cyan-100">Inventory </span><span class="text-cyan-50">Pro</span></span>
+      }
     </div>
 
-    <nav class="sidebar-nav">
-      <ul class="nav-list">
+    <nav class="flex-1 overflow-y-auto py-3 scrollbar-thin">
+      <ul class="space-y-1 px-2">
         @for (item of menuItems(); track item.route) {
-          <li class="nav-item">
-            <a [routerLink]="item.route" routerLinkActive="active" class="nav-link">
-              <span class="material-icons nav-icon">{{ item.icon }}</span>
+          <li>
+            <a [routerLink]="item.route" routerLinkActive="sidebar-active"
+              class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200"
+              [class.justify-center]="isSidebarCollapsed()">
+              <span class="sidebar-icon-box flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.06] group-hover:bg-white/[0.12] transition-all duration-200">
+                <span class="material-symbols-rounded text-[20px]">{{ item.icon }}</span>
+              </span>
               @if (!isSidebarCollapsed()) {
-                <span class="nav-label">{{ item.label }}</span>
+                <span class="flex-1 whitespace-nowrap">{{ item.label }}</span>
                 @if (item.badge) {
-                  <span class="nav-badge">{{ item.badge }}</span>
+                  <span class="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 text-[11px] font-semibold bg-destructive text-white rounded-full">{{ item.badge }}</span>
                 }
               }
             </a>
@@ -25,9 +31,9 @@
       </ul>
     </nav>
 
-    <div class="sidebar-footer">
-      <button class="collapse-btn" (click)="toggleSidebar()">
-        <span class="material-icons">
+    <div class="p-3 border-t border-white/10">
+      <button (click)="toggleSidebar()" class="w-full flex items-center justify-center p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 transition-colors">
+        <span class="material-symbols-rounded text-[20px]">
           {{ isSidebarCollapsed() ? 'chevron_right' : 'chevron_left' }}
         </span>
       </button>
@@ -35,47 +41,49 @@
   </aside>
 
   <!-- Main Content -->
-  <div class="main-content">
+  <div class="flex-1 flex flex-col overflow-hidden">
     <!-- Header -->
-    <header class="header">
-      <div class="header-left">
-        <button class="mobile-menu-btn" (click)="toggleSidebar()">
-          <span class="material-icons">menu</span>
+    <header class="flex items-center justify-between gap-4 px-6 py-3 bg-card border-b border-border shadow-sm z-40">
+      <div class="flex items-center gap-3 flex-1">
+        <button class="md:hidden p-2 rounded-lg hover:bg-accent text-muted-foreground" (click)="toggleSidebar()">
+          <span class="material-symbols-rounded text-xl">menu</span>
         </button>
-        <div class="search-bar">
-          <span class="material-icons search-icon">search</span>
-          <input type="text" placeholder="Rechercher des produits, commandes..." class="search-input">
+        <div class="relative flex items-center max-w-md flex-1">
+          <span class="material-symbols-rounded absolute left-3 text-muted-foreground text-lg">search</span>
+          <input type="text" placeholder="Rechercher des produits, commandes..."
+            class="w-full pl-10 pr-4 py-2 text-sm bg-muted/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent placeholder:text-muted-foreground/60 transition-all">
         </div>
       </div>
 
-      <div class="header-right">
-    <div>
-    <img src="Poulina.png" alt="Poulina" class="poulina"/>  
-    </div>
+      <div class="flex items-center gap-2">
+        <div>
+          <img src="Poulina.png" alt="Poulina" class="h-[90px] w-auto max-w-[280px] object-contain"/>
+        </div>
 
-        <button class="notification-bell" (click)="navigateTo('/alerts')" title="Alertes">
-          <span class="material-icons">notifications</span>
+        <button class="relative p-2 rounded-lg hover:bg-accent text-muted-foreground transition-colors" (click)="navigateTo('/alerts')" title="Alertes">
+          <span class="material-symbols-rounded text-xl">notifications</span>
           @if (unreadAlertCount() > 0) {
-            <span class="bell-badge">{{ unreadAlertCount() > 99 ? '99+' : unreadAlertCount() }}</span>
+            <span class="absolute top-0.5 right-0.5 flex items-center justify-center h-[18px] min-w-[18px] px-1 text-[10px] font-bold bg-destructive text-white rounded-full border-2 border-card">{{ unreadAlertCount() > 99 ? '99+' : unreadAlertCount() }}</span>
           }
         </button>
-        <div class="user-menu-container">
-          <button class="user-avatar" (click)="toggleUserMenu()">
-            <span class="avatar-text">{{ userName.split(' ')[0]?.charAt(0) || '' }}{{ userName.split(' ')[1]?.charAt(0) || '' }}</span>
+
+        <div class="relative">
+          <button (click)="toggleUserMenu()" class="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-teal-500 to-cyan-400 text-white text-xs font-semibold hover:scale-105 transition-transform ring-2 ring-transparent hover:ring-primary/20">
+            <span>{{ userName.split(' ')[0]?.charAt(0) || '' }}{{ userName.split(' ')[1]?.charAt(0) || '' }}</span>
           </button>
           
           @if (showUserMenu()) {
-            <div class="user-dropdown">
-              <div class="user-info">
-                <div class="user-name">{{ userName }}</div>
-                <div class="user-email">{{ userEmail }}</div>
+            <div class="absolute top-full right-0 mt-2 w-56 bg-card rounded-xl border border-border shadow-lg overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+              <div class="px-4 py-3 bg-gradient-to-br from-teal-500 to-cyan-400 text-white">
+                <div class="font-semibold text-sm">{{ userName }}</div>
+                <div class="text-xs text-white/80">{{ userEmail }}</div>
               </div>
-              <div class="dropdown-divider"></div>
-              <ul class="dropdown-menu">
+              <div class="h-px bg-border"></div>
+              <ul class="py-1">
                 @for (item of userMenuItems; track item.label) {
                   <li>
-                    <button class="dropdown-item" (click)="item.action()">
-                      <span class="material-icons">{{ item.icon }}</span>
+                    <button (click)="item.action()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-accent transition-colors">
+                      <span class="material-symbols-rounded text-lg text-muted-foreground">{{ item.icon }}</span>
                       <span>{{ item.label }}</span>
                     </button>
                   </li>
@@ -88,7 +96,7 @@
     </header>
 
     <!-- Page Content -->
-    <main class="page-content">
+    <main class="flex-1 overflow-y-auto p-6 scrollbar-thin">
       <router-outlet></router-outlet>
     </main>
   </div>

@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom, Observable } from 'rxjs';
+import { firstValueFrom, Observable, tap } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Category } from '../models/category.model';
 import { API_BASE_URL, USE_BACKEND } from '../../app.config';
@@ -32,7 +32,8 @@ export class CategoryService {
   }
   getCtegories(): Observable<Category[]> {
     return this.http.get<CategoryDto[]>(`${API_BASE_URL}/api/Categories/GetCategories`).pipe(
-      map(dtos => (dtos ?? []).map(dto => this.dtoToCategory(dto)))
+      map(dtos => (dtos ?? []).map(dto => this.dtoToCategory(dto))),
+      tap(categories => this.categories.set(categories))
     );
   }
 

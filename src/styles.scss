@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @import 'material-icons/iconfont/material-icons.css';
 
 /* Global Styles */
@@ -15,18 +19,76 @@ body {
   background: #f5f7fa;
 }
 
+/* shadcn-ng / spartan-ng theme variables */
+@layer base {
+  :root {
+    --background: 0 0% 99%;
+    --foreground: 210 20% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 20% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 20% 10%;
+    --primary: 192 91% 36%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 180 20% 95%;
+    --secondary-foreground: 210 20% 10%;
+    --muted: 180 14% 95%;
+    --muted-foreground: 200 12% 46%;
+    --accent: 180 14% 95%;
+    --accent-foreground: 210 20% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 200 18% 90%;
+    --input: 200 18% 90%;
+    --ring: 192 91% 36%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 210 30% 7%;
+    --foreground: 180 20% 95%;
+    --card: 210 30% 7%;
+    --card-foreground: 180 20% 95%;
+    --popover: 210 30% 7%;
+    --popover-foreground: 180 20% 95%;
+    --primary: 192 85% 45%;
+    --primary-foreground: 210 30% 7%;
+    --secondary: 200 25% 14%;
+    --secondary-foreground: 180 20% 95%;
+    --muted: 200 25% 14%;
+    --muted-foreground: 200 15% 60%;
+    --accent: 200 25% 14%;
+    --accent-foreground: 180 20% 95%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 180 20% 95%;
+    --border: 200 25% 14%;
+    --input: 200 25% 14%;
+    --ring: 192 85% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Legacy app variables */
 :root {
   --bg: #f8fafc;
   --surface: #ffffff;
   --surface-alt: #f8fafc;
   --text: #0f172a;
   --text-secondary: #334155;
-  --muted: #64748b;
-  --border: #e2e8f0;
-  --primary: #3b82f6;
+  --legacy-muted: #64748b;
+  --legacy-border: #e2e8f0;
+  --legacy-primary: #3b82f6;
   --primary-hover: #2563eb;
   --primary-dark: #1e40af;
-  --accent: #06b6d4;
+  --legacy-accent: #06b6d4;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
@@ -50,7 +112,7 @@ h1, h2, h3, h4 {
 }
 
 p {
-  color: var(--muted);
+  color: var(--legacy-muted);
 }
 
 a {
@@ -60,14 +122,14 @@ a {
 
 .card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--legacy-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
 }
 
 .card-header {
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--legacy-border);
 }
 
 .card-body {
@@ -99,7 +161,7 @@ button.btn,
 }
 
 .btn-primary {
-  background: var(--primary);
+  background: var(--legacy-primary);
   color: #fff;
   box-shadow: var(--shadow-sm);
 }
@@ -113,7 +175,7 @@ button.btn,
 .btn-secondary {
   background: #f3f4f6;
   color: var(--text);
-  border-color: var(--border);
+  border-color: var(--legacy-border);
 }
 
 .btn-secondary:hover {
@@ -123,7 +185,7 @@ button.btn,
 input,
 select,
 textarea {
-  border: 1px solid var(--border);
+  border: 1px solid var(--legacy-border);
   border-radius: var(--radius-sm);
   padding: 0.7rem 0.9rem;
   font-size: 0.95rem;
@@ -134,7 +196,7 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: var(--primary);
+  border-color: var(--legacy-primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
@@ -149,15 +211,15 @@ table thead th {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--muted);
+  color: var(--legacy-muted);
   padding: 0.9rem 1rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--legacy-border);
   background: #fafafa;
 }
 
 table tbody td {
   padding: 0.9rem 1rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--legacy-border);
 }
 
 .badge {
@@ -175,7 +237,23 @@ table tbody td {
 .status-warning { color: var(--warning); }
 .status-danger { color: var(--danger); }
 
-/* Material Icons - ensure proper rendering */
+/* Material Symbols Rounded - modern icon rendering */
+.material-symbols-rounded {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  font-size: 24px;
+  line-height: 1;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Legacy fallback - keep material-icons working if referenced anywhere */
 .material-icons {
   font-family: 'Material Icons' !important;
   font-weight: normal;

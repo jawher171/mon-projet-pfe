@@ -1,175 +1,97 @@
-<div class="alerts-page">
+<div class="max-w-[1200px] mx-auto">
   <!-- Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1 class="page-title">Centre d'Alertes</h1>
-      <p class="page-subtitle">Gérer les alertes et notifications automatiques</p>
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-foreground">Centre d'Alertes</h1>
+      <p class="text-muted-foreground">Gérer les alertes et notifications automatiques</p>
     </div>
-    <div class="header-actions">
-      @if (unreadCount() > 0) {
-        <button class="btn btn-outline" (click)="markAllAsRead()">
-          <span class="material-icons">done_all</span>
-          Tout marquer comme lu
-        </button>
-      }
-    </div>
+    @if (unreadCount() > 0) {
+      <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border-2 border-primary bg-background text-primary hover:bg-accent transition-colors" (click)="markAllAsRead()">
+        <span class="material-symbols-rounded text-lg">done_all</span>
+        Tout marquer comme lu
+      </button>
+    }
   </div>
 
-  <!-- Stats Cards -->
-  <div class="stats-grid">
-    <div class="stat-card critical">
-      <div class="stat-icon">
-        <span class="material-icons">error</span>
-      </div>
-      <div class="stat-content">
-        <span class="stat-value">{{ stats().critical }}</span>
-        <span class="stat-label">Critiques</span>
-      </div>
+  <!-- Stats -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+    <div class="bg-card border border-border rounded-xl p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center"><span class="material-symbols-rounded text-red-600">report</span></div>
+      <div class="flex flex-col"><span class="text-2xl font-bold text-red-600">{{ stats().critical }}</span><span class="text-sm text-muted-foreground">Critiques</span></div>
     </div>
-    <div class="stat-card high">
-      <div class="stat-icon">
-        <span class="material-icons">warning</span>
-      </div>
-      <div class="stat-content">
-        <span class="stat-value">{{ stats().high }}</span>
-        <span class="stat-label">Avertissements</span>
-      </div>
+    <div class="bg-card border border-border rounded-xl p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center"><span class="material-symbols-rounded text-orange-500">warning</span></div>
+      <div class="flex flex-col"><span class="text-2xl font-bold text-orange-500">{{ stats().high }}</span><span class="text-sm text-muted-foreground">Avertissements</span></div>
     </div>
-    <div class="stat-card info">
-      <div class="stat-icon">
-        <span class="material-icons">info</span>
-      </div>
-      <div class="stat-content">
-        <span class="stat-value">{{ stats().medium }}</span>
-        <span class="stat-label">Info</span>
-      </div>
+    <div class="bg-card border border-border rounded-xl p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center"><span class="material-symbols-rounded text-blue-500">info</span></div>
+      <div class="flex flex-col"><span class="text-2xl font-bold text-blue-500">{{ stats().medium }}</span><span class="text-sm text-muted-foreground">Info</span></div>
     </div>
-    <div class="stat-card unread">
-      <div class="stat-icon">
-        <span class="material-icons">mark_email_unread</span>
-      </div>
-      <div class="stat-content">
-        <span class="stat-value">{{ stats().unread }}</span>
-        <span class="stat-label">Non lues</span>
-      </div>
+    <div class="bg-card border border-border rounded-xl p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center"><span class="material-symbols-rounded text-teal-600">mark_email_unread</span></div>
+      <div class="flex flex-col"><span class="text-2xl font-bold text-teal-600">{{ stats().unread }}</span><span class="text-sm text-muted-foreground">Non lues</span></div>
     </div>
   </div>
 
   <!-- Filters -->
-  <div class="filters-section">
-    <div class="severity-filters">
-      <button 
-        class="severity-btn all" 
-        [class.active]="selectedSeverity() === 'all'"
-        (click)="onSeverityChange('all')"
-      >Toutes</button>
-      <button 
-        class="severity-btn critical" 
-        [class.active]="selectedSeverity() === 'critical'"
-        (click)="onSeverityChange('critical')"
-      >Critiques</button>
-      <button 
-        class="severity-btn high" 
-        [class.active]="selectedSeverity() === 'warning'"
-        (click)="onSeverityChange('warning')"
-      >Avertissements</button>
-      <button 
-        class="severity-btn medium" 
-        [class.active]="selectedSeverity() === 'info'"
-        (click)="onSeverityChange('info')"
-      >Info</button>
+  <div class="flex flex-wrap items-center gap-4 mb-6">
+    <div class="flex gap-2 flex-wrap">
+      <button class="px-4 py-2 border rounded-full text-sm font-medium transition-colors" [class]="selectedSeverity() === 'all' ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border text-muted-foreground'" (click)="onSeverityChange('all')">Toutes</button>
+      <button class="px-4 py-2 border rounded-full text-sm font-medium transition-colors" [class]="selectedSeverity() === 'critical' ? 'bg-red-600 text-white border-red-600' : 'bg-background border-border text-muted-foreground'" (click)="onSeverityChange('critical')">Critiques</button>
+      <button class="px-4 py-2 border rounded-full text-sm font-medium transition-colors" [class]="selectedSeverity() === 'warning' ? 'bg-orange-500 text-white border-orange-500' : 'bg-background border-border text-muted-foreground'" (click)="onSeverityChange('warning')">Avertissements</button>
+      <button class="px-4 py-2 border rounded-full text-sm font-medium transition-colors" [class]="selectedSeverity() === 'info' ? 'bg-blue-500 text-white border-blue-500' : 'bg-background border-border text-muted-foreground'" (click)="onSeverityChange('info')">Info</button>
     </div>
-    
-    <select class="filter-select" (change)="onSiteChange($event)">
+    <select class="px-4 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" (change)="onSiteChange($event)">
       <option value="">Tous les sites</option>
       @for (site of sites(); track site.id) {
         <option [value]="site.id">{{ site.nom }}</option>
       }
     </select>
-    
-    <label class="checkbox-label">
-      <input 
-        type="checkbox" 
-        [checked]="showResolved()"
-        (change)="showResolved.set(!showResolved())"
-      >
+    <label class="flex items-center gap-2 text-sm cursor-pointer">
+      <input type="checkbox" class="rounded border-input" [checked]="showResolved()" (change)="showResolved.set(!showResolved())">
       Afficher résolues
     </label>
   </div>
 
   <!-- Alerts List -->
-  <div class="alerts-list">
+  <div class="flex flex-col gap-3">
     @for (alert of alerts(); track alert.id) {
-      <div 
-        class="alert-card" 
-        [ngClass]="getSeverityForAlert(alert)"
-        [class.unread]="!alert.resolue"
-        [class.resolved]="alert.resolue"
-        (click)="openAlertModal(alert)"
-      >
-        <div class="alert-indicator"></div>
-        
-        <div class="alert-icon">
-          <span class="material-icons">{{ getAlertTypeConfig(alert.type)?.icon }}</span>
+      <div class="bg-card border border-border rounded-xl p-4 flex items-start gap-4 cursor-pointer hover:shadow-md transition-all relative overflow-hidden" [class.opacity-60]="alert.resolue" (click)="openAlertModal(alert)">
+        <!-- Left indicator -->
+        <div class="absolute left-0 top-0 bottom-0 w-1" [ngClass]="{'bg-red-600': getSeverityForAlert(alert) === 'critical', 'bg-orange-500': getSeverityForAlert(alert) === 'warning' || getSeverityForAlert(alert) === 'high', 'bg-blue-500': getSeverityForAlert(alert) === 'info', 'bg-emerald-500': getSeverityForAlert(alert) === 'low'}"></div>
+        <!-- Icon -->
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" [ngClass]="{'bg-red-50': getSeverityForAlert(alert) === 'critical', 'bg-orange-50': getSeverityForAlert(alert) === 'warning' || getSeverityForAlert(alert) === 'high', 'bg-blue-50': getSeverityForAlert(alert) === 'info', 'bg-emerald-50': getSeverityForAlert(alert) === 'low'}">
+          <span class="material-symbols-rounded" [ngClass]="{'text-red-600': getSeverityForAlert(alert) === 'critical', 'text-orange-500': getSeverityForAlert(alert) === 'warning' || getSeverityForAlert(alert) === 'high', 'text-blue-500': getSeverityForAlert(alert) === 'info', 'text-emerald-500': getSeverityForAlert(alert) === 'low'}">{{ getAlertTypeConfig(alert.type)?.icon }}</span>
         </div>
-        
-        <div class="alert-content">
-          <div class="alert-header">
-            <h3 class="alert-title">{{ getAlertTypeConfig(alert.type)?.label || alert.type }}</h3>
-            <div class="alert-badges">
-              <span class="severity-badge" [ngClass]="getSeverityForAlert(alert)">
-                {{ getSeverityConfig(getSeverityForAlert(alert))?.label }}
-              </span>
-              @if (alert.resolue) {
-                <span class="resolved-badge">Résolu</span>
-              }
+        <!-- Content -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-start justify-between gap-4 mb-1">
+            <h3 class="font-semibold text-foreground">{{ getAlertTypeConfig(alert.type)?.label || alert.type }}</h3>
+            <div class="flex gap-2 shrink-0">
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium" [ngClass]="{'bg-red-50 text-red-600': getSeverityForAlert(alert) === 'critical', 'bg-orange-50 text-orange-600': getSeverityForAlert(alert) === 'warning' || getSeverityForAlert(alert) === 'high', 'bg-blue-50 text-blue-600': getSeverityForAlert(alert) === 'info', 'bg-emerald-50 text-emerald-600': getSeverityForAlert(alert) === 'low'}">{{ getSeverityConfig(getSeverityForAlert(alert))?.label }}</span>
+              @if (alert.resolue) { <span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-600">Résolu</span> }
             </div>
           </div>
-          <p class="alert-message">{{ alert.message }}</p>
-          <div class="alert-meta">
-            @if (alert.siteNom) {
-              <span class="meta-item">
-                <span class="material-icons">location_on</span>
-                {{ alert.siteNom }}
-              </span>
-            }
-            @if (alert.produitNom) {
-              <span class="meta-item">
-                <span class="material-icons">inventory_2</span>
-                {{ alert.produitNom }}
-              </span>
-            }
-            <span class="meta-item time">
-              <span class="material-icons">schedule</span>
-              {{ getTimeAgo(alert.dateCreation) }}
-            </span>
+          <p class="text-sm text-muted-foreground mb-2 line-clamp-2">{{ alert.message }}</p>
+          <div class="flex flex-wrap gap-4 text-xs text-muted-foreground">
+            @if (alert.siteNom) { <span class="inline-flex items-center gap-1"><span class="material-symbols-rounded text-sm">location_on</span>{{ alert.siteNom }}</span> }
+            @if (alert.produitNom) { <span class="inline-flex items-center gap-1"><span class="material-symbols-rounded text-sm">inventory_2</span>{{ alert.produitNom }}</span> }
+            <span class="inline-flex items-center gap-1"><span class="material-symbols-rounded text-sm">schedule</span>{{ getTimeAgo(alert.dateCreation) }}</span>
           </div>
         </div>
-        
-        <div class="alert-actions" (click)="$event.stopPropagation()">
+        <!-- Actions -->
+        <div class="flex gap-1 shrink-0" (click)="$event.stopPropagation()">
           @if (!alert.resolue) {
-            <button 
-              class="action-btn resolve"
-              (click)="openAlertModal(alert)"
-              title="Résoudre"
-            >
-              <span class="material-icons">check_circle</span>
-            </button>
+            <button class="p-2 rounded-md hover:bg-emerald-50 text-muted-foreground hover:text-emerald-600 transition-colors" (click)="openAlertModal(alert)" title="Résoudre"><span class="material-symbols-rounded">check_circle</span></button>
           }
-          <button 
-            class="action-btn delete"
-            (click)="deleteAlert(alert)"
-            title="Supprimer"
-          >
-            <span class="material-icons">delete</span>
-          </button>
+          <button class="p-2 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" (click)="deleteAlert(alert)" title="Supprimer"><span class="material-symbols-rounded">delete</span></button>
         </div>
       </div>
     } @empty {
-      <div class="empty-state">
-        <span class="material-icons">notifications_off</span>
-        <p>Aucune alerte</p>
-        <span class="empty-hint">Les alertes apparaîtront ici lorsque des conditions seront détectées</span>
+      <div class="text-center py-16 text-muted-foreground">
+        <span class="material-symbols-rounded text-5xl mb-2 block">notifications_off</span>
+        <p class="font-medium">Aucune alerte</p>
+        <span class="text-sm">Les alertes apparaîtront ici lorsque des conditions seront détectées</span>
       </div>
     }
   </div>
@@ -177,79 +99,48 @@
 
 <!-- Alert Detail Modal -->
 @if (showModal() && selectedAlert(); as alert) {
-  <div class="modal-overlay" (click)="closeModal()">
-    <div class="modal-content" [ngClass]="getSeverityForAlert(alert)" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-title-section">
-          <div class="alert-type-icon" [style.background]="getSeverityConfig(getSeverityForAlert(alert))?.bgColor">
-            <span class="material-icons" [style.color]="getSeverityConfig(getSeverityForAlert(alert))?.color">
-              {{ getAlertTypeConfig(alert.type)?.icon }}
-            </span>
+  <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="closeModal()">
+    <div class="bg-card border border-border rounded-2xl w-full max-w-[550px] max-h-[90vh] flex flex-col animate-in" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-border">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" [style.background]="getSeverityConfig(getSeverityForAlert(alert))?.bgColor">
+            <span class="material-symbols-rounded" [style.color]="getSeverityConfig(getSeverityForAlert(alert))?.color">{{ getAlertTypeConfig(alert.type)?.icon }}</span>
           </div>
           <div>
-            <h2>{{ getAlertTypeConfig(alert.type)?.label || alert.type }}</h2>
-            <span class="severity-label" [ngClass]="getSeverityForAlert(alert)">
-              {{ getSeverityConfig(getSeverityForAlert(alert))?.label }}
-            </span>
+            <h2 class="text-lg font-semibold text-foreground">{{ getAlertTypeConfig(alert.type)?.label || alert.type }}</h2>
+            <span class="text-xs font-medium px-2 py-0.5 rounded-full" [ngClass]="{'bg-red-50 text-red-600': getSeverityForAlert(alert) === 'critical', 'bg-orange-50 text-orange-600': getSeverityForAlert(alert) === 'warning', 'bg-blue-50 text-blue-600': getSeverityForAlert(alert) === 'info'}">{{ getSeverityConfig(getSeverityForAlert(alert))?.label }}</span>
           </div>
         </div>
-        <button class="close-btn" (click)="closeModal()">
-          <span class="material-icons">close</span>
-        </button>
+        <button class="p-2 rounded-md hover:bg-muted text-muted-foreground transition-colors" (click)="closeModal()"><span class="material-symbols-rounded">close</span></button>
       </div>
-      
-      <div class="modal-body">
-        <div class="alert-detail-section">
-          <h4>Description</h4>
-          <p>{{ alert.message }}</p>
+      <div class="p-6 overflow-y-auto space-y-5">
+        <div>
+          <h4 class="text-sm font-semibold text-foreground mb-1">Description</h4>
+          <p class="text-sm text-muted-foreground">{{ alert.message }}</p>
         </div>
-        
-        <div class="detail-grid">
-          <div class="detail-item">
-            <label>Type</label>
-            <span>{{ getAlertTypeConfig(alert.type)?.label }}</span>
-          </div>
-          <div class="detail-item">
-            <label>Créée</label>
-            <span>{{ formatDate(alert.dateCreation) }}</span>
-          </div>
-          @if (alert.produitNom) {
-            <div class="detail-item">
-              <label>Produit</label>
-              <span>{{ alert.produitNom }}</span>
-            </div>
-          }
-          @if (alert.siteNom) {
-            <div class="detail-item">
-              <label>Site</label>
-              <span>{{ alert.siteNom }}</span>
-            </div>
-          }
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Type</label><span class="text-sm">{{ getAlertTypeConfig(alert.type)?.label }}</span></div>
+          <div><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Créée</label><span class="text-sm">{{ formatDate(alert.dateCreation) }}</span></div>
+          @if (alert.produitNom) { <div><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Produit</label><span class="text-sm">{{ alert.produitNom }}</span></div> }
+          @if (alert.siteNom) { <div><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Site</label><span class="text-sm">{{ alert.siteNom }}</span></div> }
         </div>
-        
         @if (alert.resolue) {
-          <div class="resolution-section">
-            <h4>Résolution</h4>
-            <p>Cette alerte a été marquée comme résolue.</p>
+          <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+            <h4 class="text-sm font-semibold text-emerald-700 mb-1">Résolution</h4>
+            <p class="text-sm text-emerald-600">Cette alerte a été marquée comme résolue.</p>
           </div>
         } @else {
-          <div class="resolve-section">
-            <h4>Résoudre cette alerte</h4>
-            <textarea 
-              placeholder="Notes de résolution (optionnel)..."
-              [value]="resolveNotes()"
-              (input)="resolveNotes.set($any($event.target).value)"
-              rows="3"
-            ></textarea>
+          <div>
+            <h4 class="text-sm font-semibold text-foreground mb-2">Résoudre cette alerte</h4>
+            <textarea placeholder="Notes de résolution (optionnel)..." rows="3" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" [value]="resolveNotes()" (input)="resolveNotes.set($any($event.target).value)"></textarea>
           </div>
         }
       </div>
-      
-      <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="closeModal()">Fermer</button>
+      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
+        <button class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="closeModal()">Fermer</button>
         @if (!alert.resolue) {
-          <button class="btn btn-success" (click)="resolveAlert()">
-            <span class="material-icons">check_circle</span>
+          <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors" (click)="resolveAlert()">
+            <span class="material-symbols-rounded text-lg">check_circle</span>
             Marquer comme résolu
           </button>
         }
