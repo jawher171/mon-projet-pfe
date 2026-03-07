@@ -1,102 +1,97 @@
-<div class="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-gradient-to-br from-teal-700 to-slate-900">
+<div class="login-bg">
+  <!-- Subtle background glow -->
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+
   <!-- Card -->
-  <div class="w-full max-w-md bg-card rounded-2xl shadow-2xl p-8 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500 border border-border/50">
-    <!-- Header -->
-    <div class="text-center mb-8">
-      <div class="flex items-center justify-center gap-3 mb-3">
-        <img src="/Poulina.png" alt="logo" class="h-24 w-auto max-w-[300px] object-contain" />
-      </div>
-      <h1 class="text-3xl font-extrabold tracking-tight"><span class="text-blue-500"></span><span class="text-cyan-600">Inventory </span><span class="text-cyan-600">Pro</span></h1>
-      <p class=" text-sm font-light text-foreground">Bienvenue ! Veuillez vous connecter à votre compte.</p>
+  <div class="login-card">
+    <!-- Branding -->
+    <div class="text-center mb-7">
+      <img src="/Poulina.png" alt="Poulina Group Holding" class="login-logo" />
+      <h1 class="login-title">Inventory<span>Pro</span></h1>
+      <p class="login-sub">Système de gestion d'inventaire</p>
     </div>
 
+    <!-- Demo hint -->
     @if (!useBackend) {
-      <div class="flex items-start gap-2 p-3 mb-4 bg-teal-50 border border-teal-200 rounded-lg text-teal-700 text-xs">
-        <span class="material-symbols-rounded text-base mt-0.5">info</span>
-        <span>Mode démo : admin&#64;inventaire.ma / admin123 — stock&#64;inventaire.ma / stock123 — operator&#64;inventaire.ma / operator123</span>
+      <div class="demo-tip">
+        <span class="material-symbols-rounded">lightbulb</span>
+        <div>
+          <strong>Comptes démo</strong>
+          <span>admin&#64;inventaire.ma / admin123</span>
+        </div>
       </div>
     }
 
-    <form class="space-y-5" (ngSubmit)="onSubmit()">
+    <!-- Form -->
+    <form (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Error -->
       @if (errorMessage()) {
-        <div class="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
-          <span class="material-symbols-rounded text-lg">report</span>
+        <div class="form-error">
+          <span class="material-symbols-rounded">error</span>
           <span>{{ errorMessage() }}</span>
         </div>
       }
 
       <!-- Email -->
-      <div class="space-y-2">
-        <label class="flex items-center gap-2 text-sm font-medium text-foreground">
-          <span class="material-symbols-rounded text-primary text-base">mail</span>
-          Adresse e-mail
-        </label>
-        <input
-          type="email"
-          class="w-full px-4 py-2.5 text-sm bg-background border-2 border-input rounded-lg outline-none transition-all focus:border-primary focus:ring-2 focus:ring-ring/20 placeholder:text-muted-foreground/50"
-          placeholder="Entrez votre email"
-          [(ngModel)]="emailValue"
-          name="email"
-          required
-        >
+      <div class="form-field">
+        <label for="login-email">Adresse e-mail</label>
+        <div class="input-shell">
+          <span class="material-symbols-rounded inp-icon">alternate_email</span>
+          <input
+            id="login-email"
+            type="email"
+            placeholder="nom@poulina.com"
+            [(ngModel)]="emailValue"
+            name="email"
+            required
+            autocomplete="email"
+          />
+        </div>
       </div>
 
       <!-- Password -->
-      <div class="space-y-2">
-        <label class="flex items-center gap-2 text-sm font-medium text-foreground">
-          <span class="material-symbols-rounded text-primary text-base">lock</span>
-          Mot de passe
-        </label>
-        <div class="relative">
+      <div class="form-field">
+        <label for="login-pw">Mot de passe</label>
+        <div class="input-shell">
+          <span class="material-symbols-rounded inp-icon">passkey</span>
           <input
+            id="login-pw"
             [type]="showPassword() ? 'text' : 'password'"
-            class="w-full px-4 py-2.5 pr-12 text-sm bg-background border-2 border-input rounded-lg outline-none transition-all focus:border-primary focus:ring-2 focus:ring-ring/20 placeholder:text-muted-foreground/50"
             placeholder="Entrez votre mot de passe"
             [(ngModel)]="passwordValue"
             name="password"
             required
-          >
-          <button
-            type="button"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
-            (click)="togglePasswordVisibility()"
-          >
-            <span class="material-symbols-rounded text-xl">
+            autocomplete="current-password"
+          />
+          <button type="button" class="eye-toggle" (click)="togglePasswordVisibility()">
+            <span class="material-symbols-rounded">
               {{ showPassword() ? 'visibility_off' : 'visibility' }}
             </span>
           </button>
         </div>
       </div>
 
-      <!-- Options -->
-      <div class="flex items-center justify-between text-sm">
-        <label class="flex items-center gap-2 text-muted-foreground cursor-pointer">
-          <input type="checkbox" class="rounded border-input accent-primary">
-          <span>Se souvenir de moi</span>
-        </label>
-        <a href="#" class="text-primary font-medium hover:underline">Mot de passe oublié ?</a>
-      </div>
+      <!-- Remember -->
+      <label class="remember-row">
+        <input type="checkbox" />
+        <span>Se souvenir de moi</span>
+      </label>
 
       <!-- Submit -->
-      <button type="submit" [disabled]="isLoading()"
-        class="w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary text-primary-foreground font-semibold rounded-lg hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-primary/25">
+      <button type="submit" class="login-submit" [disabled]="isLoading()">
         @if (isLoading()) {
-          <span class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-          <span>Connexion en cours...</span>
+          <span class="spin-ring"></span>
+          Connexion en cours...
         } @else {
-          <span>Connexion</span>
-          <span class="material-symbols-rounded text-lg">east</span>
+          Se connecter
+          <span class="material-symbols-rounded submit-icon">login</span>
         }
       </button>
     </form>
 
-    <div class="mt-6 pt-6 border-t border-border"></div>
   </div>
 
-  <!-- Background Orbs -->
-  <div class="absolute inset-0 overflow-hidden z-0 pointer-events-none">
-    <div class="absolute -top-[10%] -left-[10%] w-[400px] h-[400px] rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 opacity-40 blur-[80px] animate-pulse"></div>
-    <div class="absolute -bottom-[15%] -right-[15%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-amber-400 to-orange-400 opacity-30 blur-[80px] animate-pulse [animation-delay:2s]"></div>
-    <div class="absolute top-1/2 -right-[10%] w-[350px] h-[350px] rounded-full bg-gradient-to-br from-cyan-400 to-teal-300 opacity-40 blur-[80px] animate-pulse [animation-delay:4s]"></div>
-  </div>
+  <!-- Page copyright -->
+  <p class="login-copyright">&copy; 2026 Poulina Group Holding. Tous droits réservés.</p>
 </div>

@@ -6,10 +6,10 @@
     </div>
     <div class="flex gap-3">
       <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border-2 border-primary bg-background text-primary hover:bg-accent transition-colors" (click)="openAddRoleModal()" [disabled]="backendMode" [title]="backendMode ? 'Désactivé en mode backend' : ''">
-        <span class="material-symbols-rounded text-lg">shield_person</span>Gérer Rôles
+        <span class="material-symbols-rounded text-lg">verified_user</span>Gérer Rôles
       </button>
       <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors" (click)="openForm()">
-        <span class="material-symbols-rounded text-lg">person_add</span>Ajouter un nouvel utilisateur
+        <span class="material-symbols-rounded text-lg">group_add</span>Ajouter un nouvel utilisateur
       </button>
     </div>
   </div>
@@ -79,9 +79,9 @@
               <td class="px-4 py-3 text-sm text-muted-foreground">{{ (user.lastLogin | date: 'short') || 'Jamais' }}</td>
               <td class="px-4 py-3">
                 <div class="flex gap-1">
-                  <button class="p-1.5 rounded-md text-blue-500 hover:bg-blue-50 transition-colors" title="Edit" (click)="openForm(user)"><span class="material-symbols-rounded text-lg">edit</span></button>
+                  <button class="p-1.5 rounded-md text-blue-500 hover:bg-blue-50 transition-colors" title="Edit" (click)="openForm(user)"><span class="material-symbols-rounded text-lg">edit_square</span></button>
                   <button class="p-1.5 rounded-md text-amber-500 hover:bg-amber-50 transition-colors" title="Toggle Status" (click)="toggleStatus(user)"><span class="material-symbols-rounded text-lg">{{ user.status === 'active' ? 'block' : 'check_circle' }}</span></button>
-                  <button class="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors" title="Delete" (click)="deleteUser(user)"><span class="material-symbols-rounded text-lg">delete</span></button>
+                  <button class="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors" title="Delete" (click)="deleteUser(user)"><span class="material-symbols-rounded text-lg">delete_outline</span></button>
                 </div>
               </td>
             </tr>
@@ -90,7 +90,7 @@
       </table>
     } @else {
       <div class="text-center py-12 text-muted-foreground">
-        <span class="material-symbols-rounded text-5xl mb-2 block">group</span>
+        <span class="material-symbols-rounded text-5xl mb-2 block">people</span>
         <p>Aucun utilisateur trouvé</p>
       </div>
     }
@@ -112,7 +112,7 @@
       <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
         <button type="button" class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="closeAddRoleModal()">Annuler</button>
         <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-gradient-to-r from-teal-500 to-cyan-400 text-white hover:opacity-90 transition-opacity" (click)="saveCustomRole()" [disabled]="!newCustomRoleName().trim()">
-          <span class="material-symbols-rounded text-lg">add</span>Ajouter
+          <span class="material-symbols-rounded text-lg">add_circle</span>Ajouter
         </button>
       </div>
     </div>

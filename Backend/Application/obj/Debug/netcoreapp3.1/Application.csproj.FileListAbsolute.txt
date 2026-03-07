@@ -469,3 +469,6 @@ C:\Users\jawher\Documents\ApplicationS\ApplicationS\Application\bin\Debug\netcor
 C:\Users\jawher\Documents\inventaire\pfe-inventaire\Backend\Application\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.Abstractions.dll
 C:\Users\jawher\Documents\inventaire\pfe-inventaire\Backend\Application\bin\Debug\netcoreapp3.1\System.Text.Encodings.Web.dll
 C:\Users\jawher\Documents\inventaire\pfe-inventaire\Backend\Application\bin\Debug\netcoreapp3.1\System.Text.Json.dll
+C:\Users\jawher\Desktop\INVENTAIRE\mon-projet-pfe\Backend\Application\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.Abstractions.dll
+C:\Users\jawher\Desktop\INVENTAIRE\mon-projet-pfe\Backend\Application\bin\Debug\netcoreapp3.1\System.Text.Encodings.Web.dll
+C:\Users\jawher\Desktop\INVENTAIRE\mon-projet-pfe\Backend\Application\bin\Debug\netcoreapp3.1\System.Text.Json.dll

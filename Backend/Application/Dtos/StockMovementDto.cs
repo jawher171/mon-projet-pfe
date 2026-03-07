@@ -11,6 +11,7 @@ namespace Application.Dtos
         public int Quantite { get; set; }
         public string Type { get; set; } = "entry";
         public string? Note { get; set; }
+        public string? Destination { get; set; }
         public Guid Id_s { get; set; }
         public Guid Id_u { get; set; }
 

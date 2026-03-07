@@ -175,7 +175,7 @@ export class SiteService {
   }
 
   getSiteTypeIcon(type: string): string {
-    return SITE_TYPES.find(t => t.value === type)?.icon ?? 'apartment';
+    return SITE_TYPES.find(t => t.value === type)?.icon ?? 'domain';
   }
 
   getSiteStats() {

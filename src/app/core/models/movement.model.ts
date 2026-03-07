@@ -15,6 +15,7 @@ export interface MouvementStock {
   userId?: string | number;
   utilisateurNom?: string;
   type?: 'entry' | 'exit';
+  destination?: string;
 }
 
 export interface MouvementFilter {

@@ -7,11 +7,11 @@
     </div>
     <div class="flex gap-3">
       <button class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-border bg-card text-muted-foreground hover:bg-accent transition-colors">
-        <span class="material-symbols-rounded text-lg">file_download</span>
+        <span class="material-symbols-rounded text-lg">download</span>
         Exporter
       </button>
       <button class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:brightness-110 shadow-sm transition-all" (click)="openAddModal()">
-        <span class="material-symbols-rounded text-lg">add</span>
+        <span class="material-symbols-rounded text-lg">add_box</span>
         Ajouter un produit
       </button>
     </div>
@@ -43,7 +43,7 @@
   <div class="grid gap-4" [class]="viewMode() === 'list' ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'">
     @if (listProducts.length === 0) {
       <div class="col-span-full flex flex-col items-center justify-center py-16 text-muted-foreground">
-        <span class="material-symbols-rounded text-5xl mb-3">inventory_2</span>
+        <span class="material-symbols-rounded text-5xl mb-3">deployed_code</span>
         <h3 class="text-lg font-semibold text-foreground">Aucun produit trouvé</h3>
         <p class="text-sm">Essayez d'ajuster votre recherche ou vos filtres</p>
       </div>
@@ -54,14 +54,14 @@
             @if (getProductImage(product)) {
               <img [src]="getProductImage(product)" [alt]="product.nom" class="w-full h-full object-cover">
             } @else {
-              <span class="material-symbols-rounded text-4xl text-muted-foreground/40">image</span>
+              <span class="material-symbols-rounded text-4xl text-muted-foreground/40">photo_camera</span>
             }
           </div>
           <div class="p-4 space-y-3">
             <h3 class="text-sm font-semibold text-foreground truncate">{{ product.nom }}</h3>
             <p class="text-xs text-muted-foreground line-clamp-2">{{ product.description }}</p>
             <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span class="material-symbols-rounded text-sm">category</span>
+              <span class="material-symbols-rounded text-sm">label</span>
               {{ product.categorieLibelle }}
             </div>
             <div class="flex items-center justify-between pt-2 border-t border-border">
@@ -71,13 +71,13 @@
               </div>
               <div class="flex gap-1">
                 <button class="p-1.5 rounded-lg hover:bg-accent text-muted-foreground transition-colors" title="Voir" (click)="openDetailsModal(product)">
-                  <span class="material-symbols-rounded text-lg">visibility</span>
+                  <span class="material-symbols-rounded text-lg">open_in_new</span>
                 </button>
                 <button class="p-1.5 rounded-lg hover:bg-accent text-muted-foreground transition-colors" title="Modifier" (click)="openEditModal(product)">
-                  <span class="material-symbols-rounded text-lg">edit</span>
+                  <span class="material-symbols-rounded text-lg">edit_square</span>
                 </button>
                 <button class="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors" title="Supprimer" (click)="deleteProduct(product.id_p)">
-                  <span class="material-symbols-rounded text-lg">delete</span>
+                  <span class="material-symbols-rounded text-lg">delete_outline</span>
                 </button>
               </div>
             </div>
@@ -93,7 +93,7 @@
       <div class="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4 animate-in" (click)="$event.stopPropagation()">
         <div class="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-card z-10">
           <h2 class="text-lg font-semibold text-foreground flex items-center gap-2">
-            <span class="material-symbols-rounded text-primary">{{ isEditMode() ? 'edit' : 'add_circle' }}</span>
+            <span class="material-symbols-rounded text-primary">{{ isEditMode() ? 'edit_square' : 'add_box' }}</span>
             {{ isEditMode() ? 'Modifier le produit' : 'Ajouter un nouveau produit' }}
           </h2>
           <button class="p-1.5 rounded-lg hover:bg-accent text-muted-foreground" (click)="closeModal()">
@@ -127,13 +127,13 @@
                 </select>
                 @if (productForm.get('id_c')?.value) {
                   <button type="button" class="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors" title="Supprimer cette catégorie" (click)="deleteCategory(productForm.get('id_c')?.value)">
-                    <span class="material-symbols-rounded text-lg">delete</span>
+                    <span class="material-symbols-rounded text-lg">delete_outline</span>
                   </button>
                 }
               </div>
               @if (!isAddingCategory()) {
                 <button type="button" class="inline-flex items-center gap-1 mt-1 text-xs text-primary font-medium hover:underline" (click)="startAddCategory()">
-                  <span class="material-symbols-rounded text-sm">add</span> Ajouter une catégorie
+                  <span class="material-symbols-rounded text-sm">add_circle</span> Ajouter une catégorie
                 </button>
               } @else {
                 <div class="mt-2 space-y-2">
@@ -163,7 +163,7 @@
           <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
             <button type="button" class="px-4 py-2 text-sm font-medium rounded-lg border border-border hover:bg-accent transition-colors" (click)="closeModal()">Annuler</button>
             <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:brightness-110 transition-all">
-              <span class="material-symbols-rounded text-lg">{{ isEditMode() ? 'save' : 'add' }}</span>
+              <span class="material-symbols-rounded text-lg">{{ isEditMode() ? 'check_circle' : 'add_box' }}</span>
               {{ isEditMode() ? 'Modifier' : 'Ajouter' }}
             </button>
           </div>
@@ -178,7 +178,7 @@
       <div class="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg mx-4 animate-in" (click)="$event.stopPropagation()">
         <div class="flex items-center justify-between px-6 py-4 border-b border-border">
           <h2 class="text-lg font-semibold text-foreground flex items-center gap-2">
-            <span class="material-symbols-rounded text-primary">inventory_2</span>
+            <span class="material-symbols-rounded text-primary">package_2</span>
             Détails du produit
           </h2>
           <button class="p-1.5 rounded-lg hover:bg-accent text-muted-foreground" (click)="closeDetailsModal()">

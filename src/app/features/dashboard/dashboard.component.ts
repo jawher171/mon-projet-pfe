@@ -130,12 +130,12 @@ export class DashboardComponent implements OnInit {
 
   getAlertIcon(type: string): string {
     const icons: Record<string, string> = {
-      'out_of_stock': 'report',
-      'low_stock': 'warning',
-      'reorder_point': 'shopping_cart',
-      'expiring_soon': 'schedule',
-      'overstock': 'inventory_2'
+      'out_of_stock': 'report_problem',
+      'low_stock': 'production_quantity_limits',
+      'reorder_point': 'shopping_bag',
+      'expiring_soon': 'timer',
+      'overstock': 'deployed_code_alert'
     };
-    return icons[type] || 'info';
+    return icons[type] || 'notification_important';
   }
 }

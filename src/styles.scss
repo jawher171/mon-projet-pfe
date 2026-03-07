@@ -4,22 +4,7 @@
 
 @import 'material-icons/iconfont/material-icons.css';
 
-/* Global Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #333;
-  background: #f5f7fa;
-}
-
-/* shadcn-ng / spartan-ng theme variables */
+/* ── Theme tokens (shadcn/spartan-ng) ── */
 @layer base {
   :root {
     --background: 0 0% 99%;
@@ -42,6 +27,9 @@ body {
     --input: 200 18% 90%;
     --ring: 192 91% 36%;
     --radius: 0.5rem;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
   }
 
   .dark {
@@ -65,9 +53,7 @@ body {
     --input: 200 25% 14%;
     --ring: 192 85% 45%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
@@ -76,43 +62,21 @@ body {
   }
 }
 
-/* Legacy app variables */
-:root {
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --surface-alt: #f8fafc;
-  --text: #0f172a;
-  --text-secondary: #334155;
-  --legacy-muted: #64748b;
-  --legacy-border: #e2e8f0;
-  --legacy-primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --primary-dark: #1e40af;
-  --legacy-accent: #06b6d4;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --info: #06b6d4;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+/* ── Global base ── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  color: var(--text);
-  background: var(--bg);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4 {
   letter-spacing: -0.02em;
-  color: var(--text);
-}
-
-p {
-  color: var(--legacy-muted);
 }
 
 a {
@@ -120,129 +84,30 @@ a {
   text-decoration: none;
 }
 
-.card {
-  background: var(--surface);
-  border: 1px solid var(--legacy-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+/* ── Focus ring consistency ── */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: var(--radius);
 }
 
-.card-header {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--legacy-border);
+/* ── Selection color ── */
+::selection {
+  background: hsl(var(--primary) / 0.15);
+  color: hsl(var(--foreground));
 }
 
-.card-body {
-  padding: 1.25rem;
+/* ── Smooth scrolling ── */
+html {
+  scroll-behavior: smooth;
 }
 
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.btn,
-button.btn,
-.btn-primary,
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1.1rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
-}
-
-.btn-primary {
-  background: var(--legacy-primary);
-  color: #fff;
-  box-shadow: var(--shadow-sm);
-}
-
-.btn-primary:hover {
-  background: var(--primary-hover);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  background: #f3f4f6;
-  color: var(--text);
-  border-color: var(--legacy-border);
-}
-
-.btn-secondary:hover {
-  background: #e5e7eb;
-}
-
-input,
-select,
-textarea {
-  border: 1px solid var(--legacy-border);
-  border-radius: var(--radius-sm);
-  padding: 0.7rem 0.9rem;
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-  border-color: var(--legacy-primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
-}
-
-.table,
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-table thead th {
-  text-align: left;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--legacy-muted);
-  padding: 0.9rem 1rem;
-  border-bottom: 1px solid var(--legacy-border);
-  background: #fafafa;
-}
-
-table tbody td {
-  padding: 0.9rem 1rem;
-  border-bottom: 1px solid var(--legacy-border);
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.2rem 0.6rem;
-  font-size: 0.75rem;
-  border-radius: 999px;
-  background: #dbeafe;
-  color: #1e40af;
-  font-weight: 600;
-}
-
-.status-success { color: var(--success); }
-.status-warning { color: var(--warning); }
-.status-danger { color: var(--danger); }
-
-/* Material Symbols Rounded - modern icon rendering */
+/* ── Material Symbols ── */
 .material-symbols-rounded {
   font-variation-settings:
     'FILL' 0,
-    'wght' 400,
-    'GRAD' 0,
+    'wght' 450,
+    'GRAD' -25,
     'opsz' 24;
   font-size: 24px;
   line-height: 1;
@@ -251,9 +116,19 @@ table tbody td {
   direction: ltr;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  transition: font-variation-settings 0.2s ease;
 }
 
-/* Legacy fallback - keep material-icons working if referenced anywhere */
+/* Filled icon utility — use on header actions, active states */
+.icon-filled {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 450,
+    'GRAD' -25,
+    'opsz' 24;
+}
+
+/* Legacy fallback */
 .material-icons {
   font-family: 'Material Icons' !important;
   font-weight: normal;
@@ -273,3 +148,10 @@ table tbody td {
   text-rendering: optimizeLegibility;
 }
 
+/* ── Disabled state ── */
+button:disabled,
+select:disabled,
+input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

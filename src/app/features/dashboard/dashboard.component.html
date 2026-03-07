@@ -7,11 +7,11 @@
     </div>
     <div class="flex gap-3">
       <a routerLink="/scanner" class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
-        <span class="material-symbols-rounded text-lg">qr_code_scanner</span>
+        <span class="material-symbols-rounded text-lg">qr_code_2</span>
         Scanner
       </a>
       <a routerLink="/movements" class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:brightness-110 shadow-sm transition-all">
-        <span class="material-symbols-rounded text-lg">sync_alt</span>
+        <span class="material-symbols-rounded text-lg">swap_vert</span>
         Nouveau Mouvement
       </a>
     </div>
@@ -41,7 +41,7 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
     <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-3 relative overflow-hidden before:absolute before:left-0 before:inset-y-0 before:w-1 before:bg-emerald-500 before:rounded-r">
       <div class="w-11 h-11 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
-        <span class="material-symbols-rounded">south</span>
+        <span class="material-symbols-rounded">move_to_inbox</span>
       </div>
       <div class="flex-1">
         <span class="text-2xl font-bold text-foreground">{{ movementSummary().totalEntries }}</span>
@@ -52,7 +52,7 @@
 
     <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-3 relative overflow-hidden before:absolute before:left-0 before:inset-y-0 before:w-1 before:bg-red-500 before:rounded-r">
       <div class="w-11 h-11 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 shrink-0">
-        <span class="material-symbols-rounded">north</span>
+        <span class="material-symbols-rounded">outbox</span>
       </div>
       <div class="flex-1">
         <span class="text-2xl font-bold text-foreground">{{ movementSummary().totalExits }}</span>
@@ -63,7 +63,7 @@
 
     <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-3 relative overflow-hidden before:absolute before:left-0 before:inset-y-0 before:w-1 before:bg-blue-500 before:rounded-r">
       <div class="w-11 h-11 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0">
-        <span class="material-symbols-rounded">apartment</span>
+        <span class="material-symbols-rounded">domain</span>
       </div>
       <div class="flex-1">
         <span class="text-2xl font-bold text-foreground">{{ siteStats().active }}</span>
@@ -74,7 +74,7 @@
 
     <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-3 relative overflow-hidden before:absolute before:left-0 before:inset-y-0 before:w-1 before:bg-amber-500 before:rounded-r">
       <div class="w-11 h-11 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
-        <span class="material-symbols-rounded">notifications_active</span>
+        <span class="material-symbols-rounded">campaign</span>
       </div>
       <div class="flex-1">
         <span class="text-2xl font-bold text-foreground">{{ alertStats().unread }}</span>
@@ -90,7 +90,7 @@
     <div class="bg-card border border-border rounded-xl overflow-hidden">
       <div class="flex items-center justify-between px-5 py-4 border-b border-border">
         <h2 class="text-base font-semibold text-foreground flex items-center gap-2">
-          <span class="material-symbols-rounded text-amber-500 text-lg">warning</span>
+          <span class="material-symbols-rounded text-amber-500 text-lg">emergency</span>
           Alertes Critiques
         </h2>
         <a routerLink="/alerts" class="text-sm text-primary font-medium hover:underline">Voir tout</a>
@@ -113,7 +113,7 @@
           </div>
         } @empty {
           <div class="flex flex-col items-center py-8 text-muted-foreground">
-            <span class="material-symbols-rounded text-4xl text-emerald-400 mb-2">check_circle</span>
+            <span class="material-symbols-rounded text-4xl text-emerald-400 mb-2">verified</span>
             <p class="text-sm">Aucune alerte critique</p>
           </div>
         }
@@ -124,7 +124,7 @@
     <div class="bg-card border border-border rounded-xl overflow-hidden">
       <div class="flex items-center justify-between px-5 py-4 border-b border-border">
         <h2 class="text-base font-semibold text-foreground flex items-center gap-2">
-          <span class="material-symbols-rounded text-primary text-lg">inventory_2</span>
+          <span class="material-symbols-rounded text-primary text-lg">package_2</span>
           Réapprovisionnement
         </h2>
         <a routerLink="/products" class="text-sm text-primary font-medium hover:underline">Voir tout</a>
@@ -159,7 +159,7 @@
     <div class="bg-card border border-border rounded-xl overflow-hidden">
       <div class="flex items-center justify-between px-5 py-4 border-b border-border">
         <h2 class="text-base font-semibold text-foreground flex items-center gap-2">
-          <span class="material-symbols-rounded text-muted-foreground text-lg">history</span>
+          <span class="material-symbols-rounded text-muted-foreground text-lg">schedule</span>
           Activités Récentes
         </h2>
         <a routerLink="/movements" class="text-sm text-primary font-medium hover:underline">Voir tout</a>
@@ -216,37 +216,37 @@
         <div class="grid grid-cols-3 gap-4">
           <a routerLink="/scanner" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
             <div class="w-12 h-12 rounded-xl bg-violet-500/10 text-violet-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span class="material-symbols-rounded text-2xl">qr_code_scanner</span>
+              <span class="material-symbols-rounded text-2xl">qr_code_2</span>
             </div>
             <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Scanner</span>
           </a>
           <a routerLink="/movements" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
             <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span class="material-symbols-rounded text-2xl">add_circle</span>
+              <span class="material-symbols-rounded text-2xl">input</span>
             </div>
             <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Entrée Stock</span>
           </a>
           <a routerLink="/movements" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
             <div class="w-12 h-12 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span class="material-symbols-rounded text-2xl">do_not_disturb_on</span>
+              <span class="material-symbols-rounded text-2xl">output</span>
             </div>
             <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Sortie Stock</span>
           </a>
           <a routerLink="/sites" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
             <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span class="material-symbols-rounded text-2xl">swap_horiz</span>
+              <span class="material-symbols-rounded text-2xl">compare_arrows</span>
             </div>
             <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Transfert</span>
           </a>
           <a routerLink="/alerts" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
             <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span class="material-symbols-rounded text-2xl">notifications_active</span>
+              <span class="material-symbols-rounded text-2xl">campaign</span>
             </div>
             <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Alertes</span>
           </a>
           <a routerLink="/reports" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
             <div class="w-12 h-12 rounded-xl bg-teal-500/10 text-teal-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span class="material-symbols-rounded text-2xl">monitoring</span>
+              <span class="material-symbols-rounded text-2xl">analytics</span>
             </div>
             <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Rapports</span>
           </a>

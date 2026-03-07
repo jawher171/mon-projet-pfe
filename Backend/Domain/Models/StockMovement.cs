@@ -15,6 +15,7 @@ namespace Domain.Models
         /// <summary>Movement direction: "entry" or "exit". Aligns with frontend type.</summary>
         public string Type { get; set; } = "entry";
         public string? Note { get; set; }
+        public string? Destination { get; set; }
         public Guid Id_s { get; set; }
         public Guid Id_u { get; set; }
         public Stock Stock { get; set; } = null!;

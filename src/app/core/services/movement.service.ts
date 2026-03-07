@@ -25,6 +25,7 @@ interface MovementDto {
   produitNom?: string;
   siteNom?: string;
   utilisateurNom?: string;
+  destination?: string;
 }
 
 @Injectable({
@@ -60,7 +61,8 @@ export class MovementService {
       siteId: dto.siteId,
       produitNom: dto.produitNom,
       siteNom: dto.siteNom,
-      utilisateurNom: dto.utilisateurNom
+      utilisateurNom: dto.utilisateurNom,
+      destination: dto.destination
     };
   }
 
@@ -148,7 +150,8 @@ export class MovementService {
         Id_s: movement.stockId ? String(movement.stockId) : undefined,
         Id_u: movement.userId ? String(movement.userId) : undefined,
         productId: movement.productId ? String(movement.productId) : undefined,
-        siteId: movement.siteId ? String(movement.siteId) : undefined
+        siteId: movement.siteId ? String(movement.siteId) : undefined,
+        destination: movement.destination
       };
       const result = await firstValueFrom(
         this.http.post<MovementDto>(`${API_BASE_URL}/api/StockMovements/AddStockMovement`, dto)

@@ -25,33 +25,18 @@ import { MouvementStock, MouvementFilter, MovementReason } from '../../core/mode
 })
 export class MovementsComponent implements OnInit {
   // Filter signals
-  /** Search term for movement number or product name */
   searchTerm = signal('');
-  
-  /** Filter by movement type (entry/exit) */
   selectedType = signal<'all' | 'entry' | 'exit'>('all');
-  
-  /** Filter by site location */
   selectedSite = signal('');
-  
-  /** Filter by movement reason */
   selectedReason = signal<MovementReason | ''>('');
   
   // Modal states
-  /** Show/hide new movement modal */
   showModal = signal(false);
-  
-  /** Modal mode: add new or view existing */
   modalMode = signal<'add' | 'view'>('add');
-  
-  /** Currently selected movement */
   selectedMovement = signal<MouvementStock | null>(null);
-  
-  /** Type for new movement */
   movementType = signal<'entry' | 'exit'>('entry');
   
   // Form data
-  /** Form fields for new movement */
   formData = signal({
     stockId: '',
     productId: '',
@@ -61,32 +46,29 @@ export class MovementsComponent implements OnInit {
     siteId: '',
     reference: '',
     barcode: '',
-    notes: ''
+    notes: '',
+    destination: ''
   });
   
-  /** Show add custom reason modal */
+  // Custom reason modal
   showAddReasonModal = signal(false);
-  
-  /** Type of reason being added */
   reasonType = signal<'entry' | 'exit'>('entry');
-  
-  /** New custom reason input */
   newCustomReason = signal('');
 
+  // Form UX states
+  isSaving = signal(false);
+  formSubmitted = signal(false);
+  toastMessage = signal('');
+  toastType = signal<'success' | 'error'>('success');
+  showToast = signal(false);
+  private toastTimeout: ReturnType<typeof setTimeout> | null = null;
+
   // Product selection
-  /** Search term for product dropdown */
   productSearch = signal('');
-  
-  /** Whether the product dropdown is visible */
   showProductDropdown = signal(false);
-  
-  /** Currently selected product */
   selectedProduct = signal<Product | null>(null);
-  
-  /** All available products from service */
   allProducts = computed(() => this.productService.getProducts()());
   
-  /** Filtered products based on search */
   filteredProducts = computed(() => {
     const search = this.productSearch().toLowerCase();
     const products = this.allProducts();
@@ -100,6 +82,19 @@ export class MovementsComponent implements OnInit {
 
   // Get data from services
   sites = computed(() => this.siteService.getActiveSites()());
+
+  formSites = computed(() => {
+    if (this.movementType() === 'entry') {
+      return this.sites().filter(s => s.type === 'warehouse');
+    }
+    return this.sites();
+  });
+
+  destinationSites = computed(() => {
+    const originId = this.formData().siteId;
+    if (!originId) return this.sites();
+    return this.sites().filter(s => String(s.id) !== String(originId));
+  });
   
   filter = computed<MouvementFilter>(() => ({
     search: this.searchTerm(),
@@ -111,6 +106,21 @@ export class MovementsComponent implements OnInit {
   movements = computed(() => this.movementService.getFilteredMovements(this.filter())());
   summary = computed(() => this.movementService.getMovementSummary());
 
+  // Validation: computed errors based on current form state
+  formErrors = computed(() => {
+    if (!this.formSubmitted()) return {};
+    const form = this.formData();
+    const errors: Record<string, string> = {};
+    if (!this.selectedProduct()) errors['product'] = 'Veuillez sélectionner un produit';
+    if (!form.quantity || form.quantity <= 0) errors['quantity'] = 'La quantité doit être supérieure à 0';
+    if (!form.reason) errors['reason'] = 'Veuillez sélectionner une raison';
+    if (!form.siteId) errors['siteId'] = 'Veuillez sélectionner un site';
+    if (this.movementType() === 'exit' && !form.destination) errors['destination'] = 'Veuillez sélectionner une destination';
+    return errors;
+  });
+
+  isFormValid = computed(() => Object.keys(this.formErrors()).length === 0);
+
   constructor(
     private movementService: MovementService,
     private siteService: SiteService,
@@ -121,31 +131,26 @@ export class MovementsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Fetch data from backend
     this.loadData();
   }
 
   private async loadData(): Promise<void> {
-    // Fetch all data from backend in parallel
     await Promise.all([
       this.movementService.fetchMovements(),
       this.siteService.fetchSites(),
       this.productService.fetchProducts()
     ]);
 
-    // Read query params from SiteStocksComponent navigation
     const params = this.route.snapshot.queryParams;
     if (params['mode'] && (params['mode'] === 'entry' || params['mode'] === 'exit')) {
       const mode = params['mode'] as 'entry' | 'exit';
       this.movementType.set(mode);
       this.modalMode.set('add');
 
-      // Pre-fill form from query params
       const stockId = params['stockId'] ?? '';
       const siteId = params['siteId'] ?? '';
       const productId = params['productId'] ?? '';
       const productName = params['productName'] ?? '';
-      const siteName = params['siteName'] ?? '';
 
       this.formData.update(f => ({
         ...f,
@@ -155,7 +160,6 @@ export class MovementsComponent implements OnInit {
         productName
       }));
 
-      // Try to find the product to set selectedProduct
       if (productId) {
         const product = this.allProducts().find(p => String(p.id_p) === String(productId));
         if (product) {
@@ -183,23 +187,11 @@ export class MovementsComponent implements OnInit {
     }
   }
 
-  /**
-   * Handle search input changes
-   * @param event Input change event
-   */
   onSearch(event: Event) {
     const input = event.target as HTMLInputElement;
     this.searchTerm.set(input.value);
   }
 
-  /**
-   * Filter by movement type (entry/exit)
-   * @param type Selected movement type
-   */
-  /**
-   * Handle site filter change
-   * @param event Select change event
-   */
   onTypeChange(type: 'all' | 'entry' | 'exit') {
     this.selectedType.set(type);
   }
@@ -238,21 +230,20 @@ export class MovementsComponent implements OnInit {
       siteId: '',
       reference: '',
       barcode: '',
-      notes: ''
+      notes: '',
+      destination: ''
     });
     this.selectedProduct.set(null);
     this.productSearch.set('');
     this.showProductDropdown.set(false);
+    this.formSubmitted.set(false);
+    this.isSaving.set(false);
   }
 
-  /**
-   * Handle product search input
-   */
   onProductSearch(event: Event) {
     const input = event.target as HTMLInputElement;
     this.productSearch.set(input.value);
     this.showProductDropdown.set(true);
-    // Clear selection if user modifies the search
     if (this.selectedProduct() && input.value !== this.selectedProduct()!.nom) {
       this.selectedProduct.set(null);
       this.updateFormField('productId', '');
@@ -261,9 +252,6 @@ export class MovementsComponent implements OnInit {
     }
   }
 
-  /**
-   * Select a product from the dropdown
-   */
   selectProduct(product: Product) {
     this.selectedProduct.set(product);
     this.productSearch.set(product.nom);
@@ -273,9 +261,6 @@ export class MovementsComponent implements OnInit {
     this.updateFormField('barcode', product.codeBarre || '');
   }
 
-  /**
-   * Remove the selected product
-   */
   clearSelectedProduct() {
     this.selectedProduct.set(null);
     this.productSearch.set('');
@@ -285,7 +270,13 @@ export class MovementsComponent implements OnInit {
   }
 
   updateFormField(field: string, value: string | number) {
-    this.formData.update(data => ({ ...data, [field]: value }));
+    this.formData.update(data => {
+      const updated = { ...data, [field]: value };
+      if (field === 'siteId' && String(data.destination) === String(value)) {
+        updated.destination = '';
+      }
+      return updated;
+    });
   }
   
   openAddReasonModal(type?: 'entry' | 'exit') {
@@ -308,45 +299,84 @@ export class MovementsComponent implements OnInit {
   }
 
   async saveMovement() {
-    const form = this.formData();
-    const site = this.sites().find(s => s.id === form.siteId);
-    const product = this.selectedProduct();
-    
-    if (!product || !form.quantity || !form.reason || !form.siteId) {
-      return;
+    this.formSubmitted.set(true);
+
+    if (!this.isFormValid()) return;
+    if (this.isSaving()) return;
+
+    this.isSaving.set(true);
+
+    try {
+      const form = this.formData();
+      const site = this.sites().find(s => String(s.id) === String(form.siteId));
+      const product = this.selectedProduct()!;
+      const productId = String(product.id_p);
+      const currentUser = this.authService.currentUser();
+
+      await this.movementService.addMovement({
+        dateMouvement: new Date(),
+        raison: form.reason as MovementReason,
+        quantite: form.quantity,
+        note: form.notes || undefined,
+        produitNom: form.productName,
+        siteNom: site?.nom || '',
+        productId: productId,
+        siteId: form.siteId,
+        stockId: form.stockId || undefined,
+        userId: currentUser?.id ? String(currentUser.id) : undefined,
+        type: this.movementType(),
+        utilisateurNom: currentUser ? `${currentUser.prenom} ${currentUser.nom}` : 'Utilisateur courant',
+        destination: this.movementType() === 'exit' ? form.destination || undefined : undefined
+      });
+
+      this.closeModal();
+      await this.movementService.fetchMovements();
+      await this.alertService.fetchAlerts();
+
+      this.displayToast(
+        this.movementType() === 'entry'
+          ? 'Entrée de stock enregistrée avec succès'
+          : 'Sortie de stock enregistrée avec succès',
+        'success'
+      );
+    } catch {
+      this.isSaving.set(false);
+      this.displayToast('Erreur lors de l\'enregistrement du mouvement', 'error');
     }
+  }
 
-    const productId = String(product.id_p);
-    
-    // Calculate current stock from movement history
-    const previousStock = this.movementService.getCurrentStock(productId, form.siteId);
-    
-    // Calculate new stock after this movement
-    const newStock = this.movementType() === 'entry' 
-      ? previousStock + form.quantity 
-      : previousStock - form.quantity;
+  private displayToast(message: string, type: 'success' | 'error') {
+    if (this.toastTimeout) clearTimeout(this.toastTimeout);
+    this.toastMessage.set(message);
+    this.toastType.set(type);
+    this.showToast.set(true);
+    this.toastTimeout = setTimeout(() => this.showToast.set(false), 4000);
+  }
 
-    const currentUser = this.authService.currentUser();
+  dismissToast() {
+    this.showToast.set(false);
+    if (this.toastTimeout) clearTimeout(this.toastTimeout);
+  }
 
-    await this.movementService.addMovement({
-      dateMouvement: new Date(),
-      raison: form.reason as MovementReason,
-      quantite: form.quantity,
-      note: form.notes || undefined,
-      produitNom: form.productName,
-      siteNom: site?.nom || '',
-      productId: productId,
-      siteId: form.siteId,
-      stockId: form.stockId || undefined,
-      userId: currentUser?.id ? String(currentUser.id) : undefined,
-      type: this.movementType(),
-      utilisateurNom: currentUser ? `${currentUser.prenom} ${currentUser.nom}` : 'Utilisateur courant'
-    });
+  truncateId(id: string | number): string {
+    const str = String(id);
+    if (str.length <= 8) return str;
+    return str.substring(0, 8) + '…';
+  }
 
-    this.closeModal();
-    await this.movementService.fetchMovements();
-    // Refresh alerts — backend creates them automatically via StockChangedEvent
-    await this.alertService.fetchAlerts();
+  getSiteTypeLabel(type: string): string {
+    return this.siteService.getSiteTypeLabel(type);
+  }
+
+  getSiteName(siteId: string | undefined): string {
+    if (!siteId) return '-';
+    return this.sites().find(s => String(s.id) === String(siteId))?.nom ?? siteId;
+  }
+
+  getSiteType(siteId: string | undefined): string {
+    if (!siteId) return '';
+    const site = this.sites().find(s => String(s.id) === String(siteId));
+    return site ? this.getSiteTypeLabel(site.type) : '';
   }
 
   getReasonLabel(reason: MovementReason): string {

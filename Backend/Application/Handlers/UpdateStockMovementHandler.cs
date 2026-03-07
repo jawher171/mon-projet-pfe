@@ -79,6 +79,7 @@ namespace Application.Handlers
             if (!string.IsNullOrEmpty(dto.Raison))
                 existing.Raison = dto.Raison;
             existing.Note = dto.Note;
+            existing.Destination = dto.Destination;
             if (dto.Id_u != Guid.Empty)
                 existing.Id_u = dto.Id_u;
             if (dto.DateMouvement != default)

@@ -4,7 +4,7 @@
  * Serves as the wrapper for all authenticated pages.
  */
 
-import { Component, computed, signal, OnInit } from '@angular/core';
+import { Component, computed, signal, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -19,6 +19,7 @@ interface MenuItem {
   badge?: number;
   permission?: Permission;
   adminOnly?: boolean;
+  section?: string;
 }
 
 @Component({
@@ -43,14 +44,14 @@ export class MainLayoutComponent implements OnInit {
 
   /** All navigation menu items with permissions */
   private allMenuItems: MenuItem[] = [
-    { icon: 'space_dashboard', label: 'Tableau de Bord', route: '/dashboard' },
-    { icon: 'inventory_2', label: 'Produits', route: '/products', permission: 'view_products' },
-    { icon: 'sync_alt', label: 'Mouvements', route: '/movements', permission: 'manage_movements' },
-    { icon: 'qr_code_scanner', label: 'Scanner', route: '/scanner', permission: 'scan_barcode' },
-    { icon: 'apartment', label: 'Sites', route: '/sites', permission: 'view_sites' },
-    { icon: 'notifications_active', label: 'Alertes', route: '/alerts', permission: 'manage_alerts' },
-    { icon: 'manage_accounts', label: 'Gestion Utilisateurs', route: '/user-management', adminOnly: true },
-    { icon: 'tune', label: 'Paramètres', route: '/settings' },
+    { icon: 'dashboard', label: 'Tableau de Bord', route: '/dashboard' },
+    { icon: 'package_2', label: 'Produits', route: '/products', permission: 'view_products' },
+    { icon: 'swap_vert', label: 'Mouvements', route: '/movements', permission: 'manage_movements' },
+    { icon: 'qr_code_2', label: 'Scanner', route: '/scanner', permission: 'scan_barcode' },
+    { icon: 'domain', label: 'Sites', route: '/sites', permission: 'view_sites' },
+    { icon: 'campaign', label: 'Alertes', route: '/alerts', permission: 'manage_alerts' },
+    { icon: 'admin_panel_settings', label: 'Gestion Utilisateurs', route: '/user-management', adminOnly: true, section: 'Système' },
+    { icon: 'settings', label: 'Paramètres', route: '/settings' },
   ];
 
   /** Filtered menu items based on user permissions */
@@ -78,7 +79,7 @@ export class MainLayoutComponent implements OnInit {
 
   /** User dropdown menu items */
   userMenuItems = [
-    { icon: 'account_circle', label: 'Profil', action: () => this.navigateTo('/profile') },
+    { icon: 'person', label: 'Profil', action: () => this.navigateTo('/profile') },
     { icon: 'logout', label: 'Déconnexion', action: () => this.logout() }
   ];
 
@@ -104,6 +105,14 @@ export class MainLayoutComponent implements OnInit {
    */
   toggleUserMenu() {
     this.showUserMenu.update(value => !value);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (this.showUserMenu() && !target.closest('.relative')) {
+      this.showUserMenu.set(false);
+    }
   }
 
   /**
