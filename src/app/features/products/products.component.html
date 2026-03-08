@@ -109,6 +109,9 @@
               @if (productForm.get('nom')?.touched && productForm.get('nom')?.errors?.['required']) {
                 <span class="text-xs text-destructive">Le nom du produit est requis</span>
               }
+              @if (productForm.get('nom')?.touched && productForm.get('nom')?.errors?.['noNumbers']) {
+                <span class="text-xs text-destructive">Le nom du produit ne doit pas contenir de chiffres</span>
+              }
             </div>
             <div class="space-y-1.5">
               <label for="codeBarre" class="text-sm font-medium text-foreground">Code-barres</label>

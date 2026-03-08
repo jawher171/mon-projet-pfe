@@ -64,12 +64,40 @@ export class ProfileComponent {
   }
 
   /** Persist profile changes to API and update stored user */
+  private readonly ALLOWED_DOMAIN = '@pgh.com';
+  private readonly MIN_PASSWORD_LENGTH = 6;
+  private readonly NAME_PATTERN = /^[A-Za-zÀ-ÿ\s\-']+$/;
+
   async saveChanges() {
     const user = this.currentUser();
     if (!user) return;
 
     if (!this.editForm.prenom?.trim() || !this.editForm.nom?.trim() || !this.editForm.email?.trim()) {
       this.errorMessage.set('Veuillez remplir tous les champs obligatoires.');
+      return;
+    }
+    if (!this.NAME_PATTERN.test(this.editForm.prenom.trim())) {
+      this.errorMessage.set('Le prénom ne doit contenir que des lettres (pas de chiffres).');
+      return;
+    }
+    if (!this.NAME_PATTERN.test(this.editForm.nom.trim())) {
+      this.errorMessage.set('Le nom ne doit contenir que des lettres (pas de chiffres).');
+      return;
+    }
+
+    const email = this.editForm.email.trim().toLowerCase();
+    if (!email.endsWith(this.ALLOWED_DOMAIN)) {
+      this.errorMessage.set(`Seules les adresses ${this.ALLOWED_DOMAIN} sont autorisées.`);
+      return;
+    }
+    const localPart = email.slice(0, email.lastIndexOf('@'));
+    if (localPart.length < 2) {
+      this.errorMessage.set('L\'identifiant avant @ est trop court.');
+      return;
+    }
+
+    if (this.editForm.newPassword && this.editForm.newPassword.length < this.MIN_PASSWORD_LENGTH) {
+      this.errorMessage.set(`Le mot de passe doit contenir au moins ${this.MIN_PASSWORD_LENGTH} caractères.`);
       return;
     }
 

@@ -151,9 +151,23 @@ export class SitesComponent implements OnInit {
     this.formData.update(data => ({ ...data, [field]: value }));
   }
 
+  private readonly NAME_PATTERN = /^[A-Za-zÀ-ÿ\s\-']+$/;
+
   async saveSite() {
     const form = this.formData();
     if (!form.nom || !form.ville) return;
+    if (!this.NAME_PATTERN.test(form.nom)) {
+      alert('Le nom du site ne doit contenir que des lettres (pas de chiffres).');
+      return;
+    }
+    if (!this.NAME_PATTERN.test(form.ville)) {
+      alert('La ville ne doit contenir que des lettres (pas de chiffres).');
+      return;
+    }
+    if (form.responsableSite && !this.NAME_PATTERN.test(form.responsableSite)) {
+      alert('Le nom du responsable ne doit contenir que des lettres (pas de chiffres).');
+      return;
+    }
 
     const siteData = {
       nom: form.nom,

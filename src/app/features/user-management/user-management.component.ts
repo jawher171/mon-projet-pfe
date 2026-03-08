@@ -117,13 +117,51 @@ export class UserManagementComponent implements OnInit {
     };
   }
 
+  private readonly ALLOWED_DOMAIN = '@pgh.com';
+  private readonly MIN_PASSWORD_LENGTH = 6;
+  private readonly NAME_PATTERN = /^[A-Za-zÀ-ÿ\s\-']+$/;
+
+  validateName(value: string, fieldLabel: string): string {
+    if (!value) return `${fieldLabel} est obligatoire.`;
+    if (!this.NAME_PATTERN.test(value))
+      return `${fieldLabel} ne doit contenir que des lettres (pas de chiffres).`;
+    return '';
+  }
+
+  validateEmail(email: string): string {
+    if (!email) return 'L\'adresse e-mail est obligatoire.';
+    if (!email.includes('@')) return 'Format d\'adresse e-mail invalide.';
+    if (!email.toLowerCase().endsWith(this.ALLOWED_DOMAIN))
+      return `Seules les adresses ${this.ALLOWED_DOMAIN} sont autorisées.`;
+    const localPart = email.slice(0, email.lastIndexOf('@'));
+    if (localPart.length < 2) return 'L\'identifiant avant @ est trop court.';
+    return '';
+  }
+
+  validatePassword(password: string, isRequired: boolean): string {
+    if (isRequired && !password) return 'Le mot de passe est obligatoire.';
+    if (password && password.length < this.MIN_PASSWORD_LENGTH)
+      return `Le mot de passe doit contenir au moins ${this.MIN_PASSWORD_LENGTH} caractères.`;
+    return '';
+  }
+
   async saveUser() {
-    if (!this.formData.prenom?.trim() || !this.formData.nom?.trim() || !this.formData.email?.trim()) {
-      this.errorMessage.set('Veuillez remplir tous les champs obligatoires');
+    const prenomErr = this.validateName(this.formData.prenom?.trim(), 'Le prénom');
+    if (prenomErr) { this.errorMessage.set(prenomErr); return; }
+
+    const nomErr = this.validateName(this.formData.nom?.trim(), 'Le nom');
+    if (nomErr) { this.errorMessage.set(nomErr); return; }
+
+    const emailErr = this.validateEmail(this.formData.email?.trim());
+    if (emailErr) {
+      this.errorMessage.set(emailErr);
       return;
     }
-    if (!this.isEditing() && !this.formData.password?.trim()) {
-      this.errorMessage.set('Le mot de passe est obligatoire pour un nouvel utilisateur.');
+
+    const pwRequired = !this.isEditing();
+    const pwErr = this.validatePassword(this.formData.password, pwRequired);
+    if (pwErr) {
+      this.errorMessage.set(pwErr);
       return;
     }
 

@@ -198,6 +198,47 @@
   }
 }
 
+/* ═══════════════ FIELD ERRORS ═══════════════ */
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: 0.325rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #dc2626;
+  padding-left: 2px;
+  animation: shake-in 0.3s ease;
+
+  .material-symbols-rounded {
+    font-size: 13px;
+    flex-shrink: 0;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+  }
+}
+
+.form-field.has-error {
+  .input-shell input {
+    border-color: #f87171;
+    background: rgba(254, 242, 242, 0.5);
+
+    &:focus {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+  }
+
+  .inp-icon {
+    color: #f87171 !important;
+  }
+}
+
+@keyframes shake-in {
+  0%   { transform: translateX(-4px); opacity: 0; }
+  40%  { transform: translateX(3px); }
+  70%  { transform: translateX(-2px); }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
 /* ═══════════════ INPUT ═══════════════ */
 .input-shell {
   position: relative;

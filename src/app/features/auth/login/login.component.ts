@@ -5,12 +5,15 @@
  * Displays mock test accounts for development and testing.
  */
 
-import { Component, signal } from '@angular/core';
+import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { USE_BACKEND } from '../../../app.config';
+
+const ALLOWED_DOMAIN = '@pgh.com';
+const MIN_PASSWORD_LENGTH = 6;
 
 @Component({
   selector: 'app-login',
@@ -20,64 +23,71 @@ import { USE_BACKEND } from '../../../app.config';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
-  /** User email input (ngModel) */
   emailValue = '';
-  
-  /** User password input (ngModel) */
   passwordValue = '';
-  
-  /** Show/hide password toggle state */
-  showPassword = signal(false);
-  
-  /** Loading state during login */
-  isLoading = signal(false);
-  
-  /** Error message display */
-  errorMessage = signal('');
 
-  /** Show mock credentials hint when backend is disabled */
+  showPassword = signal(false);
+  isLoading = signal(false);
+  errorMessage = signal('');
+  formSubmitted = signal(false);
+
   useBackend = USE_BACKEND;
+
+  emailError = computed(() => {
+    if (!this.formSubmitted()) return '';
+    const email = this.emailValue?.trim() ?? '';
+    if (!email) return 'L\'adresse e-mail est obligatoire.';
+    if (!email.includes('@')) return 'Format d\'adresse e-mail invalide.';
+    if (!email.toLowerCase().endsWith(ALLOWED_DOMAIN))
+      return `Seules les adresses ${ALLOWED_DOMAIN} sont autorisées.`;
+    const localPart = email.slice(0, email.lastIndexOf('@'));
+    if (localPart.length < 2) return 'L\'identifiant avant @ est trop court.';
+    return '';
+  });
+
+  passwordError = computed(() => {
+    if (!this.formSubmitted()) return '';
+    const pw = this.passwordValue ?? '';
+    if (!pw) return 'Le mot de passe est obligatoire.';
+    if (pw.length < MIN_PASSWORD_LENGTH)
+      return `Le mot de passe doit contenir au moins ${MIN_PASSWORD_LENGTH} caractères.`;
+    return '';
+  });
 
   constructor(
     private authService: AuthService,
     private router: Router
   ) {}
 
-  /**
-   * Handle login form submission
-   * Validates input, authenticates user, and navigates to dashboard on success
-   */
   async onSubmit() {
-    const email = this.emailValue?.trim() ?? '';
-    const password = this.passwordValue?.trim() ?? '';
-    if (!email || !password) {
-      this.errorMessage.set('Veuillez remplir tous les champs.');
+    this.formSubmitted.set(true);
+
+    if (this.emailError() || this.passwordError()) {
+      this.errorMessage.set('');
       return;
     }
+
+    const email = this.emailValue.trim();
+    const password = this.passwordValue.trim();
 
     this.isLoading.set(true);
     this.errorMessage.set('');
 
     try {
       const success = await this.authService.login(email, password);
-      
       if (success) {
         this.router.navigate(['/dashboard']);
       } else {
-        this.errorMessage.set('Invalid email or password. Check the credentials below.');
+        this.errorMessage.set('E-mail ou mot de passe incorrect.');
       }
-    } catch (error) {
-      this.errorMessage.set('An error occurred. Please try again.');
+    } catch {
+      this.errorMessage.set('Une erreur est survenue. Veuillez réessayer.');
     } finally {
       this.isLoading.set(false);
     }
   }
 
-  /**
-   * Toggle password visibility in input field
-   */
   togglePasswordVisibility() {
     this.showPassword.update(show => !show);
   }
-
 }

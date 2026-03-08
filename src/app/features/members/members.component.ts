@@ -109,14 +109,50 @@ export class MembersComponent implements OnInit {
     }
   }
 
+  private readonly ALLOWED_DOMAIN = '@pgh.com';
+  private readonly MIN_PASSWORD_LENGTH = 6;
+  private readonly NAME_PATTERN = /^[A-Za-zÀ-ÿ\s\-']+$/;
+
   async saveMember(): Promise<void> {
     const data = this.formData;
-    if (!data.email?.trim() || !data.nom?.trim() || !data.prenom?.trim()) {
-      this.errorMessage.set('Veuillez remplir tous les champs obligatoires.');
+    if (!data.prenom?.trim()) {
+      this.errorMessage.set('Le prénom est obligatoire.');
       return;
     }
+    if (!this.NAME_PATTERN.test(data.prenom.trim())) {
+      this.errorMessage.set('Le prénom ne doit contenir que des lettres (pas de chiffres).');
+      return;
+    }
+    if (!data.nom?.trim()) {
+      this.errorMessage.set('Le nom est obligatoire.');
+      return;
+    }
+    if (!this.NAME_PATTERN.test(data.nom.trim())) {
+      this.errorMessage.set('Le nom ne doit contenir que des lettres (pas de chiffres).');
+      return;
+    }
+    if (!data.email?.trim()) {
+      this.errorMessage.set('L\'adresse e-mail est obligatoire.');
+      return;
+    }
+
+    const email = data.email.trim().toLowerCase();
+    if (!email.endsWith(this.ALLOWED_DOMAIN)) {
+      this.errorMessage.set(`Seules les adresses ${this.ALLOWED_DOMAIN} sont autorisées.`);
+      return;
+    }
+    const localPart = email.slice(0, email.lastIndexOf('@'));
+    if (localPart.length < 2) {
+      this.errorMessage.set('L\'identifiant avant @ est trop court.');
+      return;
+    }
+
     if (this.dialogMode() === 'add' && !data.password?.trim()) {
       this.errorMessage.set('Le mot de passe est obligatoire pour un nouvel utilisateur.');
+      return;
+    }
+    if (data.password && data.password.length < this.MIN_PASSWORD_LENGTH) {
+      this.errorMessage.set(`Le mot de passe doit contenir au moins ${this.MIN_PASSWORD_LENGTH} caractères.`);
       return;
     }
 

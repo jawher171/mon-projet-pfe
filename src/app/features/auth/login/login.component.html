@@ -18,14 +18,13 @@
         <span class="material-symbols-rounded">lightbulb</span>
         <div>
           <strong>Comptes démo</strong>
-          <span>admin&#64;inventaire.ma / admin123</span>
+          <span>admin&#64;pgh.com / admin123</span>
         </div>
       </div>
     }
 
     <!-- Form -->
     <form (ngSubmit)="onSubmit()" class="login-form">
-      <!-- Error -->
       @if (errorMessage()) {
         <div class="form-error">
           <span class="material-symbols-rounded">error</span>
@@ -34,24 +33,30 @@
       }
 
       <!-- Email -->
-      <div class="form-field">
+      <div class="form-field" [class.has-error]="emailError()">
         <label for="login-email">Adresse e-mail</label>
         <div class="input-shell">
           <span class="material-symbols-rounded inp-icon">alternate_email</span>
           <input
             id="login-email"
             type="email"
-            placeholder="nom@poulina.com"
+            placeholder="nom@pgh.com"
             [(ngModel)]="emailValue"
             name="email"
             required
             autocomplete="email"
           />
         </div>
+        @if (emailError()) {
+          <span class="field-error">
+            <span class="material-symbols-rounded">warning</span>
+            {{ emailError() }}
+          </span>
+        }
       </div>
 
       <!-- Password -->
-      <div class="form-field">
+      <div class="form-field" [class.has-error]="passwordError()">
         <label for="login-pw">Mot de passe</label>
         <div class="input-shell">
           <span class="material-symbols-rounded inp-icon">passkey</span>
@@ -62,6 +67,7 @@
             [(ngModel)]="passwordValue"
             name="password"
             required
+            minlength="6"
             autocomplete="current-password"
           />
           <button type="button" class="eye-toggle" (click)="togglePasswordVisibility()">
@@ -70,6 +76,12 @@
             </span>
           </button>
         </div>
+        @if (passwordError()) {
+          <span class="field-error">
+            <span class="material-symbols-rounded">warning</span>
+            {{ passwordError() }}
+          </span>
+        }
       </div>
 
       <!-- Remember -->

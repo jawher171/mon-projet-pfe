@@ -6,7 +6,7 @@
 
 import { Component, OnInit, signal, computed, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
 import { CategoryService } from '../../core/services/category.service';
@@ -106,10 +106,15 @@ getproducts() {
   /**
    * Initialize product form
    */
+  static noNumbers(control: AbstractControl): ValidationErrors | null {
+    if (!control.value) return null;
+    return /\d/.test(control.value) ? { noNumbers: true } : null;
+  }
+
   initForm() {
     this.productForm = this.fb.group({
       id_p: [''],
-      nom: ['', Validators.required],
+      nom: ['', [Validators.required, ProductsComponent.noNumbers]],
       description: [''],
       id_c: [null, Validators.required],
       prix: [0, [Validators.required, Validators.min(0)]],
