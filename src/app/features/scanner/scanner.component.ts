@@ -4,14 +4,17 @@
  * Supports manual entry and simulated scanning with quick action modes.
  */
 
-import { Component, OnInit, signal, computed, EventEmitter, Output, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, EventEmitter, Output, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
 import { MovementService } from '../../core/services/movement.service';
 import { SiteService } from '../../core/services/site.service';
+import { ScanSessionService } from '../../core/services/scan-session.service';
 import { Product } from '../../core/models/product.model';
 import { MovementReason, MOVEMENT_REASONS } from '../../core/models/movement.model';
+import { Subscription } from 'rxjs';
 
 /** Result structure for a barcode scan */
 interface ScanResult {
@@ -28,13 +31,24 @@ interface ScanResult {
   templateUrl: './scanner.component.html',
   styleUrls: ['./scanner.component.scss']
 })
-export class ScannerComponent implements OnInit {
+export class ScannerComponent implements OnInit, OnDestroy {
   // Component mode
   @Input() mode: 'standalone' | 'embedded' = 'standalone';
   
   // Output events
   @Output() productScanned = new EventEmitter<Product>();
   @Output() barcodeScanned = new EventEmitter<string>();
+
+  private route = inject(ActivatedRoute);
+  private scanSession = inject(ScanSessionService);
+  private scanSub?: Subscription;
+
+  /** Phone scan mode: when sessionId + purpose are in query params */
+  phoneMode = signal(false);
+  phonePurpose = signal('');
+  phoneSessionId = signal('');
+  phoneScanSent = signal(false);
+  phoneScanError = signal('');
 
   // Scanner state
   /** Is scanning active */
@@ -91,7 +105,19 @@ export class ScannerComponent implements OnInit {
     private siteService: SiteService
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Check for phone scan mode via query params
+    const params = this.route.snapshot.queryParams;
+    if (params['sessionId'] && params['purpose']) {
+      this.phoneMode.set(true);
+      this.phoneSessionId.set(params['sessionId']);
+      this.phonePurpose.set(params['purpose']);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.scanSub?.unsubscribe();
+  }
 
   // Simulate barcode scanning
   /**
@@ -126,35 +152,51 @@ export class ScannerComponent implements OnInit {
   }
 
   // Process scanned barcode
-  processBarcode(barcode: string) {
+  async processBarcode(barcode: string) {
     this.isScanning.set(true);
-    
-    // Simulate API delay
-    setTimeout(() => {
-      const product = this.findProductByBarcode(barcode);
-      
-      const result: ScanResult = {
-        barcode,
-        product,
-        timestamp: new Date(),
-        status: product ? 'found' : 'not_found'
-      };
-      
-      this.lastScan.set(result);
-      this.scanHistory.update(history => [result, ...history].slice(0, 20));
-      this.isScanning.set(false);
-      
-      if (product) {
-        this.productScanned.emit(product);
-        
-        // If in quick action mode, process the action
-        if (this.quickActionMode()) {
-          this.showResultModal.set(true);
-        }
-      } else {
-        this.barcodeScanned.emit(barcode);
+
+    // Phone mode: send to SignalR session and return
+    if (this.phoneMode()) {
+      try {
+        this.phoneScanError.set('');
+        await this.scanSession.sendScan(
+          this.phoneSessionId(),
+          this.phonePurpose(),
+          barcode
+        );
+        this.phoneScanSent.set(true);
+        setTimeout(() => this.phoneScanSent.set(false), 3000);
+      } catch (err: any) {
+        console.error('[Scanner] SendScan failed', err);
+        this.phoneScanError.set('Échec de l\'envoi — vérifiez la connexion');
+        setTimeout(() => this.phoneScanError.set(''), 5000);
       }
-    }, 500);
+      this.isScanning.set(false);
+      return;
+    }
+
+    // Normal mode: lookup via API
+    const product = await this.productService.getProductByBarcode(barcode);
+
+    const result: ScanResult = {
+      barcode,
+      product,
+      timestamp: new Date(),
+      status: product ? 'found' : 'not_found'
+    };
+
+    this.lastScan.set(result);
+    this.scanHistory.update(history => [result, ...history].slice(0, 20));
+    this.isScanning.set(false);
+
+    if (product) {
+      this.productScanned.emit(product);
+      if (this.quickActionMode()) {
+        this.showResultModal.set(true);
+      }
+    } else {
+      this.barcodeScanned.emit(barcode);
+    }
   }
 
   findProductByBarcode(barcode: string): Product | null {
@@ -212,7 +254,9 @@ export class ScannerComponent implements OnInit {
     this.showResultModal.set(false);
   }
 
-  // Camera controls (simulated)
+  // Camera controls - real camera via ZXing
+  private codeReader: any = null;
+
   toggleCamera() {
     if (this.cameraActive()) {
       this.stopCamera();
@@ -221,14 +265,46 @@ export class ScannerComponent implements OnInit {
     }
   }
 
-  startCamera() {
+  async startCamera() {
     this.cameraError.set('');
-    // In a real app, this would access the device camera
-    // For now, we'll simulate camera functionality
-    this.cameraActive.set(true);
+    try {
+      const { BrowserMultiFormatReader } = await import('@zxing/browser');
+      this.codeReader = new BrowserMultiFormatReader();
+      this.cameraActive.set(true);
+
+      // Wait for video element to appear in DOM
+      setTimeout(() => {
+        const videoEl = document.getElementById('scanner-video') as HTMLVideoElement;
+        if (!videoEl) {
+          this.cameraError.set('Élément vidéo introuvable');
+          this.cameraActive.set(false);
+          return;
+        }
+        this.codeReader.decodeFromVideoDevice(undefined, videoEl, (result: any, err: any) => {
+          if (result) {
+            const text = result.getText();
+            if (text && !this.isScanning()) {
+              this.processBarcode(text);
+            }
+          }
+        });
+      }, 100);
+    } catch (err: any) {
+      this.cameraError.set(err?.message || 'Impossible d\'accéder à la caméra');
+      this.cameraActive.set(false);
+    }
   }
 
   stopCamera() {
+    if (this.codeReader) {
+      // BrowserMultiFormatReader doesn't have a reset for this API, stop tracks manually
+      const videoEl = document.getElementById('scanner-video') as HTMLVideoElement;
+      if (videoEl?.srcObject) {
+        (videoEl.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+        videoEl.srcObject = null;
+      }
+      this.codeReader = null;
+    }
     this.cameraActive.set(false);
   }
 

@@ -28,6 +28,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
   },
 
+  // Phone scan route - accessible without auth for phone barcode scanning via QR code
+  {
+    path: 'scan',
+    loadComponent: () => import('./features/scanner/scanner.component').then(m => m.ScannerComponent)
+  },
+
   // Protected routes wrapped in main layout
   {
     path: '',

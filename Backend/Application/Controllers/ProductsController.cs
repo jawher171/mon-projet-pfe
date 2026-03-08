@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Dtos;
+using Application.Queries;
 using AutoMapper;
 using Domain.Commands;
 using Domain.Models;
@@ -86,6 +87,14 @@ namespace Application.Controllers
             var deleted = await _mediator.Send(new RemoveGenericCommand<Product>(id));
             if (deleted == null) return NotFound();
             return NoContent();
+        }
+
+        [HttpGet("by-barcode/{code}")]
+        public async Task<IActionResult> GetByBarcode(string code)
+        {
+            var product = await _mediator.Send(new GetProductByBarcodeQuery(code));
+            if (product == null) return NotFound(new { message = "Product not found" });
+            return Ok(_mapper.Map<ProductDto>(product));
         }
     }
 }

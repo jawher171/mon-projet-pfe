@@ -94,6 +94,21 @@ export class SettingsComponent implements OnInit {
   /** Track save feedback */
   saved = signal(false);
 
+  /** Role management */
+  showAddRoleModal = signal(false);
+  newRoleName = signal('');
+  newRoleDescription = signal('');
+  roleError = signal('');
+  savingRole = signal(false);
+
+  showDeleteRoleModal = signal(false);
+  roleToDelete = signal<Role | null>(null);
+  deletingRole = signal(false);
+  deleteRoleError = signal('');
+
+  /** Built-in roles that cannot be deleted */
+  readonly protectedRoles = ['admin', 'gestionnaire_de_stock', 'operateur'];
+
   ngOnInit(): void {
     void this.rolesService.fetchRoles();
   }
@@ -182,5 +197,71 @@ export class SettingsComponent implements OnInit {
   /** Total available permissions */
   get totalPermissions(): number {
     return this.permissionGroups.reduce((sum, g) => sum + g.permissions.length, 0);
+  }
+
+  // ── Role CRUD ──────────────────────────────────
+  openAddRoleModal() {
+    this.newRoleName.set('');
+    this.newRoleDescription.set('');
+    this.roleError.set('');
+    this.showAddRoleModal.set(true);
+  }
+
+  closeAddRoleModal() {
+    this.showAddRoleModal.set(false);
+  }
+
+  async saveNewRole() {
+    const name = this.newRoleName().trim();
+    if (!name) {
+      this.roleError.set('Le nom du rôle est obligatoire.');
+      return;
+    }
+    if (!/^[A-Za-zÀ-ÿ0-9_\s\-]+$/.test(name)) {
+      this.roleError.set('Le nom ne doit contenir que des lettres, chiffres, tirets ou underscores.');
+      return;
+    }
+    this.savingRole.set(true);
+    this.roleError.set('');
+    const result = await this.rolesService.createRole(name, this.newRoleDescription().trim() || undefined);
+    this.savingRole.set(false);
+    if (result.success) {
+      this.closeAddRoleModal();
+      this.saved.set(true);
+      setTimeout(() => this.saved.set(false), 2000);
+    } else {
+      this.roleError.set(result.message ?? 'Erreur lors de la création.');
+    }
+  }
+
+  openDeleteRoleModal(role: Role) {
+    this.roleToDelete.set(role);
+    this.deleteRoleError.set('');
+    this.showDeleteRoleModal.set(true);
+  }
+
+  cancelDeleteRole() {
+    this.showDeleteRoleModal.set(false);
+    this.roleToDelete.set(null);
+  }
+
+  async confirmDeleteRole() {
+    const role = this.roleToDelete();
+    if (!role) return;
+    this.deletingRole.set(true);
+    this.deleteRoleError.set('');
+    const result = await this.rolesService.deleteRole(role.nom);
+    this.deletingRole.set(false);
+    if (result.success) {
+      this.cancelDeleteRole();
+      this.saved.set(true);
+      setTimeout(() => this.saved.set(false), 2000);
+    } else {
+      this.deleteRoleError.set(result.message ?? 'Erreur lors de la suppression.');
+    }
+  }
+
+  isProtectedRole(role: Role): boolean {
+    return this.protectedRoles.includes(role.nom.toLowerCase());
   }
 }

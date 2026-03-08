@@ -4,26 +4,31 @@
  * Allows recording, viewing, and filtering inventory transactions.
  */
 
-import { Component, signal, computed, HostListener, OnInit } from '@angular/core';
+import { Component, signal, computed, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { MovementService } from '../../core/services/movement.service';
 import { SiteService } from '../../core/services/site.service';
 import { ProductService } from '../../core/services/product.service';
+import { StockService } from '../../core/services/stock.service';
 import { AuthService } from '../../core/services/auth.service';
 import { AlertService } from '../../core/services/alert.service';
+import { ScanSessionService } from '../../core/services/scan-session.service';
+import { QrScanModalComponent } from '../../shared/components/qr-scan-modal.component';
 import { Product } from '../../core/models/product.model';
 import { MouvementStock, MouvementFilter, MovementReason } from '../../core/models/movement.model';
+import { Subscription } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-movements',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, QrScanModalComponent],
   templateUrl: './movements.component.html',
   styleUrls: ['./movements.component.scss']
 })
-export class MovementsComponent implements OnInit {
+export class MovementsComponent implements OnInit, OnDestroy {
   // Filter signals
   searchTerm = signal('');
   selectedType = signal<'all' | 'entry' | 'exit'>('all');
@@ -63,21 +68,48 @@ export class MovementsComponent implements OnInit {
   showToast = signal(false);
   private toastTimeout: ReturnType<typeof setTimeout> | null = null;
 
+  // QR scan for product field
+  showQrScanModal = signal(false);
+  scanUrl = signal('');
+  scanConnected = signal(false);
+  private scanSub?: Subscription;
+
   // Product selection
   productSearch = signal('');
   showProductDropdown = signal(false);
   selectedProduct = signal<Product | null>(null);
   allProducts = computed(() => this.productService.getProducts()());
-  
+
+  /** For exit: only products that have stock at the selected site */
+  availableProducts = computed(() => {
+    const products = this.allProducts();
+    if (this.movementType() !== 'exit') return products;
+    const siteId = this.formData().siteId;
+    if (!siteId) return [];
+    const siteStocks = this.stockService.getStocksBySite(siteId).filter(s => s.quantiteDisponible > 0);
+    const productIdsInStock = new Set(siteStocks.map(s => String(s.produitId)));
+    return products.filter(p => productIdsInStock.has(String(p.id_p)));
+  });
+
   filteredProducts = computed(() => {
     const search = this.productSearch().toLowerCase();
-    const products = this.allProducts();
+    const products = this.availableProducts();
     if (!search) return products;
     return products.filter(p =>
       p.nom.toLowerCase().includes(search) ||
       (p.codeBarre?.toLowerCase().includes(search) ?? false) ||
       (p.categorieLibelle?.toLowerCase().includes(search) ?? false)
     );
+  });
+
+  /** Available stock for the selected product at the selected site (exit only) */
+  availableStock = computed(() => {
+    if (this.movementType() !== 'exit') return null;
+    const product = this.selectedProduct();
+    const siteId = this.formData().siteId;
+    if (!product || !siteId) return null;
+    const stock = this.stockService.getStockForProductSite(String(product.id_p), siteId);
+    return stock?.quantiteDisponible ?? 0;
   });
 
   // Get data from services
@@ -113,6 +145,9 @@ export class MovementsComponent implements OnInit {
     const errors: Record<string, string> = {};
     if (!this.selectedProduct()) errors['product'] = 'Veuillez sélectionner un produit';
     if (!form.quantity || form.quantity <= 0) errors['quantity'] = 'La quantité doit être supérieure à 0';
+    if (this.movementType() === 'exit' && this.availableStock() !== null && form.quantity > this.availableStock()!) {
+      errors['quantity'] = `Quantité insuffisante en stock (disponible: ${this.availableStock()})`;
+    }
     if (!form.reason) errors['reason'] = 'Veuillez sélectionner une raison';
     if (!form.siteId) errors['siteId'] = 'Veuillez sélectionner un site';
     if (this.movementType() === 'exit' && !form.destination) errors['destination'] = 'Veuillez sélectionner une destination';
@@ -125,20 +160,103 @@ export class MovementsComponent implements OnInit {
     private movementService: MovementService,
     private siteService: SiteService,
     private productService: ProductService,
+    private stockService: StockService,
     private authService: AuthService,
     private alertService: AlertService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private scanSessionService: ScanSessionService
   ) {}
 
   ngOnInit(): void {
     this.loadData();
   }
 
+  ngOnDestroy(): void {
+    this.scanSub?.unsubscribe();
+    void this.scanSessionService.stop();
+  }
+
+  /** Open QR scan modal for product barcode scanning */
+  async openProductScan() {
+    const sessionId = this.scanSessionService.generateSessionId();
+    const baseUrl = this.resolveScanBaseUrl();
+    this.scanUrl.set(`${baseUrl}/scan?sessionId=${sessionId}&purpose=MOVEMENT_PRODUCT`);
+    this.showQrScanModal.set(true);
+
+    this.scanSub?.unsubscribe();
+    this.scanSub = this.scanSessionService.scan$.subscribe(async (event) => {
+      if (event.purpose === 'MOVEMENT_PRODUCT') {
+        // Lookup product by barcode
+        const product = await this.productService.getProductByBarcode(event.code);
+        if (product) {
+          this.selectProduct(product);
+          this.showQrScanModal.set(false);
+          this.scanConnected.set(false);
+          void this.scanSessionService.stop();
+          // Focus quantity input
+          setTimeout(() => {
+            const qtyInput = document.getElementById('movement-quantity') as HTMLInputElement;
+            qtyInput?.focus();
+          }, 100);
+        } else {
+          this.displayToast('Produit non trouvé pour le code-barres: ' + event.code, 'error');
+        }
+      }
+    });
+
+    try {
+      await this.scanSessionService.joinSession(sessionId);
+      this.scanConnected.set(true);
+    } catch (err) {
+      console.error('[Movements] SignalR connection failed', err);
+      // QR modal is already shown — user can still scan
+    }
+  }
+
+  /**
+   * Build a phone-reachable base URL for QR links.
+   * If app is opened on localhost, we ask once for the LAN URL and remember it.
+   */
+  private resolveScanBaseUrl(): string {
+    const configured = environment.scanPublicBaseUrl?.trim();
+    if (configured && !this.isLocalhostUrl(configured)) return configured.replace(/\/+$/, '');
+
+    const remembered = localStorage.getItem('scan_public_base_url')?.trim();
+    if (remembered && !this.isLocalhostUrl(remembered)) return remembered.replace(/\/+$/, '');
+    if (remembered && this.isLocalhostUrl(remembered)) {
+      localStorage.removeItem('scan_public_base_url');
+    }
+
+    const { origin, hostname } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'https://uncontingent-nongeographically-wilma.ngrok-free.dev';
+    }
+
+    return origin;
+  }
+
+  private isLocalhostUrl(url: string): boolean {
+    try {
+      const parsed = new URL(url);
+      return parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
+    } catch {
+      return url.includes('localhost') || url.includes('127.0.0.1');
+    }
+  }
+
+  closeQrScanModal() {
+    this.showQrScanModal.set(false);
+    this.scanConnected.set(false);
+    this.scanSub?.unsubscribe();
+    void this.scanSessionService.stop();
+  }
+
   private async loadData(): Promise<void> {
     await Promise.all([
       this.movementService.fetchMovements(),
       this.siteService.fetchSites(),
-      this.productService.fetchProducts()
+      this.productService.fetchProducts(),
+      this.stockService.fetchStocks()
     ]);
 
     const params = this.route.snapshot.queryParams;
@@ -275,6 +393,10 @@ export class MovementsComponent implements OnInit {
       if (field === 'siteId' && String(data.destination) === String(value)) {
         updated.destination = '';
       }
+      // When site changes in exit mode, clear selected product (it may not be in stock at new site)
+      if (field === 'siteId' && this.movementType() === 'exit') {
+        this.clearSelectedProduct();
+      }
       return updated;
     });
   }
@@ -331,6 +453,7 @@ export class MovementsComponent implements OnInit {
 
       this.closeModal();
       await this.movementService.fetchMovements();
+      await this.stockService.fetchStocks();
       await this.alertService.fetchAlerts();
 
       this.displayToast(

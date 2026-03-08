@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { USE_BACKEND } from '../../../app.config';
 
-const ALLOWED_DOMAIN = '@pgh.com';
+const ALLOWED_DOMAINS = ['@pgh.com', '@inventaire.ma'];
 const MIN_PASSWORD_LENGTH = 6;
 
 @Component({
@@ -38,8 +38,10 @@ export class LoginComponent {
     const email = this.emailValue?.trim() ?? '';
     if (!email) return 'L\'adresse e-mail est obligatoire.';
     if (!email.includes('@')) return 'Format d\'adresse e-mail invalide.';
-    if (!email.toLowerCase().endsWith(ALLOWED_DOMAIN))
-      return `Seules les adresses ${ALLOWED_DOMAIN} sont autorisées.`;
+    const lower = email.toLowerCase();
+    if (!ALLOWED_DOMAINS.some(domain => lower.endsWith(domain))) {
+      return `Seules les adresses ${ALLOWED_DOMAINS.join(' ou ')} sont autorisées.`;
+    }
     const localPart = email.slice(0, email.lastIndexOf('@'));
     if (localPart.length < 2) return 'L\'identifiant avant @ est trop court.';
     return '';

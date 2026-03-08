@@ -1,0 +1,18 @@
+{
+  "/backend": {
+    "target": "https://localhost:44353",
+    "secure": false,
+    "changeOrigin": true,
+    "ws": true,
+    "pathRewrite": {
+      "^/backend": ""
+    },
+    "logLevel": "debug"
+  },
+  "/relay": {
+    "target": "http://localhost:3199",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

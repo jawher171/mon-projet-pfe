@@ -21,10 +21,16 @@ interface LoginResponse {
 
 const MOCK_ACCOUNTS: { email: string; password: string; user: User }[] = [
   { email: 'admin@pgh.com', password: 'admin123', user: { id: 'user_001', email: 'admin@pgh.com', nom: 'Admin', prenom: 'Ahmed', role: 'admin', status: 'active', lastLogin: new Date() } },
+  { email: 'admin@inventaire.ma', password: 'admin123', user: { id: 'user_001a', email: 'admin@inventaire.ma', nom: 'Admin', prenom: 'Ahmed', role: 'admin', status: 'active', lastLogin: new Date() } },
+  { email: 'admin2@inventaire.ma', password: 'admin123', user: { id: 'user_001b', email: 'admin2@inventaire.ma', nom: 'Ben Ali', prenom: 'Yassine', role: 'admin', status: 'active', lastLogin: new Date() } },
   { email: 'stock@pgh.com', password: 'stock123', user: { id: 'user_002', email: 'stock@pgh.com', nom: 'Zahra', prenom: 'Fatima', role: 'gestionnaire_de_stock', status: 'active', lastLogin: new Date() } },
+  { email: 'stock@inventaire.ma', password: 'stock123', user: { id: 'user_002a', email: 'stock@inventaire.ma', nom: 'Zahra', prenom: 'Fatima', role: 'gestionnaire_de_stock', status: 'active', lastLogin: new Date() } },
   { email: 'operator@pgh.com', password: 'operator123', user: { id: 'user_003', email: 'operator@pgh.com', nom: 'Salah', prenom: 'Mohammed', role: 'operateur', status: 'active', lastLogin: new Date() } },
+  { email: 'operator@inventaire.ma', password: 'operator123', user: { id: 'user_003a', email: 'operator@inventaire.ma', nom: 'Salah', prenom: 'Mohammed', role: 'operateur', status: 'active', lastLogin: new Date() } },
   { email: 'stock2@pgh.com', password: 'stock123', user: { id: 'user_004', email: 'stock2@pgh.com', nom: 'Amrani', prenom: 'Youssef', role: 'gestionnaire_de_stock', status: 'active', lastLogin: new Date() } },
-  { email: 'operator2@pgh.com', password: 'operator123', user: { id: 'user_005', email: 'operator2@pgh.com', nom: 'Khaldi', prenom: 'Leila', role: 'operateur', status: 'inactive', lastLogin: new Date() } }
+  { email: 'stock2@inventaire.ma', password: 'stock123', user: { id: 'user_004a', email: 'stock2@inventaire.ma', nom: 'Amrani', prenom: 'Youssef', role: 'gestionnaire_de_stock', status: 'active', lastLogin: new Date() } },
+  { email: 'operator2@pgh.com', password: 'operator123', user: { id: 'user_005', email: 'operator2@pgh.com', nom: 'Khaldi', prenom: 'Leila', role: 'operateur', status: 'active', lastLogin: new Date() } },
+  { email: 'operator2@inventaire.ma', password: 'operator123', user: { id: 'user_005a', email: 'operator2@inventaire.ma', nom: 'Khaldi', prenom: 'Leila', role: 'operateur', status: 'active', lastLogin: new Date() } }
 ];
 
 @Injectable({ providedIn: 'root' })

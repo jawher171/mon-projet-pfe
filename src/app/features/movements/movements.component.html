@@ -173,9 +173,51 @@
       <div class="p-6 overflow-y-auto">
         @if (modalMode() === 'add') {
           <div class="grid grid-cols-2 gap-4">
+            <!-- Site (shown FIRST for exit mode) -->
+            @if (movementType() === 'exit') {
+              <div>
+                <label class="block text-sm font-medium text-foreground mb-1.5">Site (origine) *</label>
+                <select class="w-full px-3 py-2.5 bg-background border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [class]="formErrors()['siteId'] ? 'border-red-400 focus:ring-red-300' : 'border-input'" [value]="formData().siteId" (change)="updateFormField('siteId', $any($event.target).value)">
+                  <option value="">Sélectionner un site</option>
+                  @for (site of formSites(); track site.id) {
+                    <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
+                  }
+                </select>
+                @if (formErrors()['siteId']) {
+                  <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                    <span class="material-symbols-rounded text-xs">warning</span>
+                    {{ formErrors()['siteId'] }}
+                  </p>
+                }
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-foreground mb-1.5">Destination *</label>
+                <select class="w-full px-3 py-2.5 bg-background border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [class]="formErrors()['destination'] ? 'border-red-400 focus:ring-red-300' : 'border-input'" [value]="formData().destination" (change)="updateFormField('destination', $any($event.target).value)">
+                  <option value="">Sélectionner la destination</option>
+                  @for (site of destinationSites(); track site.id) {
+                    <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
+                  }
+                </select>
+                @if (formErrors()['destination']) {
+                  <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                    <span class="material-symbols-rounded text-xs">warning</span>
+                    {{ formErrors()['destination'] }}
+                  </p>
+                }
+              </div>
+            }
+
             <!-- Product Search -->
             <div class="col-span-2 product-search-group">
-              <label class="block text-sm font-medium text-foreground mb-1.5">Produit *</label>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-sm font-medium text-foreground">Produit *</label>
+                <button type="button" class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-primary bg-primary/10 border border-primary/20 rounded-md hover:bg-primary/20 transition-colors" (click)="openProductScan()">
+                  <span class="material-symbols-rounded text-sm">qr_code_scanner</span> Scanner
+                </button>
+              </div>
+              @if (movementType() === 'exit' && !formData().siteId) {
+                <p class="text-xs text-muted-foreground italic">Veuillez d'abord sélectionner un site d'origine.</p>
+              } @else {
               <div class="relative">
                 <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">search</span>
                 <input type="text" placeholder="Rechercher un produit par nom, code-barres..." class="w-full pl-10 pr-4 py-2.5 bg-background border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [class]="formErrors()['product'] ? 'border-red-400 focus:ring-red-300' : 'border-input'" [value]="productSearch()" (input)="onProductSearch($event)" (focus)="showProductDropdown.set(true)" autocomplete="off">
@@ -212,6 +254,7 @@
                   Aucun produit trouvé
                 </div>
               }
+              }
             </div>
 
             <!-- Selected Product Card -->
@@ -237,6 +280,12 @@
                     }
                     <span class="inline-flex items-center gap-1"><span class="material-symbols-rounded text-sm">sell</span>{{ product.prix | number:'1.2-2' }} DT</span>
                   </div>
+                  @if (movementType() === 'exit' && availableStock() !== null) {
+                    <div class="mt-2 flex items-center gap-1.5 text-xs font-semibold" [class]="availableStock()! > 0 ? 'text-emerald-600' : 'text-red-500'">
+                      <span class="material-symbols-rounded text-sm">inventory</span>
+                      Stock disponible : {{ availableStock() }} unités
+                    </div>
+                  }
                 </div>
               </div>
             }
@@ -244,7 +293,7 @@
             <!-- Quantité -->
             <div>
               <label class="block text-sm font-medium text-foreground mb-1.5">Quantité *</label>
-              <input type="number" min="1" placeholder="Quantité" class="w-full px-3 py-2.5 bg-background border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [class]="formErrors()['quantity'] ? 'border-red-400 focus:ring-red-300' : 'border-input'" [value]="formData().quantity" (input)="updateFormField('quantity', +$any($event.target).value)">
+              <input id="movement-quantity" type="number" min="1" placeholder="Quantité" class="w-full px-3 py-2.5 bg-background border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [class]="formErrors()['quantity'] ? 'border-red-400 focus:ring-red-300' : 'border-input'" [value]="formData().quantity" (input)="updateFormField('quantity', +$any($event.target).value)">
               @if (formErrors()['quantity']) {
                 <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
                   <span class="material-symbols-rounded text-xs">warning</span>
@@ -270,9 +319,10 @@
               }
             </div>
 
-            <!-- Site -->
+            <!-- Site (shown here only for entry mode; exit mode has it at the top) -->
+            @if (movementType() === 'entry') {
             <div>
-              <label class="block text-sm font-medium text-foreground mb-1.5">{{ movementType() === 'exit' ? 'Site (origine) *' : 'Site *' }}</label>
+              <label class="block text-sm font-medium text-foreground mb-1.5">Site *</label>
               <select class="w-full px-3 py-2.5 bg-background border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [class]="formErrors()['siteId'] ? 'border-red-400 focus:ring-red-300' : 'border-input'" [value]="formData().siteId" (change)="updateFormField('siteId', $any($event.target).value)">
                 <option value="">Sélectionner un site</option>
                 @for (site of formSites(); track site.id) {
@@ -286,24 +336,6 @@
                 </p>
               }
             </div>
-
-            <!-- Destination (Sortie only) -->
-            @if (movementType() === 'exit') {
-              <div>
-                <label class="block text-sm font-medium text-foreground mb-1.5">Destination *</label>
-                <select class="w-full px-3 py-2.5 bg-background border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [class]="formErrors()['destination'] ? 'border-red-400 focus:ring-red-300' : 'border-input'" [value]="formData().destination" (change)="updateFormField('destination', $any($event.target).value)">
-                  <option value="">Sélectionner la destination</option>
-                  @for (site of destinationSites(); track site.id) {
-                    <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
-                  }
-                </select>
-                @if (formErrors()['destination']) {
-                  <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
-                    <span class="material-symbols-rounded text-xs">warning</span>
-                    {{ formErrors()['destination'] }}
-                  </p>
-                }
-              </div>
             }
 
             <!-- Référence -->
@@ -483,4 +515,9 @@
       </button>
     </div>
   </div>
+
+}
+
+@if (showQrScanModal()) {
+  <app-qr-scan-modal [scanUrl]="scanUrl()" [connected]="scanConnected" (close)="closeQrScanModal()"></app-qr-scan-modal>
 }

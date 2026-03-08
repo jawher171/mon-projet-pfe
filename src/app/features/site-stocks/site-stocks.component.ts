@@ -44,6 +44,11 @@ export class SiteStocksComponent implements OnInit {
   });
   saving = signal(false);
 
+  // Delete confirmation modal
+  showDeleteModal = signal(false);
+  stockToDelete = signal<Stock | null>(null);
+  deleting = signal(false);
+
   siteName = computed(() => this.site()?.nom ?? 'Site');
 
   ngOnInit(): void {
@@ -100,6 +105,33 @@ export class SiteStocksComponent implements OnInit {
     if (status === 'critical') return 'Rupture';
     if (status === 'warning') return 'Stock bas';
     return 'Normal';
+  }
+
+  // ── Delete stock ────────────────────────────────
+  deleteStock(stock: Stock) {
+    this.stockToDelete.set(stock);
+    this.showDeleteModal.set(true);
+  }
+
+  cancelDelete() {
+    this.showDeleteModal.set(false);
+    this.stockToDelete.set(null);
+  }
+
+  async confirmDelete() {
+    const stock = this.stockToDelete();
+    if (!stock) return;
+    this.deleting.set(true);
+    try {
+      await this.stockService.deleteStock(String(stock.id));
+      const freshStocks = await this.stockService.fetchStocksBySite(this.siteId());
+      this.stocks.set(freshStocks);
+    } catch (err) {
+      console.error('Failed to delete stock', err);
+    } finally {
+      this.deleting.set(false);
+      this.cancelDelete();
+    }
   }
 
   // ── Edit seuils ─────────────────────────────────

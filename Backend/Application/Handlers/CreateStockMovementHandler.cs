@@ -118,6 +118,49 @@ namespace Application.Handlers
             var result = await _mediator.Send(new AddGenericCommand<StockMovement>(stockMovement), cancellationToken);
             await _mediator.Send(new PutGenericCommand<Stock>(stock), cancellationToken);
 
+            // If exit movement has a destination site, increase stock there
+            if (isExit && !string.IsNullOrWhiteSpace(stockMovement.Destination))
+            {
+                if (Guid.TryParse(stockMovement.Destination, out var destSiteId) && stock.id_p != Guid.Empty)
+                {
+                    var destStock = await _mediator.Send(
+                        new GetGenericQuery<Stock>(
+                            condition: x => x.id_p == stock.id_p && x.Id_site == destSiteId,
+                            includes: i => i.Include(x => x.Produit).Include(x => x.Site)),
+                        cancellationToken);
+
+                    if (destStock == null)
+                    {
+                        destStock = new Stock
+                        {
+                            id_s = Guid.NewGuid(),
+                            id_p = stock.id_p,
+                            Id_site = destSiteId,
+                            QuantiteDisponible = 0,
+                            SeuilAlerte = 10,
+                            SeuilSecurite = 5,
+                            SeuilMinimum = 0,
+                            SeuilMaximum = 0
+                        };
+                        destStock = await _mediator.Send(new AddGenericCommand<Stock>(destStock), cancellationToken);
+                    }
+
+                    destStock.QuantiteDisponible += stockMovement.Quantite;
+                    await _mediator.Send(new PutGenericCommand<Stock>(destStock), cancellationToken);
+
+                    // Publish alert event for destination stock
+                    await _mediator.Publish(new StockChangedEvent
+                    {
+                        StockId = destStock.id_s,
+                        MovementId = stockMovement.id_sm,
+                        MovementType = "entry",
+                        DeltaQuantity = stockMovement.Quantite,
+                        NewQuantity = destStock.QuantiteDisponible,
+                        OccurredAt = DateTime.UtcNow
+                    }, cancellationToken);
+                }
+            }
+
             // Attach loaded stock (with Produit and Site) so AutoMapper can resolve ProduitNom/SiteNom
             result.Stock = stock;
 

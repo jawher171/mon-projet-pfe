@@ -3,6 +3,12 @@
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-foreground">Scanner de Code-barres</h1>
       <p class="text-muted-foreground">Scanner QR/Barcode pour gérer les stocks</p>
+      @if (phoneMode()) {
+        <div class="mt-2 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium">
+          <span class="material-symbols-rounded text-lg">smartphone</span>
+          Mode téléphone — {{ phonePurpose() }}
+        </div>
+      }
     </div>
   }
 
@@ -13,7 +19,8 @@
       <div class="bg-card border border-border rounded-2xl overflow-hidden">
         <div class="aspect-[4/3] bg-slate-900 relative flex items-center justify-center">
           @if (cameraActive()) {
-            <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/30 z-10">
+            <video id="scanner-video" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
+            <div class="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
               <div class="w-[280px] h-[180px] relative">
                 <div class="absolute top-0 left-0 w-[30px] h-[30px] border-t-[3px] border-l-[3px] border-emerald-500"></div>
                 <div class="absolute top-0 right-0 w-[30px] h-[30px] border-t-[3px] border-r-[3px] border-emerald-500"></div>
@@ -23,11 +30,16 @@
               </div>
               <p class="text-white text-sm mt-4 drop-shadow">Positionnez le code-barres dans le cadre</p>
             </div>
-            <div class="text-center text-slate-400 z-0">
-              <span class="material-symbols-rounded text-6xl mb-2 block">photo_camera</span>
-              <p class="mb-3">Caméra simulée active</p>
-              <button class="px-4 py-2 rounded-lg text-sm bg-white/10 text-white hover:bg-white/20 transition-colors" (click)="simulateScan()">Simuler un scan</button>
-            </div>
+            @if (phoneScanSent()) {
+              <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
+                Code envoyé au PC !
+              </div>
+            }
+            @if (phoneScanError()) {
+              <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
+                {{ phoneScanError() }}
+              </div>
+            }
           } @else {
             <div class="text-center text-slate-400">
               <span class="material-symbols-rounded text-6xl mb-2 block">qr_code_scanner</span>
@@ -109,6 +121,29 @@
             </div>
             <div class="text-xs text-muted-foreground">{{ formatTime(scan.timestamp) }}</div>
           </div>
+
+          <!-- Product details card (Feature 1) -->
+          @if (scan.product; as product) {
+            <div class="mt-4 p-4 bg-card border border-border rounded-xl space-y-2">
+              <h4 class="text-sm font-semibold text-foreground flex items-center gap-2">
+                <span class="material-symbols-rounded text-primary text-lg">inventory_2</span>
+                Informations du produit
+              </h4>
+              <div class="grid grid-cols-2 gap-2 text-sm">
+                <div><span class="text-muted-foreground">Nom:</span> <span class="font-medium">{{ product.nom }}</span></div>
+                <div><span class="text-muted-foreground">Référence:</span> <span class="font-medium">{{ product.id_p }}</span></div>
+                <div><span class="text-muted-foreground">Code-barres:</span> <span class="font-mono font-medium">{{ product.codeBarre || '—' }}</span></div>
+                <div><span class="text-muted-foreground">Catégorie:</span> <span class="font-medium">{{ product.categorieLibelle || '—' }}</span></div>
+              </div>
+            </div>
+          }
+          @if (!scan.product) {
+            <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-center">
+              <span class="material-symbols-rounded text-red-400 text-3xl block mb-1">search_off</span>
+              <p class="text-sm font-medium text-red-600">Produit non trouvé</p>
+              <p class="text-xs text-red-500 mt-0.5">Aucun produit ne correspond au code-barres <span class="font-mono">{{ scan.barcode }}</span></p>
+            </div>
+          }
         </div>
       }
     </div>

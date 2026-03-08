@@ -4,23 +4,27 @@
  * Allows searching, filtering by status, and switching between grid and list views.
  */
 
-import { Component, OnInit, signal, computed, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
 import { CategoryService } from '../../core/services/category.service';
+import { ScanSessionService } from '../../core/services/scan-session.service';
+import { QrScanModalComponent } from '../../shared/components/qr-scan-modal.component';
 import { Product } from '../../core/models/product.model';
 import { Category } from '../../core/models/category.model';
+import { Subscription } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, QrScanModalComponent],
   templateUrl: './products.component.html',
   styleUrls: ['./products.component.scss']
 })
-export class ProductsComponent implements OnInit {
+export class ProductsComponent implements OnInit, OnDestroy {
   /** Search input value */
   searchTerm = signal('');
   
@@ -42,12 +46,26 @@ export class ProductsComponent implements OnInit {
   /** Selected product for details */
   selectedProduct = signal<Product | null>(null);
 
+  // Delete confirmation modal
+  showDeleteModal = signal(false);
+  productToDelete = signal<Product | null>(null);
+  categoryToDelete = signal<{ id: string | number; name: string } | null>(null);
+  deleting = signal(false);
+
   /** Inline add category state */
   isAddingCategory = signal(false);
 
   /** New category input value */
   newCategoryName = signal('');
-  
+
+  /** QR scan modal for barcode field */
+  showQrScanModal = signal(false);
+  scanSessionId = signal('');
+  scanUrl = signal('');
+  scanConnected = signal(false);
+  private scanSub?: Subscription;
+  private scanSessionService: ScanSessionService;
+
   /** Product form */
   productForm!: FormGroup;
   
@@ -80,8 +98,11 @@ export class ProductsComponent implements OnInit {
     private productService: ProductService,
     private categoryService: CategoryService,
     private fb: FormBuilder,
-    private cdr: ChangeDetectorRef
-  ) {}
+    private cdr: ChangeDetectorRef,
+    scanSessionService: ScanSessionService
+  ) {
+    this.scanSessionService = scanSessionService;
+  }
   listCategories: Category[] = [];
   listProducts: Product[] = [];
 
@@ -91,6 +112,73 @@ export class ProductsComponent implements OnInit {
     this.getproducts();
     console.log('ProductsComponent initialized',this.listProducts.length);
    }
+
+  ngOnDestroy(): void {
+    this.scanSub?.unsubscribe();
+    void this.scanSessionService.stop();
+  }
+
+  /** Open QR modal to scan barcode from phone */
+  async openBarcodeScan() {
+    const sessionId = this.scanSessionService.generateSessionId();
+    this.scanSessionId.set(sessionId);
+    const baseUrl = this.resolveScanBaseUrl();
+    this.scanUrl.set(`${baseUrl}/scan?sessionId=${sessionId}&purpose=PRODUCT_BARCODE`);
+    this.showQrScanModal.set(true);
+
+    // Listen for scan events
+    this.scanSub?.unsubscribe();
+    this.scanSub = this.scanSessionService.scan$.subscribe(event => {
+      if (event.purpose === 'PRODUCT_BARCODE') {
+        this.productForm.patchValue({ codeBarre: event.code });
+        this.showQrScanModal.set(false);
+        void this.scanSessionService.stop();
+        this.cdr.detectChanges();
+      }
+    });
+
+    try {
+      await this.scanSessionService.joinSession(sessionId);
+      this.scanConnected.set(true);
+    } catch (err) {
+      console.error('[Products] SignalR connection failed', err);
+    }
+  }
+
+  private resolveScanBaseUrl(): string {
+    const configured = environment.scanPublicBaseUrl?.trim();
+    if (configured && !this.isLocalhostUrl(configured)) return configured.replace(/\/+$/, '');
+
+    const remembered = localStorage.getItem('scan_public_base_url')?.trim();
+    if (remembered && !this.isLocalhostUrl(remembered)) return remembered.replace(/\/+$/, '');
+    if (remembered && this.isLocalhostUrl(remembered)) {
+      localStorage.removeItem('scan_public_base_url');
+    }
+
+    const { origin, hostname } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'https://uncontingent-nongeographically-wilma.ngrok-free.dev';
+    }
+
+    return origin;
+  }
+
+  private isLocalhostUrl(url: string): boolean {
+    try {
+      const parsed = new URL(url);
+      return parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
+    } catch {
+      return url.includes('localhost') || url.includes('127.0.0.1');
+    }
+  }
+
+  closeQrScanModal() {
+    this.showQrScanModal.set(false);
+    this.scanConnected.set(false);
+    this.scanSub?.unsubscribe();
+    void this.scanSessionService.stop();
+  }
+
 getCategories() {
      this.categoryService.getCtegories().subscribe(categories => {
       this.listCategories = categories as Category[];
@@ -226,15 +314,12 @@ getproducts() {
     this.cancelAddCategory();
   }
 
-  async deleteCategory(id: string | number) {
+  deleteCategory(id: string | number) {
     if (!id) return;
     const category = this.listCategories.find(c => String(c.id_c) === String(id));
     const name = category?.categorieLibelle ?? 'cette catégorie';
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer "${name}" ?`)) return;
-
-    await this.categoryService.deleteCategoryApi(id);
-    this.productForm.patchValue({ id_c: null });
-    this.getCategories();
+    this.categoryToDelete.set({ id, name });
+    this.showDeleteModal.set(true);
   }
 
   /**
@@ -279,10 +364,37 @@ getproducts() {
    * Delete product
    * @param productId Product ID to delete
    */
-  async deleteProduct(productId: string | number) {
-    if (confirm('Are you sure you want to delete this product?')) {
-      await this.productService.deleteProduct(productId);
-      this.getproducts();
+  deleteProduct(productId: string | number) {
+    const product = this.listProducts.find(p => String(p.id_p) === String(productId))
+      ?? this.products().find(p => String(p.id_p) === String(productId));
+    if (product) {
+      this.productToDelete.set(product);
+      this.showDeleteModal.set(true);
+    }
+  }
+
+  cancelDelete() {
+    this.showDeleteModal.set(false);
+    this.productToDelete.set(null);
+    this.categoryToDelete.set(null);
+  }
+
+  async confirmDelete() {
+    this.deleting.set(true);
+    try {
+      const product = this.productToDelete();
+      const category = this.categoryToDelete();
+      if (product) {
+        await this.productService.deleteProduct(product.id_p);
+        this.getproducts();
+      } else if (category) {
+        await this.categoryService.deleteCategoryApi(category.id);
+        this.productForm.patchValue({ id_c: null });
+        this.getCategories();
+      }
+    } finally {
+      this.deleting.set(false);
+      this.cancelDelete();
     }
   }
 

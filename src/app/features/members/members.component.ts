@@ -1,9 +1,10 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { User } from '../../core/models/user.model';
 import { UserRole } from '../../core/models/role.model';
 import { UserService } from '../../core/services/user.service';
+import { RolesService } from '../../core/services/roles.service';
 
 @Component({
   selector: 'app-members',
@@ -20,6 +21,16 @@ export class MembersComponent implements OnInit {
   saving = signal(false);
   errorMessage = signal('');
 
+  // Delete confirmation modal
+  showDeleteModal = signal(false);
+  memberToDelete = signal<User | null>(null);
+  deleting = signal(false);
+
+  // Toggle status confirmation modal
+  showToggleModal = signal(false);
+  memberToToggle = signal<User | null>(null);
+  toggling = signal(false);
+
   formData = {
     email: '',
     prenom: '',
@@ -29,8 +40,18 @@ export class MembersComponent implements OnInit {
   };
 
   private userService = inject(UserService);
+  private rolesService = inject(RolesService);
   members = this.userService.users;
   stats = this.userService.stats;
+
+  /** Roles list derived from RolesService signal */
+  roles = computed(() => {
+    const rolesMap = this.rolesService.roles();
+    return Object.entries(rolesMap).map(([key, r]) => ({
+      value: key,
+      label: (r as { label?: string }).label ?? r.nom
+    }));
+  });
 
   ngOnInit(): void {
     void this.userService.fetchUsers();
@@ -92,20 +113,51 @@ export class MembersComponent implements OnInit {
     }
   }
 
-  async toggleStatus(member: User): Promise<void> {
+  toggleStatus(member: User): void {
+    this.memberToToggle.set(member);
+    this.showToggleModal.set(true);
+  }
+
+  cancelToggle(): void {
+    this.showToggleModal.set(false);
+    this.memberToToggle.set(null);
+  }
+
+  async confirmToggle(): Promise<void> {
+    const member = this.memberToToggle();
+    if (!member) return;
+    this.toggling.set(true);
     try {
       await this.userService.toggleStatus(String(member.id), member.status);
     } catch {
       this.errorMessage.set('Impossible de changer le statut.');
+    } finally {
+      this.toggling.set(false);
+      this.cancelToggle();
     }
   }
 
-  async deleteMember(member: User): Promise<void> {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${member.prenom} ${member.nom} ?`)) return;
+  deleteMember(member: User): void {
+    this.memberToDelete.set(member);
+    this.showDeleteModal.set(true);
+  }
+
+  cancelDelete(): void {
+    this.showDeleteModal.set(false);
+    this.memberToDelete.set(null);
+  }
+
+  async confirmDelete(): Promise<void> {
+    const member = this.memberToDelete();
+    if (!member) return;
+    this.deleting.set(true);
     try {
       await this.userService.deleteUser(String(member.id));
     } catch (e) {
       this.errorMessage.set(e instanceof Error ? e.message : 'Impossible de supprimer.');
+    } finally {
+      this.deleting.set(false);
+      this.cancelDelete();
     }
   }
 

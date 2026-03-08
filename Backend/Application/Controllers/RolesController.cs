@@ -114,6 +114,66 @@ namespace Application.Controllers
 
             return Ok(dto);
         }
+
+        /// <summary>Create a new role. Returns 409 if role name already exists.</summary>
+        [HttpPost]
+        public async Task<IActionResult> CreateRole([FromBody] CreateRoleRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.Nom))
+                return BadRequest(new { message = "Le nom du rôle est obligatoire." });
+
+            var normalized = request.Nom.Trim().ToLower();
+            var exists = await _context.role.AnyAsync(r => r.Nom.ToLower() == normalized);
+            if (exists)
+                return Conflict(new { message = "Ce rôle existe déjà." });
+
+            var role = new Domain.Models.Role
+            {
+                RoleId = Guid.NewGuid(),
+                Nom = normalized,
+                Description = request.Description?.Trim()
+            };
+            _context.role.Add(role);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetRoles), new RoleDto
+            {
+                Nom = role.Nom,
+                Description = role.Description,
+                Permissions = new List<string>()
+            });
+        }
+
+        /// <summary>Delete a role. Returns 400 if role is assigned to users (cannot delete used role).</summary>
+        [HttpDelete("{roleName}")]
+        public async Task<IActionResult> DeleteRole(string roleName)
+        {
+            if (string.IsNullOrWhiteSpace(roleName))
+                return BadRequest(new { message = "Le nom du rôle est obligatoire." });
+
+            var role = await _context.role
+                .Include(r => r.RolePermissions)
+                .Include(r => r.Users)
+                .FirstOrDefaultAsync(r => r.Nom.ToLower() == roleName.Trim().ToLower());
+
+            if (role == null)
+                return NotFound(new { message = "Rôle introuvable." });
+
+            if (role.Users != null && role.Users.Any())
+                return BadRequest(new { message = "Impossible de supprimer ce rôle car il est assigné à des utilisateurs." });
+
+            _context.rolepermission.RemoveRange(role.RolePermissions);
+            _context.role.Remove(role);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+    }
+
+    public class CreateRoleRequest
+    {
+        public string Nom { get; set; } = string.Empty;
+        public string? Description { get; set; }
     }
 
     public class UpdateRolePermissionsRequest

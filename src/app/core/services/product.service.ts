@@ -137,6 +137,29 @@ getProduit() {
     this.products.update(products => products.filter(p => String(p.id_p) !== String(id)));
   }
 
+  /** Lookup a product by its barcode — checks local cache first, then backend API */
+  async getProductByBarcode(code: string): Promise<Product | null> {
+    // 1. Check locally-loaded products first (fastest, always works)
+    const local = this.products().find(
+      p => p.codeBarre != null && p.codeBarre.trim().toLowerCase() === code.trim().toLowerCase()
+    );
+    if (local) return local;
+
+    // 2. Fallback: try the backend API
+    if (USE_BACKEND) {
+      try {
+        const dto = await firstValueFrom(
+          this.http.get<ProductDto>(`${API_BASE_URL}/api/Products/by-barcode/${encodeURIComponent(code)}`)
+        );
+        return dto ? this.dtoToProduct(dto) : null;
+      } catch {
+        return null;
+      }
+    }
+
+    return null;
+  }
+
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }

@@ -1,4 +1,5 @@
 export const environment = {
-    inventaire: 'https://localhost:44353/api'      
+    inventaire: 'https://localhost:44353/api',
+    scanPublicBaseUrl: ''
     
 };

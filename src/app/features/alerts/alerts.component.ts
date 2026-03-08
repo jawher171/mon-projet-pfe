@@ -29,6 +29,12 @@ export class AlertsComponent implements OnInit {
   /** Filter by site location */
   selectedSite = signal('');
   
+  /** Filter by date (YYYY-MM-DD string, empty = all) */
+  selectedDate = signal('');
+  
+  /** Filter by product name */
+  selectedProduct = signal('');
+  
   /** Show resolved alerts */
   showResolved = signal(true);
 
@@ -42,6 +48,11 @@ export class AlertsComponent implements OnInit {
   /** Resolution notes for closing alert */
   resolveNotes = signal('');
 
+  // Delete confirmation modal
+  showDeleteConfirmModal = signal(false);
+  alertToDelete = signal<Alert | null>(null);
+  deleting = signal(false);
+
   /** Alert type configuration */
   alertTypes = ALERT_TYPES;
   
@@ -51,11 +62,19 @@ export class AlertsComponent implements OnInit {
   /** Available sites */
   sites = computed(() => this.siteService.getActiveSites()());
 
+  /** Unique product names from all alerts */
+  productNames = computed(() => {
+    const names = this.alertService.getAlerts()().map(a => a.produitNom).filter((n): n is string => !!n);
+    return [...new Set(names)].sort();
+  });
+
   /** Computed filter object */
   filter = computed<AlertFilter>(() => ({
     type: this.selectedType() === 'all' ? undefined : this.selectedType(),
     resolue: this.showResolved() ? undefined : false,
-    severity: this.selectedSeverity() === 'all' ? undefined : this.selectedSeverity()
+    severity: this.selectedSeverity() === 'all' ? undefined : this.selectedSeverity(),
+    date: this.selectedDate() || undefined,
+    produitNom: this.selectedProduct() || undefined
   }));
 
   /** Filtered alerts */
@@ -102,6 +121,14 @@ export class AlertsComponent implements OnInit {
   }
 
   /**
+   * Handle date filter change
+   */
+  onDateChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.selectedDate.set(input.value);
+  }
+
+  /**
    * Open alert modal and mark as read
    * @param alert Alert to display
    */
@@ -127,9 +154,25 @@ export class AlertsComponent implements OnInit {
     }
   }
 
-  async deleteAlert(alert: Alert) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette alerte ?')) {
+  deleteAlert(alert: Alert) {
+    this.alertToDelete.set(alert);
+    this.showDeleteConfirmModal.set(true);
+  }
+
+  cancelDeleteAlert() {
+    this.showDeleteConfirmModal.set(false);
+    this.alertToDelete.set(null);
+  }
+
+  async confirmDeleteAlert() {
+    const alert = this.alertToDelete();
+    if (!alert) return;
+    this.deleting.set(true);
+    try {
       await this.alertService.deleteAlertApi(alert.id);
+    } finally {
+      this.deleting.set(false);
+      this.cancelDeleteAlert();
     }
   }
 

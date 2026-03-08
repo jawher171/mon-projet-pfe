@@ -93,6 +93,19 @@ export class AlertService {
       if (filter.severity) {
         alerts = alerts.filter(a => a.severity === filter.severity);
       }
+      if (filter.date) {
+        const d = filter.date; // YYYY-MM-DD
+        alerts = alerts.filter(a => {
+          const ad = new Date(a.dateCreation);
+          const yyyy = ad.getFullYear();
+          const mm = String(ad.getMonth() + 1).padStart(2, '0');
+          const dd = String(ad.getDate()).padStart(2, '0');
+          return `${yyyy}-${mm}-${dd}` === d;
+        });
+      }
+      if (filter.produitNom) {
+        alerts = alerts.filter(a => a.produitNom === filter.produitNom);
+      }
       return alerts.sort((a, b) =>
         new Date(b.dateCreation).getTime() - new Date(a.dateCreation).getTime()
       );

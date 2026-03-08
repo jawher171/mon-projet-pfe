@@ -5,6 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Application.Hubs;
+using Application.Queries;
 using Application.Services;
 using Data.Context;
 using Application.Commands;
@@ -53,9 +55,11 @@ namespace Application
                 {
                     builder.WithOrigins("http://localhost:4200")
                         .AllowAnyHeader()
-                        .AllowAnyMethod();
+                        .AllowAnyMethod()
+                        .AllowCredentials();
                 });
             });
+            services.AddSignalR();
             services.AddControllers()
                 .AddNewtonsoftJson(options =>
                 {
@@ -117,6 +121,9 @@ namespace Application
             services.AddTransient<IRequestHandler<UpdateStockMovementCommand, UpdateStockMovementResult>, UpdateStockMovementHandler>();
             services.AddTransient<IRequestHandler<DeleteStockMovementCommand, DeleteStockMovementResult>, DeleteStockMovementHandler>();
 
+            // Barcode lookup handler
+            services.AddTransient<IRequestHandler<GetProductByBarcodeQuery, Product>, GetProductByBarcodeHandler>();
+
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IAlertService, AlertService>();
             services.AddScoped<IAlertTriggerService, AlertService>();
@@ -176,6 +183,7 @@ namespace Application
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<InventoryHub>("/hubs/inventory");
             });
 
         }

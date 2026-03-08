@@ -38,6 +38,13 @@ export class SitesComponent implements OnInit {
     capacite: 0
   });
 
+  formErrors = signal<Record<string, string>>({});
+
+  // Delete confirmation modal
+  showDeleteModal = signal(false);
+  siteToDelete = signal<Site | null>(null);
+  deleting = signal(false);
+
   siteTypes = SITE_TYPES;
 
   filter = computed<SiteFilter>(() => ({
@@ -145,29 +152,37 @@ export class SitesComponent implements OnInit {
       type: 'warehouse',
       capacite: 0
     });
+    this.formErrors.set({});
   }
 
   updateFormField(field: string, value: string | number) {
     this.formData.update(data => ({ ...data, [field]: value }));
   }
 
-  private readonly NAME_PATTERN = /^[A-Za-zÀ-ÿ\s\-']+$/;
+  private readonly NAME_PATTERN = /^[A-Za-zÀ-ÿ0-9\s\-']+$/;
 
   async saveSite() {
     const form = this.formData();
-    if (!form.nom || !form.ville) return;
-    if (!this.NAME_PATTERN.test(form.nom)) {
-      alert('Le nom du site ne doit contenir que des lettres (pas de chiffres).');
-      return;
+    const errors: Record<string, string> = {};
+
+    if (!form.nom?.trim()) {
+      errors['nom'] = 'Le nom du site est obligatoire.';
+    } else if (!this.NAME_PATTERN.test(form.nom)) {
+      errors['nom'] = 'Le nom du site contient des caractères non autorisés.';
+    } else if (!/[A-Za-zÀ-ÿ]/.test(form.nom)) {
+      errors['nom'] = 'Le nom du site doit contenir au moins une lettre.';
     }
-    if (!this.NAME_PATTERN.test(form.ville)) {
-      alert('La ville ne doit contenir que des lettres (pas de chiffres).');
-      return;
+    if (!form.ville?.trim()) {
+      errors['ville'] = 'La ville est obligatoire.';
+    } else if (!this.NAME_PATTERN.test(form.ville)) {
+      errors['ville'] = 'La ville contient des caractères non autorisés.';
     }
     if (form.responsableSite && !this.NAME_PATTERN.test(form.responsableSite)) {
-      alert('Le nom du responsable ne doit contenir que des lettres (pas de chiffres).');
-      return;
+      errors['responsableSite'] = 'Le nom du responsable contient des caractères non autorisés.';
     }
+
+    this.formErrors.set(errors);
+    if (Object.keys(errors).length > 0) return;
 
     const siteData = {
       nom: form.nom,
@@ -190,10 +205,26 @@ export class SitesComponent implements OnInit {
     await this.siteService.fetchSites();
   }
 
-  async deleteSite(site: Site) {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer le site "${site.nom}" ?`)) {
+  deleteSite(site: Site) {
+    this.siteToDelete.set(site);
+    this.showDeleteModal.set(true);
+  }
+
+  cancelDelete() {
+    this.showDeleteModal.set(false);
+    this.siteToDelete.set(null);
+  }
+
+  async confirmDelete() {
+    const site = this.siteToDelete();
+    if (!site) return;
+    this.deleting.set(true);
+    try {
       await this.siteService.deleteSiteApi(site.id);
       await this.siteService.fetchSites();
+    } finally {
+      this.deleting.set(false);
+      this.cancelDelete();
     }
   }
 

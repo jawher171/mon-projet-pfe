@@ -23,6 +23,10 @@ export interface AlertFilter {
   resolue?: boolean;
   type?: string;
   severity?: string;
+  /** Filter by date (YYYY-MM-DD) — only alerts from that day */
+  date?: string;
+  /** Filter by product name */
+  produitNom?: string;
 }
 
 export type AlertType = 'OUT_OF_STOCK' | 'MIN_STOCK' | 'STOCK_SECURITE' | 'STOCK_ALERTE' | 'STOCK_MAXIMUM' | 'ENTRY_VALIDATED' | 'EXIT_VALIDATED' | string;

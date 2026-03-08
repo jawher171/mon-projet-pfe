@@ -93,4 +93,71 @@ export class RolesService {
       return false;
     }
   }
+
+  /** Create a new role via backend API */
+  async createRole(nom: string, description?: string): Promise<{ success: boolean; message?: string }> {
+    if (!USE_BACKEND) {
+      const key = nom.trim().toLowerCase();
+      const roles = this.rolesSignal();
+      if (roles[key]) return { success: false, message: 'Ce rôle existe déjà.' };
+      this.rolesSignal.update(r => ({
+        ...r,
+        [key]: {
+          idRole: Date.now(),
+          nom: key,
+          label: nom.trim(),
+          description: description ?? '',
+          permissions: [] as Permission[],
+          color: '#9e9e9e',
+          icon: 'badge'
+        }
+      }));
+      return { success: true };
+    }
+    try {
+      const dto = await firstValueFrom(this.http.post<RoleDto>(`${API_BASE_URL}/api/Roles`, { nom: nom.trim(), description }));
+      const key = dto.nom?.toLowerCase() || nom.trim().toLowerCase();
+      this.rolesSignal.update(r => ({
+        ...r,
+        [key]: {
+          idRole: Date.now(),
+          nom: dto.nom,
+          label: dto.nom,
+          description: dto.description,
+          permissions: (dto.permissions ?? []) as Permission[],
+          color: '#9e9e9e',
+          icon: 'badge'
+        }
+      }));
+      return { success: true };
+    } catch (err: any) {
+      const msg = err?.error?.message ?? 'Erreur lors de la création du rôle.';
+      return { success: false, message: msg };
+    }
+  }
+
+  /** Delete a role via backend API */
+  async deleteRole(roleName: string): Promise<{ success: boolean; message?: string }> {
+    const key = roleName.trim().toLowerCase();
+    if (!USE_BACKEND) {
+      this.rolesSignal.update(r => {
+        const updated = { ...r };
+        delete updated[key];
+        return updated;
+      });
+      return { success: true };
+    }
+    try {
+      await firstValueFrom(this.http.delete(`${API_BASE_URL}/api/Roles/${encodeURIComponent(key)}`));
+      this.rolesSignal.update(r => {
+        const updated = { ...r };
+        delete updated[key];
+        return updated;
+      });
+      return { success: true };
+    } catch (err: any) {
+      const msg = err?.error?.message ?? 'Erreur lors de la suppression du rôle.';
+      return { success: false, message: msg };
+    }
+  }
 }

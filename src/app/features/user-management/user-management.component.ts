@@ -1,9 +1,10 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { User } from '../../core/models/user.model';
 import { UserRole } from '../../core/models/role.model';
 import { UserService } from '../../core/services/user.service';
+import { RolesService } from '../../core/services/roles.service';
 import { USE_BACKEND } from '../../app.config';
 
 @Component({
@@ -30,10 +31,17 @@ export class UserManagementComponent implements OnInit {
   /** Error message */
   errorMessage = signal('');
 
-  /** Show add custom role modal (UI only - backend supports admin, gestionnaire_de_stock, operateur) */
-  showAddRoleModal = signal(false);
-  newCustomRoleName = signal('');
-  customRoles = signal<{ value: string; label: string }[]>([]);
+  // Delete confirmation modal
+  showDeleteModal = signal(false);
+  userToDelete = signal<User | null>(null);
+  deleting = signal(false);
+
+  // Toggle status confirmation modal
+  showToggleModal = signal(false);
+  userToToggle = signal<User | null>(null);
+  toggling = signal(false);
+
+  private rolesService = inject(RolesService);
 
   /** Form model for create/edit */
   formData = {
@@ -45,20 +53,14 @@ export class UserManagementComponent implements OnInit {
     status: 'active' as 'active' | 'inactive'
   };
 
-  baseRoles = [
-    { value: 'admin', label: 'Administrator' },
-    { value: 'gestionnaire_de_stock', label: 'Stock Manager' },
-    { value: 'operateur', label: 'Operator' }
-  ];
-
-  roles = computed(() => [
-    ...this.baseRoles,
-    ...this.customRoles()
-  ]);
-
-  private isBaseRole(role: string): boolean {
-    return this.baseRoles.some(r => r.value === role);
-  }
+  /** Roles list derived from RolesService signal */
+  roles = computed(() => {
+    const rolesMap = this.rolesService.roles();
+    return Object.entries(rolesMap).map(([key, r]) => ({
+      value: key,
+      label: (r as { label?: string }).label ?? r.nom
+    }));
+  });
 
   get users() {
     return this.userService.users();
@@ -165,11 +167,6 @@ export class UserManagementComponent implements OnInit {
       return;
     }
 
-    if (this.backendMode && !this.isBaseRole(this.formData.role)) {
-      this.errorMessage.set('En mode backend, seuls les rôles admin, gestionnaire_de_stock et operateur sont autorisés.');
-      return;
-    }
-
     this.saving.set(true);
     this.errorMessage.set('');
     try {
@@ -203,55 +200,55 @@ export class UserManagementComponent implements OnInit {
     }
   }
 
-  async deleteUser(user: User) {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${user.prenom} ${user.nom} ?`)) return;
+  deleteUser(user: User) {
+    this.userToDelete.set(user);
+    this.showDeleteModal.set(true);
+  }
+
+  cancelDelete() {
+    this.showDeleteModal.set(false);
+    this.userToDelete.set(null);
+  }
+
+  async confirmDelete() {
+    const user = this.userToDelete();
+    if (!user) return;
+    this.deleting.set(true);
     try {
       await this.userService.deleteUser(String(user.id));
     } catch (e) {
       this.errorMessage.set(e instanceof Error ? e.message : 'Impossible de supprimer.');
+    } finally {
+      this.deleting.set(false);
+      this.cancelDelete();
     }
   }
 
-  async toggleStatus(user: User) {
+  toggleStatus(user: User) {
+    this.userToToggle.set(user);
+    this.showToggleModal.set(true);
+  }
+
+  cancelToggle() {
+    this.showToggleModal.set(false);
+    this.userToToggle.set(null);
+  }
+
+  async confirmToggle() {
+    const user = this.userToToggle();
+    if (!user) return;
+    this.toggling.set(true);
     try {
       await this.userService.toggleStatus(String(user.id), user.status);
     } catch (e) {
       this.errorMessage.set(e instanceof Error ? e.message : 'Impossible de changer le statut.');
+    } finally {
+      this.toggling.set(false);
+      this.cancelToggle();
     }
   }
 
   getRoleLabel(role: string): string {
     return this.userService.getRoleLabel(role as UserRole);
-  }
-
-  openAddRoleModal(): void {
-    if (this.backendMode) {
-      this.errorMessage.set('Rôles personnalisés désactivés en mode backend pour rester aligné avec l\'API.');
-      return;
-    }
-    this.newCustomRoleName.set('');
-    this.showAddRoleModal.set(true);
-  }
-
-  closeAddRoleModal(): void {
-    this.showAddRoleModal.set(false);
-    this.newCustomRoleName.set('');
-  }
-
-  saveCustomRole(): void {
-    if (this.backendMode) return;
-
-    const roleName = this.newCustomRoleName().trim();
-    if (!roleName) return;
-
-    const exists = this.roles().some(r => r.label.toLowerCase() === roleName.toLowerCase());
-    if (exists) {
-      this.errorMessage.set('Ce rôle existe déjà.');
-      return;
-    }
-
-    const roleValue = `custom_${roleName.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`;
-    this.customRoles.update(roles => [...roles, { value: roleValue, label: roleName }]);
-    this.closeAddRoleModal();
   }
 }
