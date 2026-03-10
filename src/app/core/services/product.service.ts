@@ -14,6 +14,7 @@ interface ProductDto {
   id_c?: number | string;
   categorieId?: number | string;
   categorieLibelle?: string;
+  imageUrl?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -30,12 +31,13 @@ export class ProductService {
       codeBarre: d.codeBarre,
       prix: Number(d.prix ?? 0),
       id_c: categoryId,
-      categorieLibelle: d.categorieLibelle
+      categorieLibelle: d.categorieLibelle,
+      imageUrl: d.imageUrl
     };
   }
 
-  private productToDto(p: Partial<Product>): ProductDto {
-    return {
+  private productToDto(p: Partial<Product> & { imageUrl?: string }): ProductDto {
+    const dto: ProductDto = {
       id_p: p.id_p ? String(p.id_p) : undefined,
       nom: p.nom ?? '',
       description: p.description ?? '',
@@ -44,6 +46,8 @@ export class ProductService {
       id_c: p.id_c,
       categorieLibelle: p.categorieLibelle
     };
+    if (p.imageUrl) dto.imageUrl = p.imageUrl;
+    return dto;
   }
 
   getProducts() {

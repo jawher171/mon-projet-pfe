@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, Pipe, PipeTransform } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { User } from '../../core/models/user.model';
@@ -7,10 +7,17 @@ import { UserService } from '../../core/services/user.service';
 import { RolesService } from '../../core/services/roles.service';
 import { USE_BACKEND } from '../../app.config';
 
+@Pipe({ name: 'filterUsers', standalone: true })
+export class FilterUsersPipe implements PipeTransform {
+  transform(users: User[], status: string): number {
+    return users.filter(u => u.status === status).length;
+  }
+}
+
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, FilterUsersPipe],
   templateUrl: './user-management.component.html',
   styleUrls: ['./user-management.component.scss']
 })
@@ -250,5 +257,14 @@ export class UserManagementComponent implements OnInit {
 
   getRoleLabel(role: string): string {
     return this.userService.getRoleLabel(role as UserRole);
+  }
+
+  getRoleIcon(role: string): string {
+    const icons: Record<string, string> = {
+      admin: 'admin_panel_settings',
+      gestionnaire_de_stock: 'inventory',
+      operateur: 'engineering'
+    };
+    return icons[role] ?? 'person';
   }
 }

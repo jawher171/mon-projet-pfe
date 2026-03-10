@@ -1,155 +1,190 @@
-<div class="max-w-[1400px] mx-auto">
-  <div class="flex flex-wrap items-start justify-between gap-4 mb-8">
-    <div>
-      <h1 class="text-2xl font-bold text-foreground">Paramètres</h1>
-      <p class="text-muted-foreground">Gérer les rôles et les permissions de l'application</p>
+<div class="st-page">
+  <!-- Header -->
+  <div class="st-header">
+    <div class="st-header-text">
+      <h1>
+        <span class="material-symbols-rounded st-header-icon">admin_panel_settings</span>
+        Paramètres
+      </h1>
+      <p>Gérer les rôles, les permissions et la configuration de l'application</p>
     </div>
-    <div class="flex gap-3">
-      <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors" (click)="openAddRoleModal()">
-        <span class="material-symbols-rounded text-lg">add_circle</span>Créer un rôle
+    <div class="st-header-actions">
+      <button class="st-btn outline" (click)="resetPermissions()">
+        <span class="material-symbols-rounded">restart_alt</span>
+        Réinitialiser
       </button>
-      <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border-2 border-primary bg-background text-primary hover:bg-accent transition-colors" (click)="resetPermissions()">
-        <span class="material-symbols-rounded text-lg">restart_alt</span>Réinitialiser
+      <button class="st-btn primary" (click)="openAddRoleModal()">
+        <span class="material-symbols-rounded">add_circle</span>
+        Créer un rôle
       </button>
     </div>
   </div>
 
+  <!-- Success toast -->
   @if (saved()) {
-    <div class="flex items-center gap-2 mb-6 px-4 py-3 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-sm font-medium animate-in">
-      <span class="material-symbols-rounded text-lg">check_circle</span>Permissions mises à jour
+    <div class="st-toast">
+      <span class="material-symbols-rounded">check_circle</span>
+      Permissions mises à jour avec succès
     </div>
   }
 
-  <!-- Role Summary Cards -->
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+  <!-- Role cards -->
+  <div class="st-roles-grid">
     @for (role of roles(); track role.idRole) {
-      <div class="bg-card border border-border rounded-xl p-4">
-        <div class="flex items-center gap-3 pb-3 mb-3 border-b-2" [style.borderColor]="getRoleColor(role)">
-          <span class="material-symbols-rounded text-2xl" [style.color]="getRoleColor(role)">{{ getRoleIcon(role) }}</span>
-          <div class="min-w-0 flex-1">
-            <h3 class="font-semibold text-foreground text-sm truncate">{{ getRoleLabel(role) }}</h3>
-            <span class="text-xs text-muted-foreground truncate block">{{ role.description }}</span>
+      <div class="st-role-card" [style.--role-color]="getRoleColor(role)">
+        <div class="st-role-header">
+          <div class="st-role-icon-wrap">
+            <span class="material-symbols-rounded">{{ getRoleIcon(role) }}</span>
+          </div>
+          <div class="st-role-meta">
+            <h3>{{ getRoleLabel(role) }}</h3>
+            <span class="st-role-desc">{{ role.description || 'Rôle personnalisé' }}</span>
           </div>
           @if (!isProtectedRole(role)) {
-            <button class="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" title="Supprimer ce rôle" (click)="openDeleteRoleModal(role)">
-              <span class="material-symbols-rounded text-lg">delete_outline</span>
+            <button class="st-role-delete" title="Supprimer ce rôle" (click)="openDeleteRoleModal(role)">
+              <span class="material-symbols-rounded">close</span>
             </button>
           }
         </div>
-        <div class="flex items-baseline gap-1.5">
-          <span class="text-lg font-bold" [style.color]="getRoleColor(role)">{{ permissionCount(role) }}/{{ totalPermissions }}</span>
-          <span class="text-xs text-muted-foreground">permissions</span>
+        <div class="st-role-footer">
+          <div class="st-perm-bar">
+            <div class="st-perm-fill" [style.width.%]="(permissionCount(role) / totalPermissions) * 100"></div>
+          </div>
+          <span class="st-perm-count">{{ permissionCount(role) }}<span>/{{ totalPermissions }}</span></span>
         </div>
       </div>
     }
   </div>
 
-  <!-- Permissions Table -->
-  <div class="bg-card border border-border rounded-xl overflow-x-auto">
-    <table class="w-full">
-      <thead>
-        <tr class="border-b border-border bg-muted/50">
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground w-[180px]">Module</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Permission</th>
-          @for (role of roles(); track role.idRole) {
-            <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground w-[120px]">
-              <div class="inline-flex items-center gap-1.5">
-                <span class="w-2.5 h-2.5 rounded-full inline-block" [style.backgroundColor]="getRoleColor(role)"></span>{{ getRoleLabel(role) }}
-              </div>
-            </th>
+  <!-- Permissions matrix -->
+  <div class="st-matrix-wrap">
+    <div class="st-matrix-header">
+      <div class="st-matrix-title">
+        <span class="material-symbols-rounded">tune</span>
+        <div>
+          <h2>Matrice des Permissions</h2>
+          <p>Gérer les accès par rôle et par module</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="st-matrix-scroll">
+      <table class="st-matrix">
+        <thead>
+          <tr>
+            <th class="st-th-module">Module</th>
+            <th class="st-th-perm">Permission</th>
+            @for (role of roles(); track role.idRole) {
+              <th class="st-th-role">
+                <span class="st-th-dot" [style.backgroundColor]="getRoleColor(role)"></span>
+                {{ getRoleLabel(role) }}
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (group of permissionGroups; track group.label) {
+            @for (perm of group.permissions; track perm.key; let first = $first; let last = $last) {
+              <tr [class.st-group-first]="first" [class.st-group-last]="last">
+                @if (first) {
+                  <td class="st-td-module" [attr.rowspan]="group.permissions.length">
+                    <div class="st-module-cell">
+                      <span class="material-symbols-rounded">{{ group.icon }}</span>
+                      <span>{{ group.label }}</span>
+                    </div>
+                  </td>
+                }
+                <td class="st-td-perm">{{ perm.label }}</td>
+                @for (role of roles(); track role.idRole) {
+                  <td class="st-td-check">
+                    <label class="st-toggle" [style.--toggle-color]="getRoleColor(role)">
+                      <input type="checkbox" [checked]="hasPermission(role, perm.key)" (change)="togglePermission(role.nom, perm.key, $event)">
+                      <span class="st-toggle-track">
+                        <span class="st-toggle-thumb"></span>
+                      </span>
+                    </label>
+                  </td>
+                }
+              </tr>
+            }
           }
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-border">
-        @for (group of permissionGroups; track group.label) {
-          @for (perm of group.permissions; track perm.key; let first = $first) {
-            <tr class="hover:bg-muted/30 transition-colors" [class.border-t-2]="first" [class.border-border]="first">
-              @if (first) {
-                <td class="px-4 py-3 align-top" [attr.rowspan]="group.permissions.length">
-                  <div class="flex items-center gap-2 text-sm font-semibold text-foreground">
-                    <span class="material-symbols-rounded text-lg text-muted-foreground">{{ group.icon }}</span>{{ group.label }}
-                  </div>
-                </td>
-              }
-              <td class="px-4 py-3 text-sm text-foreground">{{ perm.label }}</td>
-              @for (role of roles(); track role.idRole) {
-                <td class="px-4 py-3 text-center">
-                  <label class="relative inline-flex items-center justify-center w-5 h-5 cursor-pointer">
-                    <input type="checkbox" class="peer sr-only" [checked]="hasPermission(role, perm.key)" (change)="togglePermission(role.nom, perm.key, $event)">
-                    <span class="w-5 h-5 border-2 border-input rounded flex items-center justify-center transition-colors peer-checked:border-transparent peer-checked:text-white" [style.--check-color]="getRoleColor(role)" style="background-color: var(--check-color, transparent);" [class.bg-transparent]="!hasPermission(role, perm.key)" [style.backgroundColor]="hasPermission(role, perm.key) ? getRoleColor(role) : 'transparent'">
-                      @if (hasPermission(role, perm.key)) {
-                        <span class="material-symbols-rounded text-sm text-white">check</span>
-                      }
-                    </span>
-                  </label>
-                </td>
-              }
-            </tr>
-          }
-        }
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Add Role Modal -->
   @if (showAddRoleModal()) {
-    <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="closeAddRoleModal()">
-      <div class="bg-card border border-border rounded-2xl w-full max-w-[450px] animate-in" (click)="$event.stopPropagation()">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-border">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <span class="material-symbols-rounded text-primary text-xl">badge</span>
+    <div class="st-overlay" (click)="closeAddRoleModal()">
+      <div class="st-modal" (click)="$event.stopPropagation()">
+        <div class="st-modal-header">
+          <div class="st-modal-title">
+            <div class="st-modal-icon">
+              <span class="material-symbols-rounded">badge</span>
             </div>
-            <h2 class="text-lg font-semibold text-foreground">Créer un rôle</h2>
+            <div>
+              <h2>Créer un rôle</h2>
+              <p>Définir un nouveau rôle avec ses permissions</p>
+            </div>
           </div>
-          <button class="p-2 rounded-md hover:bg-muted text-muted-foreground transition-colors" (click)="closeAddRoleModal()"><span class="material-symbols-rounded">close</span></button>
+          <button class="st-modal-close" (click)="closeAddRoleModal()">
+            <span class="material-symbols-rounded">close</span>
+          </button>
         </div>
-        <div class="p-6 space-y-4">
+
+        <div class="st-modal-body">
           @if (roleError()) {
-            <div class="flex items-center gap-2 px-3 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm">
-              <span class="material-symbols-rounded text-lg">error</span>{{ roleError() }}
+            <div class="st-form-error">
+              <span class="material-symbols-rounded">error</span>
+              <span>{{ roleError() }}</span>
             </div>
           }
-          <div>
-            <label class="block text-sm font-medium text-foreground mb-1.5">Nom du rôle *</label>
-            <input type="text" placeholder="Ex: superviseur" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="newRoleName()" (input)="newRoleName.set($any($event.target).value)">
+          <div class="st-field">
+            <label>Nom du rôle <span class="req">*</span></label>
+            <div class="st-input-wrap">
+              <span class="material-symbols-rounded">badge</span>
+              <input type="text" placeholder="Ex: superviseur" [value]="newRoleName()" (input)="newRoleName.set($any($event.target).value)">
+            </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-foreground mb-1.5">Description</label>
-            <input type="text" placeholder="Description du rôle (optionnel)" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="newRoleDescription()" (input)="newRoleDescription.set($any($event.target).value)">
+          <div class="st-field">
+            <label>Description</label>
+            <div class="st-input-wrap">
+              <span class="material-symbols-rounded">notes</span>
+              <input type="text" placeholder="Description du rôle (optionnel)" [value]="newRoleDescription()" (input)="newRoleDescription.set($any($event.target).value)">
+            </div>
           </div>
         </div>
-        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
-          <button type="button" class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="closeAddRoleModal()">Annuler</button>
-          <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors" (click)="saveNewRole()" [disabled]="savingRole()">
-            @if (savingRole()) { <span class="material-symbols-rounded text-sm animate-spin">progress_activity</span> }
-            Créer
+
+        <div class="st-modal-footer">
+          <button class="st-btn cancel" (click)="closeAddRoleModal()">Annuler</button>
+          <button class="st-btn primary" (click)="saveNewRole()" [disabled]="savingRole()">
+            @if (savingRole()) { <span class="material-symbols-rounded spin">progress_activity</span> }
+            Créer le rôle
           </button>
         </div>
       </div>
     </div>
   }
 
-  <!-- Delete Role Confirmation Modal -->
+  <!-- Delete Role Modal -->
   @if (showDeleteRoleModal() && roleToDelete(); as role) {
-    <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="cancelDeleteRole()">
-      <div class="bg-card border border-border rounded-2xl w-full max-w-[420px] animate-in" (click)="$event.stopPropagation()">
-        <div class="flex flex-col items-center text-center p-6 pt-8">
-          <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-4">
-            <span class="material-symbols-rounded text-red-600 text-3xl">delete_forever</span>
-          </div>
-          <h2 class="text-lg font-semibold text-foreground mb-2">Êtes-vous sûr ?</h2>
-          <p class="text-sm text-muted-foreground">Voulez-vous vraiment supprimer le rôle <span class="font-semibold text-foreground">{{ getRoleLabel(role) }}</span> et toutes ses permissions ? Cette action est irréversible.</p>
-          @if (deleteRoleError()) {
-            <div class="mt-3 flex items-center gap-2 px-3 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm w-full">
-              <span class="material-symbols-rounded text-lg">error</span>{{ deleteRoleError() }}
-            </div>
-          }
+    <div class="st-overlay" (click)="cancelDeleteRole()">
+      <div class="st-confirm-modal" (click)="$event.stopPropagation()">
+        <div class="st-confirm-icon danger">
+          <span class="material-symbols-rounded">delete_forever</span>
         </div>
-        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
-          <button type="button" class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="cancelDeleteRole()">Annuler</button>
-          <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors" (click)="confirmDeleteRole()" [disabled]="deletingRole()">
-            @if (deletingRole()) { <span class="material-symbols-rounded text-sm animate-spin">progress_activity</span> }
+        <h2>Supprimer ce rôle ?</h2>
+        <p>Le rôle <strong>{{ getRoleLabel(role) }}</strong> et toutes ses permissions seront supprimés. Cette action est irréversible.</p>
+        @if (deleteRoleError()) {
+          <div class="st-form-error compact">
+            <span class="material-symbols-rounded">error</span>
+            <span>{{ deleteRoleError() }}</span>
+          </div>
+        }
+        <div class="st-confirm-actions">
+          <button class="st-btn cancel" (click)="cancelDeleteRole()">Annuler</button>
+          <button class="st-btn danger" (click)="confirmDeleteRole()" [disabled]="deletingRole()">
+            @if (deletingRole()) { <span class="material-symbols-rounded spin">progress_activity</span> }
             Supprimer
           </button>
         </div>

@@ -54,3 +54,8 @@ C:\Users\jawher\Documents\ApplicationS\ApplicationS\Infra\bin\Debug\netcoreapp3.
 C:\Users\jawher\Documents\ApplicationS\ApplicationS\Infra\bin\Debug\netcoreapp3.1\Domain.pdb
 C:\Users\jawher\Documents\ApplicationS\ApplicationS\Infra\bin\Debug\netcoreapp3.1\Data.pdb
 C:\Users\jawher\Documents\ApplicationS\ApplicationS\Infra\obj\Debug\netcoreapp3.1\Infra.csproj.Up2Date
+C:\Users\jawher\Desktop\INVENTAIRE\mon-projet-pfe\Backend\Infra\bin\Debug\netcoreapp3.1\Data.dll
+C:\Users\jawher\Desktop\INVENTAIRE\mon-projet-pfe\Backend\Infra\bin\Debug\netcoreapp3.1\Domain.dll
+C:\Users\jawher\Desktop\INVENTAIRE\mon-projet-pfe\Backend\Infra\bin\Debug\netcoreapp3.1\Domain.pdb
+C:\Users\jawher\Desktop\INVENTAIRE\mon-projet-pfe\Backend\Infra\bin\Debug\netcoreapp3.1\Data.pdb
+C:\Users\jawher\Desktop\INVENTAIRE\mon-projet-pfe\Backend\Infra\obj\Debug\netcoreapp3.1\Infra.csproj.Up2Date

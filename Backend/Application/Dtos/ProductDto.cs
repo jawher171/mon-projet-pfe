@@ -12,5 +12,7 @@ namespace Application.Dtos
         public double Prix { get; set; }
         public Guid id_c { get; set; }
         public string? CategorieLibelle { get; set; }
+        /// <summary>Base64 data URL of product image.</summary>
+        public string? ImageUrl { get; set; }
     }
 }

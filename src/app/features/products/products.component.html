@@ -1,78 +1,80 @@
-<div class="max-w-[1400px] mx-auto space-y-6">
+<div class="pd-page">
   <!-- Header -->
-  <div class="flex flex-wrap items-start justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-bold tracking-tight text-foreground">Produits</h1>
-      <p class="text-sm text-muted-foreground mt-1">Gérer vos articles d'inventaire</p>
+  <div class="pd-header">
+    <div class="pd-header-text">
+      <h1>
+        <span class="material-symbols-rounded pd-header-icon">package_2</span>
+        Produits
+      </h1>
+      <p>Gérer vos articles d'inventaire</p>
     </div>
-      <button class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:brightness-110 shadow-sm transition-all" (click)="openAddModal()">
-        <span class="material-symbols-rounded text-lg">add_box</span>
-        Ajouter un produit
-      </button>
-    </div>
+    <button class="pd-btn primary" (click)="openAddModal()">
+      <span class="material-symbols-rounded">add_box</span>
+      Ajouter un produit
+    </button>
+  </div>
 
   <!-- Filters -->
-  <div class="flex flex-wrap items-center gap-3 p-4 bg-card border border-border rounded-xl">
-    <div class="relative flex-1 min-w-[200px]">
-      <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">search</span>
-      <input type="text" placeholder="Rechercher les produits par nom..."
-        class="w-full pl-10 pr-4 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent placeholder:text-muted-foreground/60"
-        (input)="onSearch($event)">
+  <div class="pd-toolbar">
+    <div class="pd-search">
+      <span class="material-symbols-rounded">search</span>
+      <input type="text" placeholder="Rechercher les produits par nom..." (input)="onSearch($event)">
     </div>
-    <select class="px-3 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring" (change)="onCategoryChange($event)">
+    <select class="pd-select" (change)="onCategoryChange($event)">
       <option value="all">Toutes les catégories</option>
-       @for (category of listCategories; track category.id_c) {
+      @for (category of listCategories; track category.id_c) {
         <option [value]="category.id_c">{{ category.categorieLibelle }}</option>
-
       }
     </select>
-    <button class="p-2 rounded-lg border border-border hover:bg-accent text-muted-foreground transition-colors" (click)="toggleViewMode()">
-      <span class="material-symbols-rounded text-xl">{{ viewMode() === 'grid' ? 'view_list' : 'grid_view' }}</span>
+    <button class="pd-btn outline icon-only" (click)="toggleViewMode()">
+      <span class="material-symbols-rounded">{{ viewMode() === 'grid' ? 'view_list' : 'grid_view' }}</span>
     </button>
   </div>
 
   <!-- Count -->
-  <div class="text-sm text-muted-foreground">{{ filteredProducts().length }} produits trouvés</div>
+  <div class="pd-count">{{ filteredProducts().length }} produits trouvés</div>
 
   <!-- Products Grid -->
-  <div class="grid gap-4" [class]="viewMode() === 'list' ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'">
+  <div class="pd-grid" [attr.data-view]="viewMode()">
     @if (filteredProducts().length === 0) {
-      <div class="col-span-full flex flex-col items-center justify-center py-16 text-muted-foreground">
-        <span class="material-symbols-rounded text-5xl mb-3">deployed_code</span>
-        <h3 class="text-lg font-semibold text-foreground">Aucun produit trouvé</h3>
-        <p class="text-sm">Essayez d'ajuster votre recherche ou vos filtres</p>
+      <div class="pd-empty">
+        <div class="pd-empty-icon">
+          <span class="material-symbols-rounded">deployed_code</span>
+        </div>
+        <h3>Aucun produit trouvé</h3>
+        <p>Essayez d'ajuster votre recherche ou vos filtres</p>
       </div>
     } @else {
       @for (product of filteredProducts(); track product.id_p) {
-        <div class="bg-card border border-border rounded-xl overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all group">
-          <div class="h-40 bg-muted/30 flex items-center justify-center overflow-hidden">
+        <div class="pd-card">
+          <div class="pd-card-img">
             @if (getProductImage(product)) {
-              <img [src]="getProductImage(product)" [alt]="product.nom" class="w-full h-full object-cover">
+              <img [src]="getProductImage(product)" [alt]="product.nom">
             } @else {
-              <span class="material-symbols-rounded text-4xl text-muted-foreground/40">photo_camera</span>
+              <span class="material-symbols-rounded">photo_camera</span>
             }
           </div>
-          <div class="p-4 space-y-3">
-            <h3 class="text-sm font-semibold text-foreground truncate">{{ product.nom }}</h3>
-            <p class="text-xs text-muted-foreground line-clamp-2">{{ product.description }}</p>
-            <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span class="material-symbols-rounded text-sm">label</span>
+          <div class="pd-card-body">
+            <h3 class="pd-card-name">{{ product.nom }}</h3>
+            <p class="pd-card-desc">{{ product.description }}</p>
+            <div class="pd-card-cat">
+              <span class="material-symbols-rounded">label</span>
               {{ product.categorieLibelle }}
             </div>
-            <div class="flex items-center justify-between pt-2 border-t border-border">
-              <div>
-                <span class="text-xs text-muted-foreground">Prix:</span>
-                <span class="text-sm font-bold text-foreground ml-1">{{ product.prix.toFixed(2) }} DH</span>
+            <div class="pd-card-footer">
+              <div class="pd-card-price">
+                <span class="label">Prix:</span>
+                <span class="value">{{ product.prix.toFixed(2) }} DH</span>
               </div>
-              <div class="flex gap-1">
-                <button class="p-1.5 rounded-lg hover:bg-accent text-muted-foreground transition-colors" title="Voir" (click)="openDetailsModal(product)">
-                  <span class="material-symbols-rounded text-lg">open_in_new</span>
+              <div class="pd-card-actions">
+                <button class="pd-act view" title="Voir" (click)="openDetailsModal(product)">
+                  <span class="material-symbols-rounded">open_in_new</span>
                 </button>
-                <button class="p-1.5 rounded-lg hover:bg-accent text-muted-foreground transition-colors" title="Modifier" (click)="openEditModal(product)">
-                  <span class="material-symbols-rounded text-lg">edit_square</span>
+                <button class="pd-act edit" title="Modifier" (click)="openEditModal(product)">
+                  <span class="material-symbols-rounded">edit_square</span>
                 </button>
-                <button class="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors" title="Supprimer" (click)="deleteProduct(product.id_p)">
-                  <span class="material-symbols-rounded text-lg">delete_outline</span>
+                <button class="pd-act delete" title="Supprimer" (click)="deleteProduct(product.id_p)">
+                  <span class="material-symbols-rounded">delete_outline</span>
                 </button>
               </div>
             </div>
@@ -84,89 +86,132 @@
 
   <!-- Product Form Modal -->
   @if (showModal()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" (click)="closeModal()">
-      <div class="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4 animate-in" (click)="$event.stopPropagation()">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-card z-10">
-          <h2 class="text-lg font-semibold text-foreground flex items-center gap-2">
-            <span class="material-symbols-rounded text-primary">{{ isEditMode() ? 'edit_square' : 'add_box' }}</span>
-            {{ isEditMode() ? 'Modifier le produit' : 'Ajouter un nouveau produit' }}
-          </h2>
-          <button class="p-1.5 rounded-lg hover:bg-accent text-muted-foreground" (click)="closeModal()">
+    <div class="pd-overlay" (click)="closeModal()">
+      <div class="pd-modal" (click)="$event.stopPropagation()">
+        <div class="pd-modal-header">
+          <div class="pd-modal-title">
+            <div class="pd-modal-icon">
+              <span class="material-symbols-rounded">{{ isEditMode() ? 'edit_square' : 'add_box' }}</span>
+            </div>
+            <h2>{{ isEditMode() ? 'Modifier le produit' : 'Ajouter un nouveau produit' }}</h2>
+          </div>
+          <button class="pd-modal-close" (click)="closeModal()">
             <span class="material-symbols-rounded">close</span>
           </button>
         </div>
-        <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="p-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div class="md:col-span-2 space-y-1.5">
-              <label for="nom" class="text-sm font-medium text-foreground">Nom du produit *</label>
-              <input type="text" id="nom" formControlName="nom" placeholder="Entrez le nom du produit"
-                class="w-full px-3 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
+        <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="pd-form">
+          <!-- Image upload -->
+          <div class="pd-form-row full">
+            <div class="pd-field">
+              <label>Image du produit</label>
+              <div class="pd-image-upload">
+                <input type="file" id="productImage" accept="image/*" (change)="onImageSelected($event)" #imageInput>
+                <label for="productImage" class="pd-image-label">
+                  @if (productForm.get('imageUrl')?.value) {
+                    <div class="pd-image-preview">
+                      <img [src]="productForm.get('imageUrl')?.value" alt="Aperçu">
+                      <span class="pd-image-remove" (click)="clearImage($event, imageInput)" title="Supprimer l'image">
+                        <span class="material-symbols-rounded">close</span>
+                      </span>
+                    </div>
+                  } @else {
+                    <span class="material-symbols-rounded pd-image-icon">add_photo_alternate</span>
+                    <span class="pd-image-text">Choisir une image depuis votre PC</span>
+                    <span class="pd-image-hint">PNG, JPG ou WebP — max 5 Mo</span>
+                  }
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="pd-form-row full">
+            <div class="pd-field">
+              <label for="nom">Nom du produit <span class="req">*</span></label>
+              <div class="pd-input-wrap">
+                <span class="material-symbols-rounded">inventory_2</span>
+                <input type="text" id="nom" formControlName="nom" placeholder="Entrez le nom du produit">
+              </div>
               @if (productForm.get('nom')?.touched && productForm.get('nom')?.errors?.['required']) {
-                <span class="text-xs text-destructive">Le nom du produit est requis</span>
+                <span class="pd-field-error">Le nom du produit est requis</span>
               }
               @if (productForm.get('nom')?.touched && productForm.get('nom')?.errors?.['noNumbers']) {
-                <span class="text-xs text-destructive">Le nom du produit ne doit pas contenir de chiffres</span>
+                <span class="pd-field-error">Le nom du produit ne doit pas contenir de chiffres</span>
               }
             </div>
-            <div class="space-y-1.5">
-              <label for="codeBarre" class="text-sm font-medium text-foreground">Code-barres</label>
-              <div class="flex gap-2">
-                <input type="text" id="codeBarre" formControlName="codeBarre" placeholder="Code-barres du produit"
-                  class="flex-1 px-3 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
-                <button type="button" class="px-3 py-2 bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary/20 transition-colors" title="Scanner avec le téléphone" (click)="openBarcodeScan()">
-                  <span class="material-symbols-rounded text-lg">qr_code_scanner</span>
+          </div>
+          <div class="pd-form-row">
+            <div class="pd-field">
+              <label for="codeBarre">Code-barres</label>
+              <div class="pd-input-group">
+                <div class="pd-input-wrap">
+                  <span class="material-symbols-rounded">barcode</span>
+                  <input type="text" id="codeBarre" formControlName="codeBarre" placeholder="Code-barres du produit">
+                </div>
+                <button type="button" class="pd-btn outline scan" title="Scanner avec le téléphone" (click)="openBarcodeScan()">
+                  <span class="material-symbols-rounded">qr_code_scanner</span>
                 </button>
               </div>
             </div>
-            <div class="space-y-1.5">
-              <label for="categorieId" class="text-sm font-medium text-foreground">Catégorie *</label>
-              <div class="flex gap-2">
-                <select id="categorieId" formControlName="id_c"
-                  class="flex-1 px-3 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
-                  <option [ngValue]="null">Sélectionner une catégorie</option>
-                  @for (category of listCategories; track category.id_c) {
-                    <option [value]="category.id_c">{{ category.categorieLibelle }}</option>
-                  }
-                </select>
+            <div class="pd-field">
+              <label for="categorieId">Catégorie <span class="req">*</span></label>
+              <div class="pd-input-group">
+                <div class="pd-input-wrap select">
+                  <span class="material-symbols-rounded">category</span>
+                  <select id="categorieId" formControlName="id_c">
+                    <option [ngValue]="null">Sélectionner une catégorie</option>
+                    @for (category of listCategories; track category.id_c) {
+                      <option [value]="category.id_c">{{ category.categorieLibelle }}</option>
+                    }
+                  </select>
+                </div>
                 @if (productForm.get('id_c')?.value) {
-                  <button type="button" class="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors" title="Supprimer cette catégorie" (click)="deleteCategory(productForm.get('id_c')?.value)">
-                    <span class="material-symbols-rounded text-lg">delete_outline</span>
+                  <button type="button" class="pd-act delete" title="Supprimer cette catégorie" (click)="deleteCategory(productForm.get('id_c')?.value)">
+                    <span class="material-symbols-rounded">delete_outline</span>
                   </button>
                 }
               </div>
               @if (!isAddingCategory()) {
-                <button type="button" class="inline-flex items-center gap-1 mt-1 text-xs text-primary font-medium hover:underline" (click)="startAddCategory()">
-                  <span class="material-symbols-rounded text-sm">add_circle</span> Ajouter une catégorie
+                <button type="button" class="pd-add-cat-link" (click)="startAddCategory()">
+                  <span class="material-symbols-rounded">add_circle</span> Ajouter une catégorie
                 </button>
               } @else {
-                <div class="mt-2 space-y-2">
-                  <input type="text" placeholder="Nom de la catégorie" [value]="newCategoryName()" (input)="onNewCategoryInput($event)"
-                    class="w-full px-3 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
-                  <div class="flex gap-2">
-                    <button type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-primary-foreground" (click)="addCategoryFromForm()" [disabled]="!newCategoryName().trim()">Enregistrer</button>
-                    <button type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border hover:bg-accent" (click)="cancelAddCategory()">Annuler</button>
+                <div class="pd-add-cat-form">
+                  <div class="pd-input-wrap">
+                    <span class="material-symbols-rounded">new_label</span>
+                    <input type="text" placeholder="Nom de la catégorie" [value]="newCategoryName()" (input)="onNewCategoryInput($event)">
+                  </div>
+                  <div class="pd-add-cat-actions">
+                    <button type="button" class="pd-btn primary sm" (click)="addCategoryFromForm()" [disabled]="!newCategoryName().trim()">Enregistrer</button>
+                    <button type="button" class="pd-btn cancel sm" (click)="cancelAddCategory()">Annuler</button>
                   </div>
                 </div>
               }
               @if (productForm.get('id_c')?.touched && productForm.get('id_c')?.errors?.['required']) {
-                <span class="text-xs text-destructive">La catégorie est requise</span>
+                <span class="pd-field-error">La catégorie est requise</span>
               }
             </div>
-            <div class="md:col-span-2 space-y-1.5">
-              <label for="description" class="text-sm font-medium text-foreground">Description</label>
-              <textarea id="description" formControlName="description" rows="3" placeholder="Description du produit"
-                class="w-full px-3 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring resize-none"></textarea>
-            </div>
-            <div class="space-y-1.5">
-              <label for="prix" class="text-sm font-medium text-foreground">Prix (DH) *</label>
-              <input type="number" id="prix" formControlName="prix" min="0" step="0.01" placeholder="0.00"
-                class="w-full px-3 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
+          </div>
+          <div class="pd-form-row full">
+            <div class="pd-field">
+              <label for="description">Description</label>
+              <div class="pd-input-wrap textarea">
+                <span class="material-symbols-rounded">description</span>
+                <textarea id="description" formControlName="description" rows="3" placeholder="Description du produit"></textarea>
+              </div>
             </div>
           </div>
-          <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
-            <button type="button" class="px-4 py-2 text-sm font-medium rounded-lg border border-border hover:bg-accent transition-colors" (click)="closeModal()">Annuler</button>
-            <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:brightness-110 transition-all">
-              <span class="material-symbols-rounded text-lg">{{ isEditMode() ? 'check_circle' : 'add_box' }}</span>
+          <div class="pd-form-row">
+            <div class="pd-field">
+              <label for="prix">Prix (DH) <span class="req">*</span></label>
+              <div class="pd-input-wrap">
+                <span class="material-symbols-rounded">payments</span>
+                <input type="number" id="prix" formControlName="prix" min="0" step="0.01" placeholder="0.00">
+              </div>
+            </div>
+          </div>
+          <div class="pd-modal-footer">
+            <button type="button" class="pd-btn cancel" (click)="closeModal()">Annuler</button>
+            <button type="submit" class="pd-btn primary">
+              <span class="material-symbols-rounded">{{ isEditMode() ? 'check_circle' : 'add_box' }}</span>
               {{ isEditMode() ? 'Modifier' : 'Ajouter' }}
             </button>
           </div>
@@ -177,43 +222,50 @@
 
   <!-- Details Modal -->
   @if (showDetailsModal() && selectedProduct()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" (click)="closeDetailsModal()">
-      <div class="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg mx-4 animate-in" (click)="$event.stopPropagation()">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-border">
-          <h2 class="text-lg font-semibold text-foreground flex items-center gap-2">
-            <span class="material-symbols-rounded text-primary">package_2</span>
-            Détails du produit
-          </h2>
-          <button class="p-1.5 rounded-lg hover:bg-accent text-muted-foreground" (click)="closeDetailsModal()">
+    <div class="pd-overlay" (click)="closeDetailsModal()">
+      <div class="pd-modal sm" (click)="$event.stopPropagation()">
+        <div class="pd-modal-header">
+          <div class="pd-modal-title">
+            <div class="pd-modal-icon">
+              <span class="material-symbols-rounded">package_2</span>
+            </div>
+            <h2>Détails du produit</h2>
+          </div>
+          <button class="pd-modal-close" (click)="closeDetailsModal()">
             <span class="material-symbols-rounded">close</span>
           </button>
         </div>
-        <div class="p-6">
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-1">
-              <span class="text-xs text-muted-foreground font-medium uppercase tracking-wider">Nom</span>
-              <span class="block text-sm font-medium text-foreground">{{ selectedProduct()!.nom }}</span>
+        <div class="pd-modal-body">
+          @if (getProductImage(selectedProduct()!)) {
+            <div class="pd-detail-image">
+              <img [src]="getProductImage(selectedProduct()!)!" [alt]="selectedProduct()!.nom">
             </div>
-            <div class="space-y-1">
-              <span class="text-xs text-muted-foreground font-medium uppercase tracking-wider">Catégorie</span>
-              <span class="block text-sm font-medium text-foreground">{{ selectedProduct()!.categorieLibelle || '—' }}</span>
+          }
+          <div class="pd-detail-grid">
+            <div class="pd-detail-item">
+              <span class="pd-detail-label">Nom</span>
+              <span class="pd-detail-value">{{ selectedProduct()!.nom }}</span>
             </div>
-            <div class="space-y-1">
-              <span class="text-xs text-muted-foreground font-medium uppercase tracking-wider">Prix</span>
-              <span class="block text-sm font-bold text-foreground">{{ selectedProduct()!.prix.toFixed(2) }} TND</span>
+            <div class="pd-detail-item">
+              <span class="pd-detail-label">Catégorie</span>
+              <span class="pd-detail-value">{{ selectedProduct()!.categorieLibelle || '—' }}</span>
             </div>
-            <div class="space-y-1">
-              <span class="text-xs text-muted-foreground font-medium uppercase tracking-wider">Code-barres</span>
-              <span class="block text-sm font-medium text-foreground">{{ selectedProduct()!.codeBarre || '—' }}</span>
+            <div class="pd-detail-item">
+              <span class="pd-detail-label">Prix</span>
+              <span class="pd-detail-value bold">{{ selectedProduct()!.prix.toFixed(2) }} TND</span>
             </div>
-            <div class="col-span-2 space-y-1">
-              <span class="text-xs text-muted-foreground font-medium uppercase tracking-wider">Description</span>
-              <span class="block text-sm text-foreground">{{ selectedProduct()!.description || '—' }}</span>
+            <div class="pd-detail-item">
+              <span class="pd-detail-label">Code-barres</span>
+              <span class="pd-detail-value">{{ selectedProduct()!.codeBarre || '—' }}</span>
+            </div>
+            <div class="pd-detail-item full">
+              <span class="pd-detail-label">Description</span>
+              <span class="pd-detail-value">{{ selectedProduct()!.description || '—' }}</span>
             </div>
           </div>
         </div>
-        <div class="flex justify-end px-6 py-4 border-t border-border">
-          <button class="px-4 py-2 text-sm font-medium rounded-lg border border-border hover:bg-accent transition-colors" (click)="closeDetailsModal()">Fermer</button>
+        <div class="pd-modal-footer">
+          <button class="pd-btn cancel" (click)="closeDetailsModal()">Fermer</button>
         </div>
       </div>
     </div>
@@ -221,23 +273,21 @@
 
   <!-- Delete Confirmation Modal -->
   @if (showDeleteModal()) {
-    <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="cancelDelete()">
-      <div class="bg-card border border-border rounded-2xl w-full max-w-[420px] animate-in" (click)="$event.stopPropagation()">
-        <div class="flex flex-col items-center text-center p-6 pt-8">
-          <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-4">
-            <span class="material-symbols-rounded text-red-600 text-3xl">delete_forever</span>
-          </div>
-          <h2 class="text-lg font-semibold text-foreground mb-2">Êtes-vous sûr ?</h2>
-          @if (productToDelete(); as product) {
-            <p class="text-sm text-muted-foreground">Voulez-vous vraiment supprimer le produit <span class="font-semibold text-foreground">{{ product.nom }}</span> ? Cette action est irréversible.</p>
-          } @else if (categoryToDelete(); as cat) {
-            <p class="text-sm text-muted-foreground">Voulez-vous vraiment supprimer la catégorie <span class="font-semibold text-foreground">{{ cat.name }}</span> ? Cette action est irréversible.</p>
-          }
+    <div class="pd-overlay" (click)="cancelDelete()">
+      <div class="pd-confirm-modal" (click)="$event.stopPropagation()">
+        <div class="pd-confirm-icon danger">
+          <span class="material-symbols-rounded">delete_forever</span>
         </div>
-        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
-          <button type="button" class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="cancelDelete()">Annuler</button>
-          <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors" (click)="confirmDelete()" [disabled]="deleting()">
-            @if (deleting()) { <span class="material-symbols-rounded text-sm animate-spin">progress_activity</span> }
+        <h2>Êtes-vous sûr ?</h2>
+        @if (productToDelete(); as product) {
+          <p>Voulez-vous vraiment supprimer le produit <strong>{{ product.nom }}</strong> ? Cette action est irréversible.</p>
+        } @else if (categoryToDelete(); as cat) {
+          <p>Voulez-vous vraiment supprimer la catégorie <strong>{{ cat.name }}</strong> ? Cette action est irréversible.</p>
+        }
+        <div class="pd-confirm-actions">
+          <button type="button" class="pd-btn cancel" (click)="cancelDelete()">Annuler</button>
+          <button type="button" class="pd-btn danger" (click)="confirmDelete()" [disabled]="deleting()">
+            @if (deleting()) { <span class="material-symbols-rounded spin">progress_activity</span> }
             Supprimer
           </button>
         </div>

@@ -1,35 +1,37 @@
-<div class="max-w-[1400px] mx-auto space-y-6">
+<div class="db-page">
   <!-- Header -->
-  <div class="flex flex-wrap items-start justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-bold tracking-tight text-foreground">Tableau de Bord</h1>
-      <p class="text-sm text-muted-foreground mt-1">Vue d'ensemble de votre inventaire intelligent</p>
+  <div class="db-header">
+    <div class="db-header-text">
+      <h1>
+        <span class="material-symbols-rounded db-header-icon">dashboard</span>
+        Tableau de Bord
+      </h1>
+      <p>Vue d'ensemble de votre inventaire intelligent</p>
     </div>
-    <div class="flex gap-3">
-      <a routerLink="/scanner" class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
-        <span class="material-symbols-rounded text-lg">qr_code_2</span>
+    <div class="db-header-actions">
+      <a routerLink="/scanner" class="db-btn outline">
+        <span class="material-symbols-rounded">qr_code_2</span>
         Scanner
       </a>
-      <a routerLink="/movements" class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:brightness-110 shadow-sm transition-all">
-        <span class="material-symbols-rounded text-lg">swap_vert</span>
+      <a routerLink="/movements" class="db-btn primary">
+        <span class="material-symbols-rounded">swap_vert</span>
         Nouveau Mouvement
       </a>
     </div>
   </div>
 
   <!-- Stat Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+  <div class="db-stats-grid">
     @for (stat of stats(); track stat.title) {
-      <div class="group bg-card border border-border rounded-xl p-5 flex gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all">
-        <div class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0" [style.background]="stat.color + '15'">
-          <span class="material-symbols-rounded text-2xl" [style.color]="stat.color">{{ stat.icon }}</span>
+      <div class="db-stat-card">
+        <div class="db-stat-icon" [style.--stat-color]="stat.color">
+          <span class="material-symbols-rounded">{{ stat.icon }}</span>
         </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm text-muted-foreground">{{ stat.title }}</p>
-          <p class="text-2xl font-bold text-foreground mt-0.5">{{ stat.value }}</p>
-          <div class="flex items-center gap-1 mt-1 text-xs font-semibold"
-            [class]="stat.trend === 'up' ? 'text-emerald-600' : 'text-red-500'">
-            <span class="material-symbols-rounded text-sm">{{ stat.trend === 'up' ? 'trending_up' : 'trending_down' }}</span>
+        <div class="db-stat-body">
+          <span class="db-stat-label">{{ stat.title }}</span>
+          <span class="db-stat-value">{{ stat.value }}</span>
+          <div class="db-stat-trend" [class.up]="stat.trend === 'up'" [class.down]="stat.trend !== 'up'">
+            <span class="material-symbols-rounded">{{ stat.trend === 'up' ? 'trending_up' : 'trending_down' }}</span>
             <span>{{ stat.change }}% ce mois</span>
           </div>
         </div>
@@ -38,116 +40,116 @@
   </div>
 
   <!-- Movement Summary -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-    <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-3 relative overflow-hidden before:absolute before:left-0 before:inset-y-0 before:w-1 before:bg-emerald-500 before:rounded-r">
-      <div class="w-11 h-11 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
+  <div class="db-summary-grid">
+    <div class="db-summary-card" style="--accent: #10b981">
+      <div class="db-summary-bar"></div>
+      <div class="db-summary-icon">
         <span class="material-symbols-rounded">move_to_inbox</span>
       </div>
-      <div class="flex-1">
-        <span class="text-2xl font-bold text-foreground">{{ movementSummary().totalEntries }}</span>
-        <span class="block text-sm text-muted-foreground">Entrées</span>
+      <div class="db-summary-body">
+        <span class="db-summary-value">{{ movementSummary().totalEntries }}</span>
+        <span class="db-summary-label">Entrées</span>
       </div>
-      <span class="text-xs font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-1 rounded">+{{ movementSummary().entriesQuantity }} unités</span>
+      <span class="db-summary-badge">+{{ movementSummary().entriesQuantity }} unités</span>
     </div>
 
-    <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-3 relative overflow-hidden before:absolute before:left-0 before:inset-y-0 before:w-1 before:bg-red-500 before:rounded-r">
-      <div class="w-11 h-11 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 shrink-0">
+    <div class="db-summary-card" style="--accent: #ef4444">
+      <div class="db-summary-bar"></div>
+      <div class="db-summary-icon">
         <span class="material-symbols-rounded">outbox</span>
       </div>
-      <div class="flex-1">
-        <span class="text-2xl font-bold text-foreground">{{ movementSummary().totalExits }}</span>
-        <span class="block text-sm text-muted-foreground">Sorties</span>
+      <div class="db-summary-body">
+        <span class="db-summary-value">{{ movementSummary().totalExits }}</span>
+        <span class="db-summary-label">Sorties</span>
       </div>
-      <span class="text-xs font-semibold text-red-600 bg-red-500/10 px-2 py-1 rounded">-{{ movementSummary().exitsQuantity }} unités</span>
+      <span class="db-summary-badge">-{{ movementSummary().exitsQuantity }} unités</span>
     </div>
 
-    <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-3 relative overflow-hidden before:absolute before:left-0 before:inset-y-0 before:w-1 before:bg-blue-500 before:rounded-r">
-      <div class="w-11 h-11 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0">
+    <div class="db-summary-card" style="--accent: #3b82f6">
+      <div class="db-summary-bar"></div>
+      <div class="db-summary-icon">
         <span class="material-symbols-rounded">domain</span>
       </div>
-      <div class="flex-1">
-        <span class="text-2xl font-bold text-foreground">{{ siteStats().active }}</span>
-        <span class="block text-sm text-muted-foreground">Sites Actifs</span>
+      <div class="db-summary-body">
+        <span class="db-summary-value">{{ siteStats().active }}</span>
+        <span class="db-summary-label">Sites Actifs</span>
       </div>
-      <span class="text-xs font-semibold text-blue-600 bg-blue-500/10 px-2 py-1 rounded">{{ siteStats().total }} total</span>
+      <span class="db-summary-badge">{{ siteStats().total }} total</span>
     </div>
 
-    <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-3 relative overflow-hidden before:absolute before:left-0 before:inset-y-0 before:w-1 before:bg-amber-500 before:rounded-r">
-      <div class="w-11 h-11 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
+    <div class="db-summary-card" style="--accent: #f59e0b">
+      <div class="db-summary-bar"></div>
+      <div class="db-summary-icon">
         <span class="material-symbols-rounded">campaign</span>
       </div>
-      <div class="flex-1">
-        <span class="text-2xl font-bold text-foreground">{{ alertStats().unread }}</span>
-        <span class="block text-sm text-muted-foreground">Alertes Non Lues</span>
+      <div class="db-summary-body">
+        <span class="db-summary-value">{{ alertStats().unread }}</span>
+        <span class="db-summary-label">Alertes Non Lues</span>
       </div>
-      <span class="text-xs font-semibold text-amber-600 bg-amber-500/10 px-2 py-1 rounded">{{ alertStats().critical }} critiques</span>
+      <span class="db-summary-badge">{{ alertStats().critical }} critiques</span>
     </div>
   </div>
 
   <!-- 3-Column Content -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="db-panels-3">
     <!-- Critical Alerts -->
-    <div class="bg-card border border-border rounded-xl overflow-hidden">
-      <div class="flex items-center justify-between px-5 py-4 border-b border-border">
-        <h2 class="text-base font-semibold text-foreground flex items-center gap-2">
-          <span class="material-symbols-rounded text-amber-500 text-lg">emergency</span>
+    <div class="db-panel">
+      <div class="db-panel-header">
+        <h2>
+          <span class="material-symbols-rounded" style="color: #f59e0b">emergency</span>
           Alertes Critiques
         </h2>
-        <a routerLink="/alerts" class="text-sm text-primary font-medium hover:underline">Voir tout</a>
+        <a routerLink="/alerts" class="db-link">Voir tout</a>
       </div>
-      <div class="p-4 space-y-3">
+      <div class="db-panel-body">
         @for (alert of criticalAlerts(); track alert.id) {
-          <div class="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-              [class]="getSeverityForAlert(alert) === 'critical' ? 'bg-red-100 text-red-600' : getSeverityForAlert(alert) === 'high' ? 'bg-orange-100 text-orange-600' : 'bg-yellow-100 text-yellow-600'">
-              <span class="material-symbols-rounded text-lg">{{ getAlertIcon(alert.type) }}</span>
+          <div class="db-alert-item">
+            <div class="db-alert-icon" [class]="getSeverityForAlert(alert) === 'critical' ? 'critical' : getSeverityForAlert(alert) === 'high' ? 'high' : 'medium'">
+              <span class="material-symbols-rounded">{{ getAlertIcon(alert.type) }}</span>
             </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-foreground">{{ alert.type }}</p>
-              <p class="text-xs text-muted-foreground truncate">{{ alert.message }}</p>
+            <div class="db-alert-body">
+              <span class="db-alert-title">{{ alert.type }}</span>
+              <span class="db-alert-msg">{{ alert.message }}</span>
             </div>
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-              [class]="getSeverityForAlert(alert) === 'critical' ? 'bg-red-100 text-red-700' : getSeverityForAlert(alert) === 'high' ? 'bg-orange-100 text-orange-700' : 'bg-yellow-100 text-yellow-700'">
+            <span class="db-alert-badge" [class]="getSeverityForAlert(alert) === 'critical' ? 'critical' : getSeverityForAlert(alert) === 'high' ? 'high' : 'medium'">
               {{ severityConfig[getSeverityForAlert(alert)]?.label || alert.type }}
             </span>
           </div>
         } @empty {
-          <div class="flex flex-col items-center py-8 text-muted-foreground">
-            <span class="material-symbols-rounded text-4xl text-emerald-400 mb-2">verified</span>
-            <p class="text-sm">Aucune alerte critique</p>
+          <div class="db-empty-panel">
+            <span class="material-symbols-rounded">verified</span>
+            <p>Aucune alerte critique</p>
           </div>
         }
       </div>
     </div>
 
     <!-- Replenishment -->
-    <div class="bg-card border border-border rounded-xl overflow-hidden">
-      <div class="flex items-center justify-between px-5 py-4 border-b border-border">
-        <h2 class="text-base font-semibold text-foreground flex items-center gap-2">
-          <span class="material-symbols-rounded text-primary text-lg">package_2</span>
+    <div class="db-panel">
+      <div class="db-panel-header">
+        <h2>
+          <span class="material-symbols-rounded" style="color: hsl(var(--primary))">package_2</span>
           Réapprovisionnement
         </h2>
-        <a routerLink="/products" class="text-sm text-primary font-medium hover:underline">Voir tout</a>
+        <a routerLink="/products" class="db-link">Voir tout</a>
       </div>
-      <div class="p-4 space-y-3">
+      <div class="db-panel-body">
         @for (item of lowStockItems(); track item.id) {
-          <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
-            <div class="flex-1 min-w-0">
-              <span class="text-sm font-medium text-foreground block">{{ item.name }}</span>
+          <div class="db-stock-item">
+            <div class="db-stock-info">
+              <span class="db-stock-name">{{ item.name }}</span>
               @if (item.sku) {
-                <span class="text-xs text-muted-foreground">{{ item.sku }}</span>
+                <span class="db-stock-sku">{{ item.sku }}</span>
               }
             </div>
-            <div class="w-20">
-              <div class="h-1.5 bg-muted rounded-full overflow-hidden">
-                <div class="h-full rounded-full transition-all"
-                  [class]="item.status === 'critical' ? 'bg-red-500' : item.status === 'warning' ? 'bg-amber-500' : 'bg-blue-500'"
+            <div class="db-stock-bar-wrap">
+              <div class="db-stock-bar">
+                <div class="db-stock-fill" [class]="item.status === 'critical' ? 'critical' : item.status === 'warning' ? 'warning' : 'reorder'"
                   [style.width.%]="(item.currentStock / item.minStock) * 100"></div>
               </div>
-              <span class="text-[10px] text-muted-foreground mt-0.5 block text-center">{{ item.currentStock }} / {{ item.minStock }}</span>
+              <span class="db-stock-count">{{ item.currentStock }} / {{ item.minStock }}</span>
             </div>
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-              [class]="item.status === 'critical' ? 'bg-red-100 text-red-700' : item.status === 'warning' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'">
+            <span class="db-stock-badge" [class]="item.status">
               {{ getStockStatusLabel(item.status) }}
             </span>
           </div>
@@ -156,23 +158,23 @@
     </div>
 
     <!-- Recent Activities -->
-    <div class="bg-card border border-border rounded-xl overflow-hidden">
-      <div class="flex items-center justify-between px-5 py-4 border-b border-border">
-        <h2 class="text-base font-semibold text-foreground flex items-center gap-2">
-          <span class="material-symbols-rounded text-muted-foreground text-lg">schedule</span>
+    <div class="db-panel">
+      <div class="db-panel-header">
+        <h2>
+          <span class="material-symbols-rounded" style="color: hsl(var(--muted-foreground))">schedule</span>
           Activités Récentes
         </h2>
-        <a routerLink="/movements" class="text-sm text-primary font-medium hover:underline">Voir tout</a>
+        <a routerLink="/movements" class="db-link">Voir tout</a>
       </div>
-      <div class="p-4 space-y-2">
+      <div class="db-panel-body tight">
         @for (activity of recentActivities(); track activity.id) {
-          <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" [style.background]="activity.color + '15'">
-              <span class="material-symbols-rounded text-lg" [style.color]="activity.color">{{ activity.icon }}</span>
+          <div class="db-activity-item">
+            <div class="db-activity-icon" [style.--act-color]="activity.color">
+              <span class="material-symbols-rounded">{{ activity.icon }}</span>
             </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm text-foreground">{{ activity.message }}</p>
-              <span class="text-xs text-muted-foreground">{{ getTimeAgo(activity.timestamp) }}</span>
+            <div class="db-activity-body">
+              <span class="db-activity-msg">{{ activity.message }}</span>
+              <span class="db-activity-time">{{ getTimeAgo(activity.timestamp) }}</span>
             </div>
           </div>
         }
@@ -181,24 +183,26 @@
   </div>
 
   <!-- 2-Column Content -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="db-panels-2">
     <!-- Top Products -->
-    <div class="bg-card border border-border rounded-xl overflow-hidden">
-      <div class="flex items-center justify-between px-5 py-4 border-b border-border">
-        <h2 class="text-base font-semibold text-foreground">Top Produits</h2>
-        <button class="text-sm text-primary font-medium hover:underline">Voir tout</button>
+    <div class="db-panel">
+      <div class="db-panel-header">
+        <h2>
+          <span class="material-symbols-rounded" style="color: hsl(var(--primary))">leaderboard</span>
+          Top Produits
+        </h2>
+        <button class="db-link">Voir tout</button>
       </div>
-      <div class="p-4 space-y-1">
+      <div class="db-panel-body tight">
         @for (product of topProducts(); track product.name) {
-          <div class="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors">
-            <div class="flex-1 min-w-0">
-              <div class="text-sm font-medium text-foreground">{{ product.name }}</div>
-              <div class="text-xs text-muted-foreground">{{ product.sales }} ventes</div>
+          <div class="db-product-item">
+            <div class="db-product-info">
+              <span class="db-product-name">{{ product.name }}</span>
+              <span class="db-product-sales">{{ product.sales }} ventes</span>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="text-sm font-bold text-foreground">{{ product.revenue }}</span>
-              <span class="material-symbols-rounded text-lg"
-                [class]="product.trend === 'up' ? 'text-emerald-500' : 'text-red-500'">
+            <div class="db-product-right">
+              <span class="db-product-revenue">{{ product.revenue }}</span>
+              <span class="material-symbols-rounded db-product-trend" [class.up]="product.trend === 'up'" [class.down]="product.trend !== 'up'">
                 {{ product.trend === 'up' ? 'trending_up' : 'trending_down' }}
               </span>
             </div>
@@ -208,49 +212,50 @@
     </div>
 
     <!-- Quick Actions -->
-    <div class="bg-card border border-border rounded-xl overflow-hidden">
-      <div class="px-5 py-4 border-b border-border">
-        <h2 class="text-base font-semibold text-foreground">Actions Rapides</h2>
+    <div class="db-panel">
+      <div class="db-panel-header">
+        <h2>
+          <span class="material-symbols-rounded" style="color: hsl(var(--primary))">bolt</span>
+          Actions Rapides
+        </h2>
       </div>
-      <div class="p-5">
-        <div class="grid grid-cols-3 gap-4">
-          <a routerLink="/scanner" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
-            <div class="w-12 h-12 rounded-xl bg-violet-500/10 text-violet-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span class="material-symbols-rounded text-2xl">qr_code_2</span>
-            </div>
-            <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Scanner</span>
-          </a>
-          <a routerLink="/movements" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
-            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span class="material-symbols-rounded text-2xl">input</span>
-            </div>
-            <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Entrée Stock</span>
-          </a>
-          <a routerLink="/movements" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
-            <div class="w-12 h-12 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span class="material-symbols-rounded text-2xl">output</span>
-            </div>
-            <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Sortie Stock</span>
-          </a>
-          <a routerLink="/sites" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
-            <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span class="material-symbols-rounded text-2xl">compare_arrows</span>
-            </div>
-            <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Transfert</span>
-          </a>
-          <a routerLink="/alerts" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
-            <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span class="material-symbols-rounded text-2xl">campaign</span>
-            </div>
-            <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Alertes</span>
-          </a>
-          <a routerLink="/reports" class="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-muted/50 transition-colors group">
-            <div class="w-12 h-12 rounded-xl bg-teal-500/10 text-teal-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span class="material-symbols-rounded text-2xl">analytics</span>
-            </div>
-            <span class="text-xs font-medium text-muted-foreground group-hover:text-foreground">Rapports</span>
-          </a>
-        </div>
+      <div class="db-quick-grid">
+        <a routerLink="/scanner" class="db-quick-item">
+          <div class="db-quick-icon" style="--q-color: #8b5cf6">
+            <span class="material-symbols-rounded">qr_code_2</span>
+          </div>
+          <span>Scanner</span>
+        </a>
+        <a routerLink="/movements" class="db-quick-item">
+          <div class="db-quick-icon" style="--q-color: #10b981">
+            <span class="material-symbols-rounded">input</span>
+          </div>
+          <span>Entrée Stock</span>
+        </a>
+        <a routerLink="/movements" class="db-quick-item">
+          <div class="db-quick-icon" style="--q-color: #ef4444">
+            <span class="material-symbols-rounded">output</span>
+          </div>
+          <span>Sortie Stock</span>
+        </a>
+        <a routerLink="/sites" class="db-quick-item">
+          <div class="db-quick-icon" style="--q-color: #3b82f6">
+            <span class="material-symbols-rounded">compare_arrows</span>
+          </div>
+          <span>Transfert</span>
+        </a>
+        <a routerLink="/alerts" class="db-quick-item">
+          <div class="db-quick-icon" style="--q-color: #f59e0b">
+            <span class="material-symbols-rounded">campaign</span>
+          </div>
+          <span>Alertes</span>
+        </a>
+        <a routerLink="/reports" class="db-quick-item">
+          <div class="db-quick-icon" style="--q-color: #14b8a6">
+            <span class="material-symbols-rounded">analytics</span>
+          </div>
+          <span>Rapports</span>
+        </a>
       </div>
     </div>
   </div>

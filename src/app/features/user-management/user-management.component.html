@@ -1,100 +1,106 @@
-<div class="max-w-[1400px] mx-auto">
-  <div class="flex flex-wrap items-start justify-between gap-4 mb-8">
-    <div>
-      <h1 class="text-2xl font-bold text-foreground">Gestion des Utilisateurs</h1>
-      <p class="text-muted-foreground">Gérer les utilisateurs de l'application et leurs rôles</p>
+<div class="um-page">
+  <!-- Header -->
+  <div class="um-header">
+    <div class="um-header-text">
+      <h1>
+        <span class="material-symbols-rounded um-header-icon">group</span>
+        Gestion des Utilisateurs
+      </h1>
+      <p>Gérer les comptes, rôles et accès de votre équipe</p>
     </div>
-    <div class="flex gap-3">
-      <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors" (click)="openForm()">
-        <span class="material-symbols-rounded text-lg">group_add</span>Ajouter un nouvel utilisateur
-      </button>
-    </div>
+    <button class="um-btn-add" (click)="openForm()">
+      <span class="material-symbols-rounded">person_add</span>
+      Nouvel utilisateur
+    </button>
   </div>
 
-  <!-- Search -->
-  <div class="mb-6">
-    <div class="flex items-center gap-3 px-4 py-2.5 bg-background border border-input rounded-lg max-w-[400px]">
-      <span class="material-symbols-rounded text-muted-foreground">search</span>
-      <input type="text" placeholder="Rechercher par nom ou email..." class="flex-1 outline-none bg-transparent text-sm" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
-    </div>
-  </div>
-
-  <!-- User Form Modal -->
-  @if (showForm()) {
-    <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="closeForm()">
-      <div class="bg-card border border-border rounded-2xl w-full max-w-[500px] max-h-[90vh] overflow-y-auto animate-in" (click)="$event.stopPropagation()">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-border bg-gradient-to-r from-teal-500 to-cyan-400 text-white rounded-t-2xl">
-          <h2 class="text-lg font-semibold">{{ isEditing() ? "Modifier l'utilisateur" : 'Ajouter un nouvel utilisateur' }}</h2>
-          <button class="p-1 rounded-md hover:bg-white/20 transition-colors" (click)="closeForm()"><span class="material-symbols-rounded">close</span></button>
-        </div>
-        @if (errorMessage()) {
-          <div class="mx-6 mt-4 bg-destructive/10 text-destructive px-4 py-3 rounded-lg text-sm">{{ errorMessage() }}</div>
-        }
-        <form class="p-6 space-y-4" (ngSubmit)="saveUser()">
-          <div>
-            <label class="block text-sm font-medium text-foreground mb-1.5">Prénom *</label>
-            <input type="text" [(ngModel)]="formData.prenom" name="prenom" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" required placeholder="Ex: Ahmed">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-foreground mb-1.5">Nom *</label>
-            <input type="text" [(ngModel)]="formData.nom" name="nom" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" required placeholder="Ex: Ben Ali">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-foreground mb-1.5">Email *</label>
-            <input type="email" [(ngModel)]="formData.email" name="email" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" required placeholder="nom@pgh.com">
-            <p class="text-xs text-muted-foreground mt-1">Seules les adresses &#64;pgh.com sont acceptées</p>
-          </div>
-          @if (!isEditing()) {
-            <div>
-              <label class="block text-sm font-medium text-foreground mb-1.5">Mot de passe *</label>
-              <input type="password" [(ngModel)]="formData.password" name="password" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" required placeholder="Minimum 6 caractères" minlength="6">
-            </div>
-          } @else {
-            <div>
-              <label class="block text-sm font-medium text-foreground mb-1.5">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
-              <input type="password" [(ngModel)]="formData.password" name="passwordEdit" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" placeholder="Optionnel — minimum 6 caractères" minlength="6">
-            </div>
-          }
-          <div><label class="block text-sm font-medium text-foreground mb-1.5">Rôle</label><select [(ngModel)]="formData.role" name="role" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring">@for (role of roles(); track role.value) { <option [value]="role.value">{{ role.label }}</option> }</select></div>
-          <div><label class="block text-sm font-medium text-foreground mb-1.5">Statut</label><select [(ngModel)]="formData.status" name="status" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"><option value="active">Actif</option><option value="inactive">Inactif</option></select></div>
-          <div class="flex gap-3 pt-2">
-            <button type="button" class="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="closeForm()">Annuler</button>
-            <button type="submit" class="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium bg-gradient-to-r from-teal-500 to-cyan-400 text-white hover:opacity-90 transition-opacity" [disabled]="saving()">{{ saving() ? 'Enregistrement...' : (isEditing() ? 'Mettre à jour' : 'Créer') }} l'utilisateur</button>
-          </div>
-        </form>
+  <!-- Stats strip -->
+  <div class="um-stats">
+    <div class="um-stat">
+      <span class="material-symbols-rounded um-stat-icon">people</span>
+      <div>
+        <span class="um-stat-value">{{ filteredUsers().length }}</span>
+        <span class="um-stat-label">Total</span>
       </div>
     </div>
-  }
+    <div class="um-stat">
+      <span class="material-symbols-rounded um-stat-icon active">check_circle</span>
+      <div>
+        <span class="um-stat-value">{{ filteredUsers() | filterUsers:'active' }}</span>
+        <span class="um-stat-label">Actifs</span>
+      </div>
+    </div>
+    <div class="um-stat">
+      <span class="material-symbols-rounded um-stat-icon inactive">block</span>
+      <div>
+        <span class="um-stat-value">{{ filteredUsers() | filterUsers:'inactive' }}</span>
+        <span class="um-stat-label">Inactifs</span>
+      </div>
+    </div>
+  </div>
 
-  <!-- Users Table -->
-  <div class="bg-card border border-border rounded-xl overflow-hidden">
+  <!-- Search bar -->
+  <div class="um-toolbar">
+    <div class="um-search">
+      <span class="material-symbols-rounded">search</span>
+      <input type="text" placeholder="Rechercher par nom, email ou rôle..." [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
+    </div>
+    <span class="um-count">{{ filteredUsers().length }} utilisateur{{ filteredUsers().length > 1 ? 's' : '' }}</span>
+  </div>
+
+  <!-- Table -->
+  <div class="um-table-wrap">
     @if (filteredUsers().length > 0) {
-      <table class="w-full">
+      <table class="um-table">
         <thead>
-          <tr class="border-b border-border bg-muted/50">
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nom</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Rôle</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Statut</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Créé</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dernière connexion</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Actions</th>
+          <tr>
+            <th>Utilisateur</th>
+            <th>Rôle</th>
+            <th>Statut</th>
+            <th>Dernière connexion</th>
+            <th class="th-actions">Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-border">
+        <tbody>
           @for (user of filteredUsers(); track user.id) {
-            <tr class="hover:bg-muted/30 transition-colors">
-              <td class="px-4 py-3 font-medium">{{ user.prenom }} {{ user.nom }}</td>
-              <td class="px-4 py-3 text-sm">{{ user.email }}</td>
-              <td class="px-4 py-3"><span class="px-3 py-1 rounded-full bg-gradient-to-r from-teal-500 to-cyan-400 text-white text-xs font-medium">{{ getRoleLabel(user.role) }}</span></td>
-              <td class="px-4 py-3"><span class="px-3 py-1 rounded-full text-xs font-medium" [class]="user.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'">{{ user.status === 'active' ? 'Actif' : 'Inactif' }}</span></td>
-              <td class="px-4 py-3 text-sm text-muted-foreground">{{ user.lastLogin | date: 'short' }}</td>
-              <td class="px-4 py-3 text-sm text-muted-foreground">{{ (user.lastLogin | date: 'short') || 'Jamais' }}</td>
-              <td class="px-4 py-3">
-                <div class="flex gap-1">
-                  <button class="p-1.5 rounded-md text-blue-500 hover:bg-blue-50 transition-colors" title="Edit" (click)="openForm(user)"><span class="material-symbols-rounded text-lg">edit_square</span></button>
-                  <button class="p-1.5 rounded-md text-amber-500 hover:bg-amber-50 transition-colors" title="Toggle Status" (click)="toggleStatus(user)"><span class="material-symbols-rounded text-lg">{{ user.status === 'active' ? 'block' : 'check_circle' }}</span></button>
-                  <button class="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors" title="Delete" (click)="deleteUser(user)"><span class="material-symbols-rounded text-lg">delete_outline</span></button>
+            <tr>
+              <td>
+                <div class="um-user-cell">
+                  <div class="um-avatar" [attr.data-status]="user.status">
+                    {{ user.prenom.charAt(0) }}{{ user.nom.charAt(0) }}
+                  </div>
+                  <div class="um-user-info">
+                    <span class="um-user-name">{{ user.prenom }} {{ user.nom }}</span>
+                    <span class="um-user-email">{{ user.email }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="um-role-badge" [attr.data-role]="user.role">
+                  <span class="material-symbols-rounded">{{ getRoleIcon(user.role) }}</span>
+                  {{ getRoleLabel(user.role) }}
+                </span>
+              </td>
+              <td>
+                <span class="um-status" [attr.data-status]="user.status">
+                  <span class="um-status-dot"></span>
+                  {{ user.status === 'active' ? 'Actif' : 'Inactif' }}
+                </span>
+              </td>
+              <td>
+                <span class="um-date">{{ (user.lastLogin | date: 'dd MMM yyyy, HH:mm') || 'Jamais' }}</span>
+              </td>
+              <td>
+                <div class="um-actions">
+                  <button class="um-act edit" title="Modifier" (click)="openForm(user)">
+                    <span class="material-symbols-rounded">edit_square</span>
+                  </button>
+                  <button class="um-act toggle" [attr.data-status]="user.status" title="{{ user.status === 'active' ? 'Désactiver' : 'Activer' }}" (click)="toggleStatus(user)">
+                    <span class="material-symbols-rounded">{{ user.status === 'active' ? 'block' : 'check_circle' }}</span>
+                  </button>
+                  <button class="um-act delete" title="Supprimer" (click)="deleteUser(user)">
+                    <span class="material-symbols-rounded">delete_outline</span>
+                  </button>
                 </div>
               </td>
             </tr>
@@ -102,54 +108,167 @@
         </tbody>
       </table>
     } @else {
-      <div class="text-center py-12 text-muted-foreground">
-        <span class="material-symbols-rounded text-5xl mb-2 block">people</span>
-        <p>Aucun utilisateur trouvé</p>
+      <div class="um-empty">
+        <div class="um-empty-icon">
+          <span class="material-symbols-rounded">person_search</span>
+        </div>
+        <h3>Aucun utilisateur trouvé</h3>
+        <p>Essayez d'ajuster votre recherche ou ajoutez un nouvel utilisateur.</p>
+        <button class="um-btn-add sm" (click)="openForm()">
+          <span class="material-symbols-rounded">person_add</span>
+          Ajouter un utilisateur
+        </button>
       </div>
     }
   </div>
+
+  <!-- Create / Edit Modal -->
+  @if (showForm()) {
+    <div class="um-overlay" (click)="closeForm()">
+      <div class="um-modal" (click)="$event.stopPropagation()">
+        <div class="um-modal-header">
+          <div class="um-modal-title">
+            <div class="um-modal-icon">
+              <span class="material-symbols-rounded">{{ isEditing() ? 'edit_square' : 'person_add' }}</span>
+            </div>
+            <div>
+              <h2>{{ isEditing() ? "Modifier l'utilisateur" : 'Nouvel utilisateur' }}</h2>
+              <p>{{ isEditing() ? 'Mettre à jour les informations du compte' : 'Créer un nouveau compte utilisateur' }}</p>
+            </div>
+          </div>
+          <button class="um-modal-close" (click)="closeForm()">
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        </div>
+
+        @if (errorMessage()) {
+          <div class="um-form-error">
+            <span class="material-symbols-rounded">error</span>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <form class="um-form" (ngSubmit)="saveUser()">
+          <div class="um-form-row">
+            <div class="um-field">
+              <label>Prénom <span class="req">*</span></label>
+              <div class="um-input-wrap">
+                <span class="material-symbols-rounded">badge</span>
+                <input type="text" [(ngModel)]="formData.prenom" name="prenom" required placeholder="Ex: Ahmed">
+              </div>
+            </div>
+            <div class="um-field">
+              <label>Nom <span class="req">*</span></label>
+              <div class="um-input-wrap">
+                <span class="material-symbols-rounded">badge</span>
+                <input type="text" [(ngModel)]="formData.nom" name="nom" required placeholder="Ex: Ben Ali">
+              </div>
+            </div>
+          </div>
+
+          <div class="um-field">
+            <label>Adresse e-mail <span class="req">*</span></label>
+            <div class="um-input-wrap">
+              <span class="material-symbols-rounded">alternate_email</span>
+              <input type="email" [(ngModel)]="formData.email" name="email" required placeholder="nom@pgh.com">
+            </div>
+            <span class="um-field-hint">Seules les adresses &#64;pgh.com sont acceptées</span>
+          </div>
+
+          @if (!isEditing()) {
+            <div class="um-field">
+              <label>Mot de passe <span class="req">*</span></label>
+              <div class="um-input-wrap">
+                <span class="material-symbols-rounded">passkey</span>
+                <input type="password" [(ngModel)]="formData.password" name="password" required placeholder="Minimum 6 caractères" minlength="6">
+              </div>
+            </div>
+          } @else {
+            <div class="um-field">
+              <label>Nouveau mot de passe</label>
+              <div class="um-input-wrap">
+                <span class="material-symbols-rounded">passkey</span>
+                <input type="password" [(ngModel)]="formData.password" name="passwordEdit" placeholder="Laisser vide pour ne pas changer" minlength="6">
+              </div>
+              <span class="um-field-hint">Optionnel — minimum 6 caractères</span>
+            </div>
+          }
+
+          <div class="um-form-row">
+            <div class="um-field">
+              <label>Rôle</label>
+              <div class="um-input-wrap select">
+                <span class="material-symbols-rounded">shield_person</span>
+                <select [(ngModel)]="formData.role" name="role">
+                  @for (role of roles(); track role.value) {
+                    <option [value]="role.value">{{ role.label }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+            <div class="um-field">
+              <label>Statut</label>
+              <div class="um-input-wrap select">
+                <span class="material-symbols-rounded">toggle_on</span>
+                <select [(ngModel)]="formData.status" name="status">
+                  <option value="active">Actif</option>
+                  <option value="inactive">Inactif</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="um-form-actions">
+            <button type="button" class="um-btn cancel" (click)="closeForm()">Annuler</button>
+            <button type="submit" class="um-btn primary" [disabled]="saving()">
+              @if (saving()) {
+                <span class="material-symbols-rounded spin">progress_activity</span>
+              }
+              {{ saving() ? 'Enregistrement...' : (isEditing() ? 'Mettre à jour' : 'Créer le compte') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Delete Confirmation Modal -->
+  @if (showDeleteModal() && userToDelete(); as user) {
+    <div class="um-overlay" (click)="cancelDelete()">
+      <div class="um-confirm-modal" (click)="$event.stopPropagation()">
+        <div class="um-confirm-icon danger">
+          <span class="material-symbols-rounded">delete_forever</span>
+        </div>
+        <h2>Supprimer cet utilisateur ?</h2>
+        <p>Le compte de <strong>{{ user.prenom }} {{ user.nom }}</strong> sera définitivement supprimé. Cette action est irréversible.</p>
+        <div class="um-confirm-actions">
+          <button class="um-btn cancel" (click)="cancelDelete()">Annuler</button>
+          <button class="um-btn danger" (click)="confirmDelete()" [disabled]="deleting()">
+            @if (deleting()) { <span class="material-symbols-rounded spin">progress_activity</span> }
+            Supprimer
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Toggle Status Confirmation Modal -->
+  @if (showToggleModal() && userToToggle(); as user) {
+    <div class="um-overlay" (click)="cancelToggle()">
+      <div class="um-confirm-modal" (click)="$event.stopPropagation()">
+        <div class="um-confirm-icon" [class.warn]="user.status === 'active'" [class.success]="user.status !== 'active'">
+          <span class="material-symbols-rounded">{{ user.status === 'active' ? 'block' : 'check_circle' }}</span>
+        </div>
+        <h2>{{ user.status === 'active' ? 'Désactiver' : 'Activer' }} ce compte ?</h2>
+        <p>Le compte de <strong>{{ user.prenom }} {{ user.nom }}</strong> sera {{ user.status === 'active' ? 'désactivé' : 'réactivé' }}.</p>
+        <div class="um-confirm-actions">
+          <button class="um-btn cancel" (click)="cancelToggle()">Annuler</button>
+          <button class="um-btn" [class.warn]="user.status === 'active'" [class.success]="user.status !== 'active'" (click)="confirmToggle()" [disabled]="toggling()">
+            @if (toggling()) { <span class="material-symbols-rounded spin">progress_activity</span> }
+            {{ user.status === 'active' ? 'Désactiver' : 'Activer' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>
-
-<!-- Delete Confirmation Modal -->
-@if (showDeleteModal() && userToDelete(); as user) {
-  <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="cancelDelete()">
-    <div class="bg-card border border-border rounded-2xl w-full max-w-[420px] animate-in" (click)="$event.stopPropagation()">
-      <div class="flex flex-col items-center text-center p-6 pt-8">
-        <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-4">
-          <span class="material-symbols-rounded text-red-600 text-3xl">delete_forever</span>
-        </div>
-        <h2 class="text-lg font-semibold text-foreground mb-2">Êtes-vous sûr ?</h2>
-        <p class="text-sm text-muted-foreground">Voulez-vous vraiment supprimer <span class="font-semibold text-foreground">{{ user.prenom }} {{ user.nom }}</span> ? Cette action est irréversible.</p>
-      </div>
-      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
-        <button type="button" class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="cancelDelete()">Annuler</button>
-        <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors" (click)="confirmDelete()" [disabled]="deleting()">
-          @if (deleting()) { <span class="material-symbols-rounded text-sm animate-spin">progress_activity</span> }
-          Supprimer
-        </button>
-      </div>
-    </div>
-  </div>
-}
-
-<!-- Toggle Status Confirmation Modal -->
-@if (showToggleModal() && userToToggle(); as user) {
-  <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="cancelToggle()">
-    <div class="bg-card border border-border rounded-2xl w-full max-w-[420px] animate-in" (click)="$event.stopPropagation()">
-      <div class="flex flex-col items-center text-center p-6 pt-8">
-        <div class="w-14 h-14 rounded-full flex items-center justify-center mb-4" [class]="user.status === 'active' ? 'bg-orange-50' : 'bg-emerald-50'">
-          <span class="material-symbols-rounded text-3xl" [class]="user.status === 'active' ? 'text-orange-500' : 'text-emerald-600'">{{ user.status === 'active' ? 'block' : 'check_circle' }}</span>
-        </div>
-        <h2 class="text-lg font-semibold text-foreground mb-2">Êtes-vous sûr ?</h2>
-        <p class="text-sm text-muted-foreground">Voulez-vous vraiment {{ user.status === 'active' ? 'désactiver' : 'activer' }} le compte de <span class="font-semibold text-foreground">{{ user.prenom }} {{ user.nom }}</span> ?</p>
-      </div>
-      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
-        <button type="button" class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="cancelToggle()">Annuler</button>
-        <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-colors" [class]="user.status === 'active' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-emerald-600 hover:bg-emerald-700'" (click)="confirmToggle()" [disabled]="toggling()">
-          @if (toggling()) { <span class="material-symbols-rounded text-sm animate-spin">progress_activity</span> }
-          {{ user.status === 'active' ? 'Désactiver' : 'Activer' }}
-        </button>
-      </div>
-    </div>
-  </div>
-}

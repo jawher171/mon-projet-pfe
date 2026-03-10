@@ -1,58 +1,58 @@
-<div class="max-w-[1200px] mx-auto" [class.embedded]="mode === 'embedded'">
+<div class="sc-page" [class.sc-embedded]="mode === 'embedded'">
   @if (mode === 'standalone') {
-    <div class="mb-8">
-      <h1 class="text-2xl font-bold text-foreground">Scanner de Code-barres</h1>
-      <p class="text-muted-foreground">Scanner QR/Barcode pour gérer les stocks</p>
-      @if (phoneMode()) {
-        <div class="mt-2 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium">
-          <span class="material-symbols-rounded text-lg">smartphone</span>
-          Mode téléphone — {{ phonePurpose() }}
-        </div>
-      }
+    <div class="sc-header">
+      <div class="sc-header-text">
+        <h1>
+          <span class="material-symbols-rounded sc-header-icon">qr_code_2</span>
+          Scanner
+        </h1>
+        <p>Scanner QR/Barcode pour gérer les stocks</p>
+        @if (phoneMode()) {
+          <div class="sc-phone-badge">
+            <span class="material-symbols-rounded">smartphone</span>
+            Mode téléphone — {{ phonePurpose() }}
+          </div>
+        }
+      </div>
     </div>
   }
 
-  <div class="flex gap-6 items-start">
-    <!-- Main Scanner Area -->
-    <div class="flex-1 flex flex-col gap-6">
+  <div class="sc-main">
+    <div class="sc-content">
       <!-- Camera -->
-      <div class="bg-card border border-border rounded-2xl overflow-hidden">
-        <div class="aspect-[4/3] bg-slate-900 relative flex items-center justify-center">
+      <div class="sc-camera-wrap">
+        <div class="sc-camera-area">
           @if (cameraActive()) {
-            <video id="scanner-video" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
-            <div class="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
-              <div class="w-[280px] h-[180px] relative">
-                <div class="absolute top-0 left-0 w-[30px] h-[30px] border-t-[3px] border-l-[3px] border-emerald-500"></div>
-                <div class="absolute top-0 right-0 w-[30px] h-[30px] border-t-[3px] border-r-[3px] border-emerald-500"></div>
-                <div class="absolute bottom-0 left-0 w-[30px] h-[30px] border-b-[3px] border-l-[3px] border-emerald-500"></div>
-                <div class="absolute bottom-0 right-0 w-[30px] h-[30px] border-b-[3px] border-r-[3px] border-emerald-500"></div>
-                <div class="absolute left-[10px] right-[10px] h-0.5 bg-gradient-to-r from-transparent via-emerald-500 to-transparent animate-scan"></div>
+            <video id="scanner-video" class="sc-video" autoplay playsinline muted></video>
+            <div class="sc-scan-frame">
+              <div class="sc-frame-corners">
+                <span class="corner tl"></span>
+                <span class="corner tr"></span>
+                <span class="corner bl"></span>
+                <span class="corner br"></span>
+                <div class="sc-scan-line"></div>
               </div>
-              <p class="text-white text-sm mt-4 drop-shadow">Positionnez le code-barres dans le cadre</p>
+              <p class="sc-scan-hint">Positionnez le code-barres dans le cadre</p>
             </div>
             @if (phoneScanSent()) {
-              <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
-                Code envoyé au PC !
-              </div>
+              <div class="sc-phone-toast success">Code envoyé au PC !</div>
             }
             @if (phoneScanError()) {
-              <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
-                {{ phoneScanError() }}
-              </div>
+              <div class="sc-phone-toast error">{{ phoneScanError() }}</div>
             }
           } @else {
-            <div class="text-center text-slate-400">
-              <span class="material-symbols-rounded text-6xl mb-2 block">qr_code_scanner</span>
-              <p class="mb-3">Caméra inactive</p>
-              <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors" (click)="toggleCamera()">
-                <span class="material-symbols-rounded text-lg">photo_camera</span>
+            <div class="sc-camera-off">
+              <span class="material-symbols-rounded">qr_code_scanner</span>
+              <p>Caméra inactive</p>
+              <button class="sc-btn primary" (click)="toggleCamera()">
+                <span class="material-symbols-rounded">photo_camera</span>
                 Activer la caméra
               </button>
             </div>
           }
         </div>
-        <div class="flex justify-center p-4 bg-muted/30 border-t border-border">
-          <button class="inline-flex items-center gap-2 px-6 py-2.5 border border-border rounded-lg bg-background font-medium text-sm transition-colors" [class]="cameraActive() ? 'border-emerald-500 text-emerald-600 bg-emerald-50' : 'hover:bg-muted'" (click)="toggleCamera()">
+        <div class="sc-camera-footer">
+          <button class="sc-btn outline" [class.sc-active]="cameraActive()" (click)="toggleCamera()">
             <span class="material-symbols-rounded">{{ cameraActive() ? 'videocam_off' : 'photo_camera' }}</span>
             {{ cameraActive() ? 'Désactiver' : 'Activer' }} Caméra
           </button>
@@ -60,88 +60,94 @@
       </div>
 
       <!-- Manual Input -->
-      <div class="bg-card border border-border rounded-xl p-5">
-        <h3 class="font-semibold text-foreground mb-4">Saisie manuelle</h3>
-        <div class="flex items-center border-2 border-input rounded-lg overflow-hidden focus-within:border-primary transition-colors">
-          <span class="material-symbols-rounded px-3 text-muted-foreground">keyboard</span>
-          <input type="text" placeholder="Entrez le code-barres..." class="flex-1 py-2.5 text-base outline-none bg-transparent" [value]="manualInput()" (input)="manualInput.set($any($event.target).value)" (keypress)="onInputKeypress($event)">
-          <button class="px-4 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" (click)="onManualSubmit()" [disabled]="!manualInput() || isScanning()">
+      <div class="sc-manual">
+        <h3 class="sc-section-title">Saisie manuelle</h3>
+        <div class="sc-manual-input-wrap">
+          <span class="material-symbols-rounded">keyboard</span>
+          <input type="text" placeholder="Entrez le code-barres..." [value]="manualInput()" (input)="manualInput.set($any($event.target).value)" (keypress)="onInputKeypress($event)">
+          <button class="sc-btn primary" (click)="onManualSubmit()" [disabled]="!manualInput() || isScanning()">
             <span class="material-symbols-rounded">{{ isScanning() ? 'hourglass_empty' : 'search' }}</span>
           </button>
         </div>
       </div>
 
       <!-- Quick Actions -->
-      <div class="bg-card border border-border rounded-xl p-5">
-        <h3 class="font-semibold text-foreground mb-4">Actions rapides</h3>
-        <div class="flex gap-3">
-          <button class="flex-1 flex flex-col items-center gap-2 p-4 border-2 rounded-xl text-sm font-medium transition-colors" [class]="quickActionMode() === 'entry' ? 'border-emerald-500 bg-emerald-50 text-emerald-600' : 'border-border hover:border-emerald-300 hover:bg-emerald-50/50'" (click)="setQuickActionMode(quickActionMode() === 'entry' ? null : 'entry')">
-            <span class="material-symbols-rounded text-2xl">add_circle</span>Entrée rapide
+      <div class="sc-actions">
+        <h3 class="sc-section-title">Actions rapides</h3>
+        <div class="sc-actions-grid">
+          <button class="sc-action-btn" [class.active]="quickActionMode() === 'entry'" (click)="setQuickActionMode(quickActionMode() === 'entry' ? null : 'entry')">
+            <span class="material-symbols-rounded">add_circle</span>
+            Entrée rapide
           </button>
-          <button class="flex-1 flex flex-col items-center gap-2 p-4 border-2 rounded-xl text-sm font-medium transition-colors" [class]="quickActionMode() === 'exit' ? 'border-red-500 bg-red-50 text-red-600' : 'border-border hover:border-red-300 hover:bg-red-50/50'" (click)="setQuickActionMode(quickActionMode() === 'exit' ? null : 'exit')">
-            <span class="material-symbols-rounded text-2xl">do_not_disturb_on</span>Sortie rapide
+          <button class="sc-action-btn exit" [class.active]="quickActionMode() === 'exit'" (click)="setQuickActionMode(quickActionMode() === 'exit' ? null : 'exit')">
+            <span class="material-symbols-rounded">do_not_disturb_on</span>
+            Sortie rapide
           </button>
-          <button class="flex-1 flex flex-col items-center gap-2 p-4 border-2 rounded-xl text-sm font-medium transition-colors" [class]="quickActionMode() === 'view' ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-border hover:border-blue-300 hover:bg-blue-50/50'" (click)="setQuickActionMode(quickActionMode() === 'view' ? null : 'view')">
-            <span class="material-symbols-rounded text-2xl">visibility</span>Consulter
+          <button class="sc-action-btn view" [class.active]="quickActionMode() === 'view'" (click)="setQuickActionMode(quickActionMode() === 'view' ? null : 'view')">
+            <span class="material-symbols-rounded">visibility</span>
+            Consulter
           </button>
         </div>
         @if (quickActionMode() && quickActionMode() !== 'view') {
-          <div class="mt-4 pt-4 border-t border-border">
-            <div class="flex gap-3">
-              <select class="flex-1 px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="selectedSite()" (change)="selectedSite.set($any($event.target).value)">
-                <option value="">Sélectionner un site</option>
-                @for (site of sites(); track site.id) { <option [value]="site.id">{{ site.nom }}</option> }
-              </select>
-              <select class="flex-1 px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="selectedReason()" (change)="selectedReason.set($any($event.target).value)">
-                <option value="">Sélectionner une raison</option>
-                @for (reason of getReasonsByMode(); track reason.value) { <option [value]="reason.value">{{ reason.label }}</option> }
-              </select>
-              <input type="number" min="1" placeholder="Qté" class="w-20 px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="quantity()" (input)="quantity.set(+$any($event.target).value)">
-            </div>
+          <div class="sc-quick-options">
+            <select [value]="selectedSite()" (change)="selectedSite.set($any($event.target).value)">
+              <option value="">Sélectionner un site</option>
+              @for (site of sites(); track site.id) {
+                <option [value]="site.id">{{ site.nom }}</option>
+              }
+            </select>
+            <select [value]="selectedReason()" (change)="selectedReason.set($any($event.target).value)">
+              <option value="">Sélectionner une raison</option>
+              @for (reason of getReasonsByMode(); track reason.value) {
+                <option [value]="reason.value">{{ reason.label }}</option>
+              }
+            </select>
+            <input type="number" min="1" placeholder="Qté" [value]="quantity()" (input)="quantity.set(+$any($event.target).value)">
           </div>
         }
       </div>
 
       <!-- Last Scan -->
       @if (lastScan(); as scan) {
-        <div class="bg-card border border-border rounded-xl p-5">
-          <h3 class="font-semibold text-foreground mb-4">Dernier scan</h3>
-          <div class="flex items-center gap-4 p-4 rounded-xl" [class]="scan.status === 'found' ? 'bg-emerald-50' : 'bg-red-50'">
-            <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center">
-              <span class="material-symbols-rounded text-2xl" [class]="scan.status === 'found' ? 'text-emerald-500' : 'text-red-500'">{{ scan.status === 'found' ? 'check_circle' : 'error' }}</span>
+        <div class="sc-last-scan" [class.found]="scan.status === 'found'" [class.not-found]="scan.status !== 'found'">
+          <h3 class="sc-section-title">Dernier scan</h3>
+          <div class="sc-scan-result">
+            <div class="sc-scan-icon">
+              <span class="material-symbols-rounded">{{ scan.status === 'found' ? 'check_circle' : 'error' }}</span>
             </div>
-            <div class="flex-1">
-              <div class="font-mono font-semibold text-primary">{{ scan.barcode }}</div>
+            <div class="sc-scan-info">
+              <div class="sc-scan-barcode">{{ scan.barcode }}</div>
               @if (scan.product) {
-                <div class="font-medium mt-0.5">{{ scan.product.nom }}</div>
-                @if (scan.product.codeBarre) { <div class="text-xs text-muted-foreground mt-0.5">Code: {{ scan.product.codeBarre }}</div> }
+                <div class="sc-scan-product">{{ scan.product.nom }}</div>
+                @if (scan.product.codeBarre) {
+                  <div class="sc-scan-code">Code: {{ scan.product.codeBarre }}</div>
+                }
               } @else {
-                <div class="text-sm text-red-600 mt-0.5">Produit non trouvé</div>
+                <div class="sc-scan-error">Produit non trouvé</div>
               }
             </div>
-            <div class="text-xs text-muted-foreground">{{ formatTime(scan.timestamp) }}</div>
+            <div class="sc-scan-time">{{ formatTime(scan.timestamp) }}</div>
           </div>
 
-          <!-- Product details card (Feature 1) -->
           @if (scan.product; as product) {
-            <div class="mt-4 p-4 bg-card border border-border rounded-xl space-y-2">
-              <h4 class="text-sm font-semibold text-foreground flex items-center gap-2">
-                <span class="material-symbols-rounded text-primary text-lg">inventory_2</span>
+            <div class="sc-product-details">
+              <h4 class="sc-details-title">
+                <span class="material-symbols-rounded">inventory_2</span>
                 Informations du produit
               </h4>
-              <div class="grid grid-cols-2 gap-2 text-sm">
-                <div><span class="text-muted-foreground">Nom:</span> <span class="font-medium">{{ product.nom }}</span></div>
-                <div><span class="text-muted-foreground">Référence:</span> <span class="font-medium">{{ product.id_p }}</span></div>
-                <div><span class="text-muted-foreground">Code-barres:</span> <span class="font-mono font-medium">{{ product.codeBarre || '—' }}</span></div>
-                <div><span class="text-muted-foreground">Catégorie:</span> <span class="font-medium">{{ product.categorieLibelle || '—' }}</span></div>
+              <div class="sc-details-grid">
+                <div><span class="sc-details-label">Nom:</span> <span>{{ product.nom }}</span></div>
+                <div><span class="sc-details-label">Référence:</span> <span>{{ product.id_p }}</span></div>
+                <div><span class="sc-details-label">Code-barres:</span> <span class="sc-mono">{{ product.codeBarre || '—' }}</span></div>
+                <div><span class="sc-details-label">Catégorie:</span> <span>{{ product.categorieLibelle || '—' }}</span></div>
               </div>
             </div>
           }
           @if (!scan.product) {
-            <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-center">
-              <span class="material-symbols-rounded text-red-400 text-3xl block mb-1">search_off</span>
-              <p class="text-sm font-medium text-red-600">Produit non trouvé</p>
-              <p class="text-xs text-red-500 mt-0.5">Aucun produit ne correspond au code-barres <span class="font-mono">{{ scan.barcode }}</span></p>
+            <div class="sc-not-found-card">
+              <span class="material-symbols-rounded">search_off</span>
+              <p>Produit non trouvé</p>
+              <span class="sc-not-found-code">Aucun produit ne correspond au code-barres {{ scan.barcode }}</span>
             </div>
           }
         </div>
@@ -149,27 +155,29 @@
     </div>
 
     <!-- Sidebar: Scan History -->
-    <div class="w-80 bg-card border border-border rounded-xl flex flex-col max-h-[600px]">
-      <div class="flex items-center justify-between p-4 border-b border-border">
-        <h3 class="font-semibold text-foreground">Historique des scans</h3>
+    <div class="sc-sidebar">
+      <div class="sc-sidebar-header">
+        <h3>Historique des scans</h3>
         @if (scanHistory().length > 0) {
-          <button class="p-2 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" (click)="clearHistory()"><span class="material-symbols-rounded">delete_sweep</span></button>
+          <button class="sc-icon-btn" (click)="clearHistory()" title="Effacer l'historique">
+            <span class="material-symbols-rounded">delete_sweep</span>
+          </button>
         }
       </div>
-      <div class="flex-1 overflow-y-auto p-2">
+      <div class="sc-sidebar-body">
         @for (scan of scanHistory(); track scan.timestamp) {
-          <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors mb-1">
-            <span class="material-symbols-rounded text-xl" [class]="scan.status === 'found' ? 'text-emerald-500' : 'text-red-500'">{{ scan.status === 'found' ? 'check_circle' : 'error' }}</span>
-            <div class="flex-1 min-w-0">
-              <div class="font-mono text-sm font-medium truncate">{{ scan.barcode }}</div>
-              <div class="text-xs text-muted-foreground truncate">{{ scan.product?.nom || 'Non trouvé' }}</div>
+          <div class="sc-history-item">
+            <span class="material-symbols-rounded" [class.found]="scan.status === 'found'" [class.not-found]="scan.status !== 'found'">{{ scan.status === 'found' ? 'check_circle' : 'error' }}</span>
+            <div class="sc-history-info">
+              <div class="sc-history-barcode">{{ scan.barcode }}</div>
+              <div class="sc-history-product">{{ scan.product?.nom || 'Non trouvé' }}</div>
             </div>
-            <div class="text-[11px] text-muted-foreground shrink-0">{{ formatTime(scan.timestamp) }}</div>
+            <div class="sc-history-time">{{ formatTime(scan.timestamp) }}</div>
           </div>
         } @empty {
-          <div class="text-center py-8 text-muted-foreground">
-            <span class="material-symbols-rounded text-4xl mb-2 block">history</span>
-            <p class="text-sm">Aucun scan récent</p>
+          <div class="sc-history-empty">
+            <span class="material-symbols-rounded">history</span>
+            <p>Aucun scan récent</p>
           </div>
         }
       </div>
@@ -179,31 +187,48 @@
 
 <!-- Result Modal -->
 @if (showResultModal() && lastScan()?.product; as product) {
-  <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="closeResultModal()">
-    <div class="bg-card border border-border rounded-2xl w-full max-w-[480px] animate-in" (click)="$event.stopPropagation()">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-border">
-        <h2 class="text-lg font-semibold text-foreground">{{ quickActionMode() === 'entry' ? 'Entrée de Stock' : 'Sortie de Stock' }}</h2>
-        <button class="p-2 rounded-md hover:bg-muted text-muted-foreground transition-colors" (click)="closeResultModal()"><span class="material-symbols-rounded">close</span></button>
+  <div class="sc-overlay" (click)="closeResultModal()">
+    <div class="sc-modal" (click)="$event.stopPropagation()">
+      <div class="sc-modal-header">
+        <h2>{{ quickActionMode() === 'entry' ? 'Entrée de Stock' : 'Sortie de Stock' }}</h2>
+        <button class="sc-modal-close" (click)="closeResultModal()">
+          <span class="material-symbols-rounded">close</span>
+        </button>
       </div>
-      <div class="p-6 space-y-4">
-        <div class="flex items-center gap-4 p-4 bg-muted/30 rounded-xl">
-          <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center"><span class="material-symbols-rounded text-primary text-2xl">inventory_2</span></div>
+      <div class="sc-modal-body">
+        <div class="sc-modal-product">
+          <div class="sc-modal-product-icon">
+            <span class="material-symbols-rounded">inventory_2</span>
+          </div>
           <div>
-            <h3 class="font-semibold text-foreground">{{ product.nom }}</h3>
-            @if (product.codeBarre) { <p class="text-sm text-muted-foreground">Code-barres: {{ product.codeBarre }}</p> }
-            <p class="text-sm text-muted-foreground">Code-barres: {{ lastScan()?.barcode }}</p>
+            <h3>{{ product.nom }}</h3>
+            @if (product.codeBarre) {
+              <p>Code-barres: {{ product.codeBarre }}</p>
+            }
           </div>
         </div>
-        <div class="space-y-2">
-          <div class="flex justify-between py-2 border-b border-border"><span class="text-sm text-muted-foreground">Site:</span><span class="text-sm font-medium">{{ getSelectedSiteName() }}</span></div>
-          <div class="flex justify-between py-2 border-b border-border"><span class="text-sm text-muted-foreground">Raison:</span><span class="text-sm font-medium">{{ getSelectedReasonLabel() }}</span></div>
-          <div class="flex justify-between py-2"><span class="text-sm text-muted-foreground">Quantité:</span><span class="text-sm font-semibold" [class]="quickActionMode() === 'entry' ? 'text-emerald-600' : 'text-red-600'">{{ quickActionMode() === 'entry' ? '+' : '-' }}{{ quantity() }}</span></div>
+        <div class="sc-modal-summary">
+          <div class="sc-summary-row">
+            <span>Site:</span>
+            <span>{{ getSelectedSiteName() }}</span>
+          </div>
+          <div class="sc-summary-row">
+            <span>Raison:</span>
+            <span>{{ getSelectedReasonLabel() }}</span>
+          </div>
+          <div class="sc-summary-row">
+            <span>Quantité:</span>
+            <span [class.entry]="quickActionMode() === 'entry'" [class.exit]="quickActionMode() === 'exit'">
+              {{ quickActionMode() === 'entry' ? '+' : '-' }}{{ quantity() }}
+            </span>
+          </div>
         </div>
       </div>
-      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
-        <button class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="closeResultModal()">Annuler</button>
-        <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-colors" [class]="quickActionMode() === 'entry' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'" [disabled]="!selectedSite() || !selectedReason()" (click)="executeQuickAction()">
-          <span class="material-symbols-rounded text-lg">{{ quickActionMode() === 'entry' ? 'add' : 'remove' }}</span>Confirmer
+      <div class="sc-modal-footer">
+        <button class="sc-btn cancel" (click)="closeResultModal()">Annuler</button>
+        <button class="sc-btn" [class.entry]="quickActionMode() === 'entry'" [class.exit]="quickActionMode() === 'exit'" (click)="executeQuickAction()" [disabled]="!selectedSite() || !selectedReason()">
+          <span class="material-symbols-rounded">{{ quickActionMode() === 'entry' ? 'add' : 'remove' }}</span>
+          Confirmer
         </button>
       </div>
     </div>

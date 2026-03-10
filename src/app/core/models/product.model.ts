@@ -10,6 +10,7 @@ export interface Product {
   prix: number;
   id_c: number | string;
   categorieLibelle?: string;
+  imageUrl?: string;
 }
 
 export interface ProductFilter {

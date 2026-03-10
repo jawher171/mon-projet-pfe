@@ -1,134 +1,239 @@
-<div class="max-w-[1400px] mx-auto">
-  <div class="flex items-center justify-between mb-8">
-    <h2 class="text-2xl font-bold text-foreground">Gestion des Équipe</h2>
-    <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors" (click)="openAddMemberDialog()">+ Ajouter un membre</button>
+<div class="me-page">
+  <!-- Header -->
+  <div class="me-header">
+    <div class="me-header-text">
+      <h1>
+        <span class="material-symbols-rounded me-header-icon">groups</span>
+        Gestion de l'Équipe
+      </h1>
+      <p>Gérer les membres, rôles et accès de votre équipe</p>
+    </div>
+    <button class="me-btn-add" (click)="openAddMemberDialog()">
+      <span class="material-symbols-rounded">person_add</span>
+      Ajouter un membre
+    </button>
   </div>
 
-  <!-- Stats -->
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-    <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
-      <div class="w-14 h-14 rounded-xl bg-muted flex items-center justify-center text-2xl">👥</div>
-      <div><div class="text-xl font-bold text-foreground">{{ stats().total }}</div><div class="text-xs text-muted-foreground">Total des membres</div></div>
+  <!-- Stats strip -->
+  <div class="me-stats">
+    <div class="me-stat">
+      <span class="material-symbols-rounded me-stat-icon">people</span>
+      <div>
+        <span class="me-stat-value">{{ stats().total }}</span>
+        <span class="me-stat-label">Total</span>
+      </div>
     </div>
-    <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
-      <div class="w-14 h-14 rounded-xl bg-red-100 flex items-center justify-center text-2xl">⚙️</div>
-      <div><div class="text-xl font-bold text-foreground">{{ stats().admins }}</div><div class="text-xs text-muted-foreground">Administrateurs</div></div>
+    <div class="me-stat">
+      <span class="material-symbols-rounded me-stat-icon admin">admin_panel_settings</span>
+      <div>
+        <span class="me-stat-value">{{ stats().admins }}</span>
+        <span class="me-stat-label">Administrateurs</span>
+      </div>
     </div>
-    <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
-      <div class="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center text-2xl">📦</div>
-      <div><div class="text-xl font-bold text-foreground">{{ stats().stockManagers }}</div><div class="text-xs text-muted-foreground">Gestionnaires de stock</div></div>
+    <div class="me-stat">
+      <span class="material-symbols-rounded me-stat-icon stock">inventory</span>
+      <div>
+        <span class="me-stat-value">{{ stats().stockManagers }}</span>
+        <span class="me-stat-label">Gestionnaires</span>
+      </div>
     </div>
-    <div class="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
-      <div class="w-14 h-14 rounded-xl bg-emerald-100 flex items-center justify-center text-2xl">🔨</div>
-      <div><div class="text-xl font-bold text-foreground">{{ stats().operators }}</div><div class="text-xs text-muted-foreground">Opérateurs</div></div>
+    <div class="me-stat">
+      <span class="material-symbols-rounded me-stat-icon operator">engineering</span>
+      <div>
+        <span class="me-stat-value">{{ stats().operators }}</span>
+        <span class="me-stat-label">Opérateurs</span>
+      </div>
     </div>
+  </div>
+
+  <!-- Table -->
+  <div class="me-table-wrap">
+    @if (members().length > 0) {
+      <table class="me-table">
+        <thead>
+          <tr>
+            <th>Membre</th>
+            <th>Rôle</th>
+            <th>Statut</th>
+            <th>Dernière connexion</th>
+            <th class="th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (member of members(); track member.id) {
+            <tr [class.inactive]="member.status === 'inactive'">
+              <td>
+                <div class="me-user-cell">
+                  <div class="me-avatar" [attr.data-status]="member.status">
+                    {{ member.prenom.charAt(0) || '' }}{{ member.nom.charAt(0) || '' }}
+                  </div>
+                  <div class="me-user-info">
+                    <span class="me-user-name">{{ member.prenom }} {{ member.nom }}</span>
+                    <span class="me-user-email">{{ member.email }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="me-role-badge" [attr.data-role]="member.role">
+                  <span class="material-symbols-rounded">{{ getRoleIcon(member.role) }}</span>
+                  {{ getRoleLabel(member.role) }}
+                </span>
+              </td>
+              <td>
+                <span class="me-status" [attr.data-status]="member.status">
+                  <span class="me-status-dot"></span>
+                  {{ member.status === 'active' ? 'Actif' : 'Inactif' }}
+                </span>
+              </td>
+              <td>
+                <span class="me-date">{{ (member.lastLogin | date: 'dd MMM yyyy, HH:mm') || 'Jamais' }}</span>
+              </td>
+              <td>
+                <div class="me-actions">
+                  <button class="me-act edit" title="Modifier" (click)="editMember(member)">
+                    <span class="material-symbols-rounded">edit_square</span>
+                  </button>
+                  <button class="me-act role" title="Changer le rôle" (click)="openRoleDialog(member)">
+                    <span class="material-symbols-rounded">shield_person</span>
+                  </button>
+                  <button class="me-act toggle" [attr.data-status]="member.status" title="{{ member.status === 'active' ? 'Désactiver' : 'Activer' }}" (click)="toggleStatus(member)">
+                    <span class="material-symbols-rounded">{{ member.status === 'active' ? 'block' : 'check_circle' }}</span>
+                  </button>
+                  <button class="me-act delete" title="Supprimer" (click)="deleteMember(member)">
+                    <span class="material-symbols-rounded">delete_outline</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <div class="me-empty">
+        <div class="me-empty-icon">
+          <span class="material-symbols-rounded">groups</span>
+        </div>
+        <h3>Aucun membre trouvé</h3>
+        <p>Ajoutez des membres à votre équipe pour commencer.</p>
+        <button class="me-btn-add sm" (click)="openAddMemberDialog()">
+          <span class="material-symbols-rounded">person_add</span>
+          Ajouter un membre
+        </button>
+      </div>
+    }
   </div>
 
   <!-- Add/Edit Modal -->
   @if (showDialog()) {
-    <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="closeDialog()">
-      <div class="bg-card border border-border rounded-2xl w-full max-w-[480px] animate-in" (click)="$event.stopPropagation()">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-border">
-          <h3 class="text-lg font-semibold text-foreground">{{ dialogMode() === 'add' ? 'Ajouter un membre' : 'Modifier le membre' }}</h3>
-          <button class="p-2 rounded-md hover:bg-muted text-muted-foreground" (click)="closeDialog()"><span class="material-symbols-rounded">close</span></button>
+    <div class="me-overlay" (click)="closeDialog()">
+      <div class="me-modal" (click)="$event.stopPropagation()">
+        <div class="me-modal-header">
+          <div class="me-modal-title">
+            <div class="me-modal-icon">
+              <span class="material-symbols-rounded">{{ dialogMode() === 'add' ? 'person_add' : 'edit_square' }}</span>
+            </div>
+            <div>
+              <h2>{{ dialogMode() === 'add' ? 'Ajouter un membre' : 'Modifier le membre' }}</h2>
+              <p>{{ dialogMode() === 'add' ? 'Créer un nouveau compte dans l\'équipe' : 'Mettre à jour les informations du membre' }}</p>
+            </div>
+          </div>
+          <button class="me-modal-close" (click)="closeDialog()">
+            <span class="material-symbols-rounded">close</span>
+          </button>
         </div>
+
         @if (errorMessage()) {
-          <div class="mx-6 mt-4 bg-destructive/10 text-destructive px-4 py-3 rounded-lg text-sm">{{ errorMessage() }}</div>
+          <div class="me-form-error">
+            <span class="material-symbols-rounded">error</span>
+            <span>{{ errorMessage() }}</span>
+          </div>
         }
-        <form class="p-6 space-y-4" (ngSubmit)="saveMember()">
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-foreground mb-1.5">Prénom *</label>
-              <input type="text" [(ngModel)]="formData.prenom" name="prenom" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" required>
+
+        <form class="me-form" (ngSubmit)="saveMember()">
+          <div class="me-form-row">
+            <div class="me-field">
+              <label>Prénom <span class="req">*</span></label>
+              <div class="me-input-wrap">
+                <span class="material-symbols-rounded">badge</span>
+                <input type="text" [(ngModel)]="formData.prenom" name="prenom" required placeholder="Ex: Ahmed">
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-foreground mb-1.5">Nom *</label>
-              <input type="text" [(ngModel)]="formData.nom" name="nom" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" required>
+            <div class="me-field">
+              <label>Nom <span class="req">*</span></label>
+              <div class="me-input-wrap">
+                <span class="material-symbols-rounded">badge</span>
+                <input type="text" [(ngModel)]="formData.nom" name="nom" required placeholder="Ex: Ben Ali">
+              </div>
             </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-foreground mb-1.5">Email *</label>
-            <input type="email" [(ngModel)]="formData.email" name="email" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [readonly]="dialogMode() === 'edit'" required placeholder="nom@pgh.com">
-            <p class="text-xs text-muted-foreground mt-1">Seules les adresses &#64;pgh.com sont acceptées</p>
+
+          <div class="me-field">
+            <label>Adresse e-mail <span class="req">*</span></label>
+            <div class="me-input-wrap">
+              <span class="material-symbols-rounded">alternate_email</span>
+              <input type="email" [(ngModel)]="formData.email" name="email" [readonly]="dialogMode() === 'edit'" required placeholder="nom@pgh.com">
+            </div>
+            <span class="me-field-hint">Seules les adresses &#64;pgh.com sont acceptées</span>
           </div>
-          <div *ngIf="dialogMode() === 'add'">
-            <label class="block text-sm font-medium text-foreground mb-1.5">Mot de passe *</label>
-            <input type="password" [(ngModel)]="formData.password" name="password" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" required placeholder="Minimum 6 caractères" minlength="6">
+
+          @if (dialogMode() === 'add') {
+            <div class="me-field">
+              <label>Mot de passe <span class="req">*</span></label>
+              <div class="me-input-wrap">
+                <span class="material-symbols-rounded">passkey</span>
+                <input type="password" [(ngModel)]="formData.password" name="password" required placeholder="Minimum 6 caractères" minlength="6">
+              </div>
+            </div>
+          } @else {
+            <div class="me-field">
+              <label>Nouveau mot de passe</label>
+              <div class="me-input-wrap">
+                <span class="material-symbols-rounded">passkey</span>
+                <input type="password" [(ngModel)]="formData.password" name="passwordEdit" placeholder="Laisser vide pour ne pas changer" minlength="6">
+              </div>
+              <span class="me-field-hint">Optionnel — minimum 6 caractères</span>
+            </div>
+          }
+
+          <div class="me-field">
+            <label>Rôle</label>
+            <div class="me-input-wrap select">
+              <span class="material-symbols-rounded">shield_person</span>
+              <select [(ngModel)]="formData.role" name="role">
+                @for (role of roles(); track role.value) {
+                  <option [value]="role.value">{{ role.label }}</option>
+                }
+              </select>
+            </div>
           </div>
-          <div *ngIf="dialogMode() === 'edit'">
-            <label class="block text-sm font-medium text-foreground mb-1.5">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
-            <input type="password" [(ngModel)]="formData.password" name="passwordEdit" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" placeholder="Optionnel — minimum 6 caractères" minlength="6">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-foreground mb-1.5">Rôle</label>
-            <select [(ngModel)]="formData.role" name="role" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring">
-              @for (role of roles(); track role.value) {
-                <option [value]="role.value">{{ role.label }}</option>
+
+          <div class="me-form-actions">
+            <button type="button" class="me-btn cancel" (click)="closeDialog()">Annuler</button>
+            <button type="submit" class="me-btn primary" [disabled]="saving()">
+              @if (saving()) {
+                <span class="material-symbols-rounded spin">progress_activity</span>
               }
-            </select>
-          </div>
-          <div class="flex justify-end gap-3 pt-2">
-            <button type="button" class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="closeDialog()">Annuler</button>
-            <button type="submit" class="px-4 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors" [disabled]="saving()">{{ saving() ? 'Enregistrement...' : (dialogMode() === 'add' ? 'Créer' : 'Mettre à jour') }}</button>
+              {{ saving() ? 'Enregistrement...' : (dialogMode() === 'add' ? 'Créer' : 'Mettre à jour') }}
+            </button>
           </div>
         </form>
       </div>
     </div>
   }
 
-  <!-- Table -->
-  <div class="bg-card border border-border rounded-xl overflow-hidden">
-    <table class="w-full">
-      <thead>
-        <tr class="border-b border-border bg-muted/50">
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nom</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Rôle</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Statut</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dernière connexion</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Actions</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-border">
-        <tr *ngFor="let member of members(); trackBy: trackByMemberId" class="hover:bg-muted/30 transition-colors" [class.opacity-50]="member.status === 'inactive'">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-semibold">{{ member.prenom.charAt(0) || '' }}{{ member.nom.charAt(0) || '' }}</div>
-              <span class="font-medium text-foreground">{{ member.prenom }} {{ member.nom }}</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-sm">{{ member.email }}</td>
-          <td class="px-4 py-3"><span class="px-3 py-1 rounded-full text-xs font-medium text-white" [style.backgroundColor]="getRoleColor(member.role)">{{ getRoleLabel(member.role) }}</span></td>
-          <td class="px-4 py-3"><span class="px-3 py-1 rounded-full text-xs font-medium" [class]="member.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'">{{ member.status === 'active' ? 'Actif' : 'Inactif' }}</span></td>
-          <td class="px-4 py-3 text-sm text-muted-foreground">{{ (member.lastLogin | date: 'short') || 'Jamais' }}</td>
-          <td class="px-4 py-3">
-            <div class="flex gap-1">
-              <button class="w-8 h-8 rounded-md border border-border flex items-center justify-center text-sm hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 transition-colors" title="Modifier" (click)="editMember(member)">✎</button>
-              <button class="w-8 h-8 rounded-md border border-border flex items-center justify-center text-sm hover:bg-orange-50 hover:border-orange-400 hover:text-orange-600 transition-colors" title="Changer le rôle" (click)="openRoleDialog(member)">🔄</button>
-              <button class="w-8 h-8 rounded-md border border-border flex items-center justify-center text-sm hover:bg-muted transition-colors" title="Basculer le statut" (click)="toggleStatus(member)">👁️</button>
-              <button class="w-8 h-8 rounded-md border border-border flex items-center justify-center text-sm hover:bg-red-50 hover:border-red-400 hover:text-red-600 transition-colors" title="Supprimer" (click)="deleteMember(member)">🗑️</button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
   <!-- Delete Confirmation Modal -->
   @if (showDeleteModal() && memberToDelete(); as member) {
-    <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="cancelDelete()">
-      <div class="bg-card border border-border rounded-2xl w-full max-w-[420px] animate-in" (click)="$event.stopPropagation()">
-        <div class="flex flex-col items-center text-center p-6 pt-8">
-          <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-4">
-            <span class="material-symbols-rounded text-red-600 text-3xl">delete_forever</span>
-          </div>
-          <h2 class="text-lg font-semibold text-foreground mb-2">Êtes-vous sûr ?</h2>
-          <p class="text-sm text-muted-foreground">Voulez-vous vraiment supprimer <span class="font-semibold text-foreground">{{ member.prenom }} {{ member.nom }}</span> ? Cette action est irréversible.</p>
+    <div class="me-overlay" (click)="cancelDelete()">
+      <div class="me-confirm-modal" (click)="$event.stopPropagation()">
+        <div class="me-confirm-icon danger">
+          <span class="material-symbols-rounded">delete_forever</span>
         </div>
-        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
-          <button type="button" class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="cancelDelete()">Annuler</button>
-          <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors" (click)="confirmDelete()" [disabled]="deleting()">
-            @if (deleting()) { <span class="material-symbols-rounded text-sm animate-spin">progress_activity</span> }
+        <h2>Supprimer ce membre ?</h2>
+        <p>Le compte de <strong>{{ member.prenom }} {{ member.nom }}</strong> sera définitivement supprimé. Cette action est irréversible.</p>
+        <div class="me-confirm-actions">
+          <button class="me-btn cancel" (click)="cancelDelete()">Annuler</button>
+          <button class="me-btn danger" (click)="confirmDelete()" [disabled]="deleting()">
+            @if (deleting()) { <span class="material-symbols-rounded spin">progress_activity</span> }
             Supprimer
           </button>
         </div>
@@ -138,19 +243,17 @@
 
   <!-- Toggle Status Confirmation Modal -->
   @if (showToggleModal() && memberToToggle(); as member) {
-    <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="cancelToggle()">
-      <div class="bg-card border border-border rounded-2xl w-full max-w-[420px] animate-in" (click)="$event.stopPropagation()">
-        <div class="flex flex-col items-center text-center p-6 pt-8">
-          <div class="w-14 h-14 rounded-full flex items-center justify-center mb-4" [class]="member.status === 'active' ? 'bg-orange-50' : 'bg-emerald-50'">
-            <span class="material-symbols-rounded text-3xl" [class]="member.status === 'active' ? 'text-orange-500' : 'text-emerald-600'">{{ member.status === 'active' ? 'block' : 'check_circle' }}</span>
-          </div>
-          <h2 class="text-lg font-semibold text-foreground mb-2">Êtes-vous sûr ?</h2>
-          <p class="text-sm text-muted-foreground">Voulez-vous vraiment {{ member.status === 'active' ? 'désactiver' : 'activer' }} le compte de <span class="font-semibold text-foreground">{{ member.prenom }} {{ member.nom }}</span> ?</p>
+    <div class="me-overlay" (click)="cancelToggle()">
+      <div class="me-confirm-modal" (click)="$event.stopPropagation()">
+        <div class="me-confirm-icon" [class.warn]="member.status === 'active'" [class.success]="member.status !== 'active'">
+          <span class="material-symbols-rounded">{{ member.status === 'active' ? 'block' : 'check_circle' }}</span>
         </div>
-        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
-          <button type="button" class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="cancelToggle()">Annuler</button>
-          <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-colors" [class]="member.status === 'active' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-emerald-600 hover:bg-emerald-700'" (click)="confirmToggle()" [disabled]="toggling()">
-            @if (toggling()) { <span class="material-symbols-rounded text-sm animate-spin">progress_activity</span> }
+        <h2>{{ member.status === 'active' ? 'Désactiver' : 'Activer' }} ce compte ?</h2>
+        <p>Le compte de <strong>{{ member.prenom }} {{ member.nom }}</strong> sera {{ member.status === 'active' ? 'désactivé' : 'réactivé' }}.</p>
+        <div class="me-confirm-actions">
+          <button class="me-btn cancel" (click)="cancelToggle()">Annuler</button>
+          <button class="me-btn" [class.warn]="member.status === 'active'" [class.success]="member.status !== 'active'" (click)="confirmToggle()" [disabled]="toggling()">
+            @if (toggling()) { <span class="material-symbols-rounded spin">progress_activity</span> }
             {{ member.status === 'active' ? 'Désactiver' : 'Activer' }}
           </button>
         </div>

@@ -1,152 +1,162 @@
-<div class="max-w-[1400px] mx-auto">
+<div class="mv-page">
   <!-- Header -->
-  <div class="flex flex-wrap items-start justify-between gap-4 mb-8">
-    <div>
-      <h1 class="text-2xl font-bold text-foreground">Mouvements de Stock</h1>
-      <p class="text-muted-foreground">Gérer les entrées et sorties de stock</p>
+  <div class="mv-header">
+    <div class="mv-header-text">
+      <h1>
+        <span class="material-symbols-rounded mv-header-icon">swap_vert</span>
+        Mouvements de Stock
+      </h1>
+      <p>Gérer les entrées et sorties de stock</p>
     </div>
-    <div class="flex gap-3">
-      <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors" (click)="openAddModal('entry')">
-        <span class="material-symbols-rounded text-lg">input</span>
+    <div class="mv-header-actions">
+      <button class="mv-btn entry" (click)="openAddModal('entry')">
+        <span class="material-symbols-rounded">input</span>
         Entrée
       </button>
-      <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors" (click)="openAddModal('exit')">
-        <span class="material-symbols-rounded text-lg">output</span>
+      <button class="mv-btn danger" (click)="openAddModal('exit')">
+        <span class="material-symbols-rounded">output</span>
         Sortie
       </button>
-      <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border-2 border-primary bg-background text-primary hover:bg-accent transition-colors" (click)="openAddReasonModal()">
-        <span class="material-symbols-rounded text-lg">edit_note</span>
+      <button class="mv-btn outline" (click)="openAddReasonModal()">
+        <span class="material-symbols-rounded">edit_note</span>
         Gérer Raisons
       </button>
     </div>
   </div>
 
   <!-- Summary Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-    <div class="bg-card border border-border rounded-xl p-5 flex items-center gap-4">
-      <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center">
-        <span class="material-symbols-rounded text-emerald-500">move_to_inbox</span>
+  <div class="mv-summary-grid">
+    <div class="mv-summary-card" style="--accent: #10b981">
+      <div class="mv-summary-bar"></div>
+      <div class="mv-summary-icon">
+        <span class="material-symbols-rounded">move_to_inbox</span>
       </div>
-      <div class="flex flex-col">
-        <span class="text-2xl font-bold text-foreground">{{ summary().totalEntries }}</span>
-        <span class="text-sm text-muted-foreground">Entrées</span>
+      <div class="mv-summary-body">
+        <span class="mv-summary-value">{{ summary().totalEntries }}</span>
+        <span class="mv-summary-label">Entrées</span>
       </div>
-      <div class="ml-auto text-sm font-medium px-3 py-1 rounded-full bg-emerald-50 text-emerald-600">+{{ summary().entriesQuantity }} unités</div>
+      <span class="mv-summary-badge entry">+{{ summary().entriesQuantity }} unités</span>
     </div>
-    <div class="bg-card border border-border rounded-xl p-5 flex items-center gap-4">
-      <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center">
-        <span class="material-symbols-rounded text-red-500">outbox</span>
+    <div class="mv-summary-card" style="--accent: #ef4444">
+      <div class="mv-summary-bar"></div>
+      <div class="mv-summary-icon">
+        <span class="material-symbols-rounded">outbox</span>
       </div>
-      <div class="flex flex-col">
-        <span class="text-2xl font-bold text-foreground">{{ summary().totalExits }}</span>
-        <span class="text-sm text-muted-foreground">Sorties</span>
+      <div class="mv-summary-body">
+        <span class="mv-summary-value">{{ summary().totalExits }}</span>
+        <span class="mv-summary-label">Sorties</span>
       </div>
-      <div class="ml-auto text-sm font-medium px-3 py-1 rounded-full bg-red-50 text-red-600">-{{ summary().exitsQuantity }} unités</div>
+      <span class="mv-summary-badge exit">-{{ summary().exitsQuantity }} unités</span>
     </div>
-    <div class="bg-card border border-border rounded-xl p-5 flex items-center gap-4">
-      <div class="w-12 h-12 rounded-xl flex items-center justify-center" [class]="summary().netChange >= 0 ? 'bg-blue-50' : 'bg-orange-50'">
-        <span class="material-symbols-rounded" [class]="summary().netChange >= 0 ? 'text-blue-500' : 'text-orange-500'">{{ summary().netChange >= 0 ? 'trending_up' : 'trending_down' }}</span>
+    <div class="mv-summary-card" [style.--accent]="summary().netChange >= 0 ? '#3b82f6' : '#f97316'">
+      <div class="mv-summary-bar"></div>
+      <div class="mv-summary-icon">
+        <span class="material-symbols-rounded">{{ summary().netChange >= 0 ? 'trending_up' : 'trending_down' }}</span>
       </div>
-      <div class="flex flex-col">
-        <span class="text-2xl font-bold" [class]="summary().netChange >= 0 ? 'text-emerald-600' : 'text-red-600'">{{ summary().netChange >= 0 ? '+' : '' }}{{ summary().netChange }}</span>
-        <span class="text-sm text-muted-foreground">Variation Nette</span>
+      <div class="mv-summary-body">
+        <span class="mv-summary-value" [class.positive]="summary().netChange >= 0" [class.negative]="summary().netChange < 0">{{ summary().netChange >= 0 ? '+' : '' }}{{ summary().netChange }}</span>
+        <span class="mv-summary-label">Variation Nette</span>
       </div>
     </div>
   </div>
 
   <!-- Filters -->
-  <div class="flex flex-wrap items-center gap-4 mb-6">
-    <div class="flex-1 min-w-[250px] relative">
-      <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">search</span>
-      <input type="text" placeholder="Rechercher par numéro, produit..." class="w-full pl-11 pr-4 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="searchTerm()" (input)="onSearch($event)">
+  <div class="mv-toolbar">
+    <div class="mv-search">
+      <span class="material-symbols-rounded">search</span>
+      <input type="text" placeholder="Rechercher par numéro, produit..." [value]="searchTerm()" (input)="onSearch($event)">
     </div>
-    <div class="flex bg-card border border-border rounded-lg p-1">
-      <button class="px-4 py-2 rounded-md text-sm font-medium transition-colors" [class]="selectedType() === 'all' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'" (click)="onTypeChange('all')">Tous</button>
-      <button class="px-4 py-2 rounded-md text-sm font-medium transition-colors" [class]="selectedType() === 'entry' ? 'bg-emerald-600 text-white' : 'text-muted-foreground hover:text-foreground'" (click)="onTypeChange('entry')">Entrées</button>
-      <button class="px-4 py-2 rounded-md text-sm font-medium transition-colors" [class]="selectedType() === 'exit' ? 'bg-red-600 text-white' : 'text-muted-foreground hover:text-foreground'" (click)="onTypeChange('exit')">Sorties</button>
+    <div class="mv-type-tabs">
+      <button class="mv-tab" [class.active]="selectedType() === 'all'" [attr.data-variant]="'all'" (click)="onTypeChange('all')">Tous</button>
+      <button class="mv-tab" [class.active]="selectedType() === 'entry'" [attr.data-variant]="'entry'" (click)="onTypeChange('entry')">Entrées</button>
+      <button class="mv-tab" [class.active]="selectedType() === 'exit'" [attr.data-variant]="'exit'" (click)="onTypeChange('exit')">Sorties</button>
     </div>
-    <select class="px-4 py-2.5 bg-background border border-input rounded-lg text-sm min-w-[180px] focus:outline-none focus:ring-2 focus:ring-ring" (change)="onSiteChange($event)">
-      <option value="">Tous les sites</option>
-      @for (site of sites(); track site.id) {
-        <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
-      }
-    </select>
-    <div class="flex items-center gap-2">
-      <span class="material-symbols-rounded text-muted-foreground text-lg">calendar_today</span>
-      <input type="date" class="px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="selectedDate()" (change)="onDateChange($event)">
+    <div class="mv-select-wrap">
+      <select (change)="onSiteChange($event)">
+        <option value="">Tous les sites</option>
+        @for (site of sites(); track site.id) {
+          <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
+        }
+      </select>
+    </div>
+    <div class="mv-date-filter">
+      <span class="material-symbols-rounded">calendar_today</span>
+      <input type="date" [value]="selectedDate()" (change)="onDateChange($event)">
       @if (selectedDate()) {
-        <button class="p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors" title="Réinitialiser la date" (click)="selectedDate.set('')">
-          <span class="material-symbols-rounded text-sm">close</span>
+        <button class="mv-date-clear" title="Réinitialiser la date" (click)="selectedDate.set('')">
+          <span class="material-symbols-rounded">close</span>
         </button>
       }
     </div>
   </div>
 
   <!-- Table -->
-  <div class="bg-card border border-border rounded-xl overflow-x-auto">
-    <table class="w-full min-w-[800px]">
+  <div class="mv-table-wrap">
+    <table class="mv-table">
       <thead>
-        <tr class="border-b border-border bg-muted/50">
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">N°</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Type</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Produit</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Qté</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Raison</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Site</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Destination</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Date</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground sr-only">Actions</th>
+        <tr>
+          <th>N°</th>
+          <th>Type</th>
+          <th>Produit</th>
+          <th>Qté</th>
+          <th>Raison</th>
+          <th>Site</th>
+          <th>Destination</th>
+          <th>Date</th>
+          <th class="th-actions">Actions</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-border">
+      <tbody>
         @for (movement of movements(); track movement.id) {
-          <tr class="hover:bg-muted/30 transition-colors cursor-pointer" (click)="openViewModal(movement)">
-            <td class="px-4 py-3">
-              <span class="font-mono text-xs font-medium text-primary" [title]="'' + movement.id">{{ truncateId('' + movement.id) }}</span>
+          <tr (click)="openViewModal(movement)">
+            <td>
+              <span class="mv-id" [title]="'' + movement.id">{{ truncateId('' + movement.id) }}</span>
             </td>
-            <td class="px-4 py-3">
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium" [class]="movement.type === 'entry' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'">
-                <span class="material-symbols-rounded text-sm">{{ movement.type === 'entry' ? 'south' : 'north' }}</span>
+            <td>
+              <span class="mv-type-badge" [attr.data-type]="movement.type">
+                <span class="material-symbols-rounded">{{ movement.type === 'entry' ? 'south' : 'north' }}</span>
                 {{ movement.type === 'entry' ? 'Entrée' : 'Sortie' }}
               </span>
             </td>
-            <td class="px-4 py-3 font-medium text-sm">{{ movement.produitNom }}</td>
-            <td class="px-4 py-3">
-              <span class="font-semibold text-sm" [class]="movement.type === 'entry' ? 'text-emerald-600' : 'text-red-600'">
+            <td><span class="mv-product-name">{{ movement.produitNom }}</span></td>
+            <td>
+              <span class="mv-qty" [attr.data-type]="movement.type">
                 {{ movement.type === 'entry' ? '+' : '-' }}{{ movement.quantite }}
               </span>
             </td>
-            <td class="px-4 py-3">
-              <span class="bg-muted px-2 py-1 rounded text-xs">{{ getReasonLabel(movement.raison) }}</span>
-            </td>
-            <td class="px-4 py-3 text-sm">{{ movement.siteNom }}</td>
-            <td class="px-4 py-3 text-sm">
+            <td><span class="mv-reason-tag">{{ getReasonLabel(movement.raison) }}</span></td>
+            <td><span class="mv-cell-text">{{ movement.siteNom }}</span></td>
+            <td>
               @if (movement.type === 'exit' && movement.destination) {
-                <span class="inline-flex items-center gap-1 text-sm">
-                  <span class="material-symbols-rounded text-base text-muted-foreground">domain</span>
+                <span class="mv-destination">
+                  <span class="material-symbols-rounded">domain</span>
                   {{ getSiteName(movement.destination) }}
                 </span>
               } @else {
-                <span class="text-muted-foreground">-</span>
+                <span class="mv-cell-muted">-</span>
               }
             </td>
-            <td class="px-4 py-3">
-              <div class="flex flex-col">
-                <span class="text-sm font-medium">{{ getTimeAgo(movement.dateMouvement) }}</span>
-                <span class="text-xs text-muted-foreground">{{ formatDate(movement.dateMouvement) }}</span>
+            <td>
+              <div class="mv-date-cell">
+                <span class="mv-date-ago">{{ getTimeAgo(movement.dateMouvement) }}</span>
+                <span class="mv-date-full">{{ formatDate(movement.dateMouvement) }}</span>
               </div>
             </td>
-            <td class="px-4 py-3">
-              <button class="p-2 rounded-md hover:bg-accent text-muted-foreground hover:text-primary transition-colors" (click)="openViewModal(movement); $event.stopPropagation()">
-                <span class="material-symbols-rounded text-xl">open_in_new</span>
+            <td>
+              <button class="mv-act view" (click)="openViewModal(movement); $event.stopPropagation()">
+                <span class="material-symbols-rounded">open_in_new</span>
               </button>
             </td>
           </tr>
         } @empty {
           <tr>
-            <td colspan="9" class="text-center py-12 text-muted-foreground">
-              <span class="material-symbols-rounded text-5xl mb-2 block">deployed_code</span>
-              <p>Aucun mouvement trouvé</p>
+            <td colspan="9">
+              <div class="mv-empty">
+                <div class="mv-empty-icon">
+                  <span class="material-symbols-rounded">deployed_code</span>
+                </div>
+                <p>Aucun mouvement trouvé</p>
+              </div>
             </td>
           </tr>
         }
@@ -157,59 +167,65 @@
 
 <!-- Modal -->
 @if (showModal()) {
-  <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="closeModal()">
-    <div class="bg-card border border-border rounded-2xl w-full max-w-[600px] max-h-[90vh] flex flex-col animate-in" (click)="$event.stopPropagation()">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-border">
-        <div class="flex items-center gap-3">
+  <div class="mv-overlay" (click)="closeModal()">
+    <div class="mv-modal" (click)="$event.stopPropagation()">
+      <div class="mv-modal-header">
+        <div class="mv-modal-title">
           @if (modalMode() === 'add') {
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center" [class]="movementType() === 'entry' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'">
-              <span class="material-symbols-rounded text-lg">{{ movementType() === 'entry' ? 'south' : 'north' }}</span>
+            <div class="mv-modal-icon" [attr.data-type]="movementType()">
+              <span class="material-symbols-rounded">{{ movementType() === 'entry' ? 'south' : 'north' }}</span>
             </div>
           }
-          <h2 class="text-lg font-semibold text-foreground">
-            @if (modalMode() === 'add') {
-              {{ movementType() === 'entry' ? 'Nouvelle Entrée' : 'Nouvelle Sortie' }}
-            } @else {
-              Détails du Mouvement
-            }
-          </h2>
+          <div>
+            <h2>
+              @if (modalMode() === 'add') {
+                {{ movementType() === 'entry' ? 'Nouvelle Entrée' : 'Nouvelle Sortie' }}
+              } @else {
+                Détails du Mouvement
+              }
+            </h2>
+          </div>
         </div>
-        <button class="p-2 rounded-md hover:bg-muted text-muted-foreground transition-colors" (click)="closeModal()">
+        <button class="mv-modal-close" (click)="closeModal()">
           <span class="material-symbols-rounded">close</span>
         </button>
       </div>
 
-      <div class="p-6 overflow-y-auto">
+      <div class="mv-modal-body">
         @if (modalMode() === 'add') {
-          <div class="grid grid-cols-2 gap-4">
+          <div class="mv-form-grid">
             <!-- Site (shown FIRST for exit mode) -->
             @if (movementType() === 'exit') {
-              <div>
-                <label class="block text-sm font-medium text-foreground mb-1.5">Site (origine) *</label>
-                <select class="w-full px-3 py-2.5 bg-background border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [class]="formErrors()['siteId'] ? 'border-red-400 focus:ring-red-300' : 'border-input'" [value]="formData().siteId" (change)="updateFormField('siteId', $any($event.target).value)">
-                  <option value="">Sélectionner un site</option>
-                  @for (site of formSites(); track site.id) {
-                    <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
-                  }
-                </select>
+              <div class="mv-field">
+                <label>Site (origine) <span class="req">*</span></label>
+                <div class="mv-input-wrap select">
+                  <select [class.has-error]="formErrors()['siteId']" [value]="formData().siteId" (change)="updateFormField('siteId', $any($event.target).value)">
+                    <option value="">Sélectionner un site</option>
+                    @for (site of formSites(); track site.id) {
+                      <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
+                    }
+                  </select>
+                </div>
                 @if (formErrors()['siteId']) {
-                  <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
-                    <span class="material-symbols-rounded text-xs">warning</span>
+                  <p class="mv-field-error">
+                    <span class="material-symbols-rounded">warning</span>
                     {{ formErrors()['siteId'] }}
                   </p>
                 }
               </div>
-              <div>
-                <label class="block text-sm font-medium text-foreground mb-1.5">Destination *</label>
-                <select class="w-full px-3 py-2.5 bg-background border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [class]="formErrors()['destination'] ? 'border-red-400 focus:ring-red-300' : 'border-input'" [value]="formData().destination" (change)="updateFormField('destination', $any($event.target).value)">
-                  <option value="">Sélectionner la destination</option>
-                  @for (site of destinationSites(); track site.id) {
-                    <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
-                  }
-                </select>
+              <div class="mv-field">
+                <label>Destination <span class="req">*</span></label>
+                <div class="mv-input-wrap select">
+                  <select [class.has-error]="formErrors()['destination']" [value]="formData().destination" (change)="updateFormField('destination', $any($event.target).value)">
+                    <option value="">Sélectionner la destination</option>
+                    @for (site of destinationSites(); track site.id) {
+                      <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
+                    }
+                  </select>
+                </div>
                 @if (formErrors()['destination']) {
-                  <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
-                    <span class="material-symbols-rounded text-xs">warning</span>
+                  <p class="mv-field-error">
+                    <span class="material-symbols-rounded">warning</span>
                     {{ formErrors()['destination'] }}
                   </p>
                 }
@@ -217,81 +233,81 @@
             }
 
             <!-- Product Search -->
-            <div class="col-span-2 product-search-group">
-              <div class="flex items-center justify-between mb-1.5">
-                <label class="block text-sm font-medium text-foreground">Produit *</label>
-                <button type="button" class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-primary bg-primary/10 border border-primary/20 rounded-md hover:bg-primary/20 transition-colors" (click)="openProductScan()">
-                  <span class="material-symbols-rounded text-sm">qr_code_scanner</span> Scanner
+            <div class="mv-field full product-search-group">
+              <div class="mv-field-header">
+                <label>Produit <span class="req">*</span></label>
+                <button type="button" class="mv-scan-btn" (click)="openProductScan()">
+                  <span class="material-symbols-rounded">qr_code_scanner</span> Scanner
                 </button>
               </div>
               @if (movementType() === 'exit' && !formData().siteId) {
-                <p class="text-xs text-muted-foreground italic">Veuillez d'abord sélectionner un site d'origine.</p>
+                <p class="mv-field-hint italic">Veuillez d'abord sélectionner un site d'origine.</p>
               } @else {
-              <div class="relative">
-                <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">search</span>
-                <input type="text" placeholder="Rechercher un produit par nom, code-barres..." class="w-full pl-10 pr-4 py-2.5 bg-background border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [class]="formErrors()['product'] ? 'border-red-400 focus:ring-red-300' : 'border-input'" [value]="productSearch()" (input)="onProductSearch($event)" (focus)="showProductDropdown.set(true)" autocomplete="off">
-              </div>
-              @if (formErrors()['product']) {
-                <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
-                  <span class="material-symbols-rounded text-xs">warning</span>
-                  {{ formErrors()['product'] }}
-                </p>
-              }
-              @if (showProductDropdown() && filteredProducts().length > 0) {
-                <div class="mt-1 bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto z-50 relative">
-                  @for (product of filteredProducts(); track product.id_p) {
-                    <div class="flex items-center justify-between px-4 py-3 hover:bg-muted/50 cursor-pointer transition-colors" (click)="selectProduct(product)">
-                      <div>
-                        <div class="font-medium text-sm">{{ product.nom }}</div>
-                        <div class="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                          @if (product.codeBarre) {
-                            <span class="inline-flex items-center gap-1"><span class="material-symbols-rounded text-xs">barcode</span>{{ product.codeBarre }}</span>
-                          }
-                          @if (product.categorieLibelle) {
-                            <span>{{ product.categorieLibelle }}</span>
-                          }
+                <div class="mv-input-wrap">
+                  <span class="material-symbols-rounded">search</span>
+                  <input type="text" placeholder="Rechercher un produit par nom, code-barres..." [class.has-error]="formErrors()['product']" [value]="productSearch()" (input)="onProductSearch($event)" (focus)="showProductDropdown.set(true)" autocomplete="off">
+                </div>
+                @if (formErrors()['product']) {
+                  <p class="mv-field-error">
+                    <span class="material-symbols-rounded">warning</span>
+                    {{ formErrors()['product'] }}
+                  </p>
+                }
+                @if (showProductDropdown() && filteredProducts().length > 0) {
+                  <div class="mv-dropdown">
+                    @for (product of filteredProducts(); track product.id_p) {
+                      <div class="mv-dropdown-item" (click)="selectProduct(product)">
+                        <div>
+                          <div class="mv-dropdown-name">{{ product.nom }}</div>
+                          <div class="mv-dropdown-meta">
+                            @if (product.codeBarre) {
+                              <span><span class="material-symbols-rounded">barcode</span>{{ product.codeBarre }}</span>
+                            }
+                            @if (product.categorieLibelle) {
+                              <span>{{ product.categorieLibelle }}</span>
+                            }
+                          </div>
                         </div>
+                        <span class="mv-dropdown-price">{{ product.prix | number:'1.2-2' }} DT</span>
                       </div>
-                      <span class="text-sm font-medium text-primary">{{ product.prix | number:'1.2-2' }} DT</span>
-                    </div>
-                  }
-                </div>
-              }
-              @if (showProductDropdown() && productSearch() && filteredProducts().length === 0) {
-                <div class="mt-1 bg-card border border-border rounded-lg p-4 text-center text-sm text-muted-foreground">
-                  <span class="material-symbols-rounded text-2xl mb-1 block">manage_search</span>
-                  Aucun produit trouvé
-                </div>
-              }
+                    }
+                  </div>
+                }
+                @if (showProductDropdown() && productSearch() && filteredProducts().length === 0) {
+                  <div class="mv-dropdown empty">
+                    <span class="material-symbols-rounded">manage_search</span>
+                    Aucun produit trouvé
+                  </div>
+                }
               }
             </div>
 
             <!-- Selected Product Card -->
             @if (selectedProduct(); as product) {
-              <div class="col-span-2">
-                <div class="bg-muted/30 border border-border rounded-lg p-4">
-                  <div class="flex items-center justify-between mb-2">
-                    <div class="flex items-center gap-2 text-sm font-medium text-primary">
-                      <span class="material-symbols-rounded text-lg">package_2</span>
+              <div class="mv-field full">
+                <div class="mv-selected-product">
+                  <div class="mv-selected-header">
+                    <div class="mv-selected-label">
+                      <span class="material-symbols-rounded">package_2</span>
                       Produit sélectionné
                     </div>
-                    <button class="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" (click)="clearSelectedProduct()" title="Retirer le produit">
-                      <span class="material-symbols-rounded text-lg">close</span>
+                    <button class="mv-selected-remove" (click)="clearSelectedProduct()" title="Retirer le produit">
+                      <span class="material-symbols-rounded">close</span>
                     </button>
                   </div>
-                  <div class="font-semibold text-foreground mb-1">{{ product.nom }}</div>
-                  <div class="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                  <div class="mv-selected-name">{{ product.nom }}</div>
+                  <div class="mv-selected-details">
                     @if (product.codeBarre) {
-                      <span class="inline-flex items-center gap-1"><span class="material-symbols-rounded text-sm">barcode</span>{{ product.codeBarre }}</span>
+                      <span><span class="material-symbols-rounded">barcode</span>{{ product.codeBarre }}</span>
                     }
                     @if (product.categorieLibelle) {
-                      <span class="inline-flex items-center gap-1"><span class="material-symbols-rounded text-sm">label</span>{{ product.categorieLibelle }}</span>
+                      <span><span class="material-symbols-rounded">label</span>{{ product.categorieLibelle }}</span>
                     }
-                    <span class="inline-flex items-center gap-1"><span class="material-symbols-rounded text-sm">sell</span>{{ product.prix | number:'1.2-2' }} DT</span>
+                    <span><span class="material-symbols-rounded">sell</span>{{ product.prix | number:'1.2-2' }} DT</span>
                   </div>
                   @if (movementType() === 'exit' && availableStock() !== null) {
-                    <div class="mt-2 flex items-center gap-1.5 text-xs font-semibold" [class]="availableStock()! > 0 ? 'text-emerald-600' : 'text-red-500'">
-                      <span class="material-symbols-rounded text-sm">inventory</span>
+                    <div class="mv-stock-info" [class.ok]="availableStock()! > 0" [class.low]="availableStock()! <= 0">
+                      <span class="material-symbols-rounded">inventory</span>
                       Stock disponible : {{ availableStock() }} unités
                     </div>
                   }
@@ -300,158 +316,164 @@
             }
 
             <!-- Quantité -->
-            <div>
-              <label class="block text-sm font-medium text-foreground mb-1.5">Quantité *</label>
-              <input id="movement-quantity" type="number" min="1" placeholder="Quantité" class="w-full px-3 py-2.5 bg-background border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [class]="formErrors()['quantity'] ? 'border-red-400 focus:ring-red-300' : 'border-input'" [value]="formData().quantity" (input)="updateFormField('quantity', +$any($event.target).value)">
+            <div class="mv-field">
+              <label>Quantité <span class="req">*</span></label>
+              <div class="mv-input-wrap">
+                <span class="material-symbols-rounded">tag</span>
+                <input id="movement-quantity" type="number" min="1" placeholder="Quantité" [class.has-error]="formErrors()['quantity']" [value]="formData().quantity" (input)="updateFormField('quantity', +$any($event.target).value)">
+              </div>
               @if (formErrors()['quantity']) {
-                <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
-                  <span class="material-symbols-rounded text-xs">warning</span>
+                <p class="mv-field-error">
+                  <span class="material-symbols-rounded">warning</span>
                   {{ formErrors()['quantity'] }}
                 </p>
               }
             </div>
 
             <!-- Raison -->
-            <div>
-              <label class="block text-sm font-medium text-foreground mb-1.5">Raison *</label>
-              <select class="w-full px-3 py-2.5 bg-background border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [class]="formErrors()['reason'] ? 'border-red-400 focus:ring-red-300' : 'border-input'" [value]="formData().reason" (change)="updateFormField('reason', $any($event.target).value)">
-                <option value="">Sélectionner une raison</option>
-                @for (reason of getReasonsByType(movementType()); track reason.value) {
-                  <option [value]="reason.value">{{ reason.label }}</option>
-                }
-              </select>
+            <div class="mv-field">
+              <label>Raison <span class="req">*</span></label>
+              <div class="mv-input-wrap select">
+                <select [class.has-error]="formErrors()['reason']" [value]="formData().reason" (change)="updateFormField('reason', $any($event.target).value)">
+                  <option value="">Sélectionner une raison</option>
+                  @for (reason of getReasonsByType(movementType()); track reason.value) {
+                    <option [value]="reason.value">{{ reason.label }}</option>
+                  }
+                </select>
+              </div>
               @if (formErrors()['reason']) {
-                <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
-                  <span class="material-symbols-rounded text-xs">warning</span>
+                <p class="mv-field-error">
+                  <span class="material-symbols-rounded">warning</span>
                   {{ formErrors()['reason'] }}
                 </p>
               }
             </div>
 
-            <!-- Site (shown here only for entry mode; exit mode has it at the top) -->
+            <!-- Site (shown here only for entry mode) -->
             @if (movementType() === 'entry') {
-            <div>
-              <label class="block text-sm font-medium text-foreground mb-1.5">Site *</label>
-              <select class="w-full px-3 py-2.5 bg-background border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [class]="formErrors()['siteId'] ? 'border-red-400 focus:ring-red-300' : 'border-input'" [value]="formData().siteId" (change)="updateFormField('siteId', $any($event.target).value)">
-                <option value="">Sélectionner un site</option>
-                @for (site of formSites(); track site.id) {
-                  <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
+              <div class="mv-field">
+                <label>Site <span class="req">*</span></label>
+                <div class="mv-input-wrap select">
+                  <select [class.has-error]="formErrors()['siteId']" [value]="formData().siteId" (change)="updateFormField('siteId', $any($event.target).value)">
+                    <option value="">Sélectionner un site</option>
+                    @for (site of formSites(); track site.id) {
+                      <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
+                    }
+                  </select>
+                </div>
+                @if (formErrors()['siteId']) {
+                  <p class="mv-field-error">
+                    <span class="material-symbols-rounded">warning</span>
+                    {{ formErrors()['siteId'] }}
+                  </p>
                 }
-              </select>
-              @if (formErrors()['siteId']) {
-                <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
-                  <span class="material-symbols-rounded text-xs">warning</span>
-                  {{ formErrors()['siteId'] }}
-                </p>
-              }
-            </div>
+              </div>
             }
 
             <!-- Référence -->
-            <div [class]="movementType() === 'entry' ? '' : 'col-span-2'">
-              <label class="block text-sm font-medium text-foreground mb-1.5">Référence</label>
-              <input type="text" placeholder="N° commande, bon de livraison..." class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().reference" (input)="updateFormField('reference', $any($event.target).value)">
+            <div class="mv-field" [class.full]="movementType() !== 'entry'">
+              <label>Référence</label>
+              <div class="mv-input-wrap">
+                <span class="material-symbols-rounded">receipt_long</span>
+                <input type="text" placeholder="N° commande, bon de livraison..." [value]="formData().reference" (input)="updateFormField('reference', $any($event.target).value)">
+              </div>
             </div>
 
             <!-- Notes -->
-            <div class="col-span-2">
-              <label class="block text-sm font-medium text-foreground mb-1.5">Notes</label>
-              <textarea rows="3" placeholder="Notes additionnelles..." class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" [value]="formData().notes" (input)="updateFormField('notes', $any($event.target).value)"></textarea>
+            <div class="mv-field full">
+              <label>Notes</label>
+              <textarea rows="3" placeholder="Notes additionnelles..." [value]="formData().notes" (input)="updateFormField('notes', $any($event.target).value)"></textarea>
             </div>
           </div>
         } @else {
           <!-- View mode -->
           @if (selectedMovement(); as movement) {
-            <div class="space-y-5">
-              <!-- Header row -->
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Numéro</label>
-                  <span class="text-sm text-foreground font-mono">{{ movement.id }}</span>
+            <div class="mv-view-details">
+              <div class="mv-form-row">
+                <div class="mv-detail-group">
+                  <label>Numéro</label>
+                  <span class="mv-detail-mono">{{ movement.id }}</span>
                 </div>
-                <div>
-                  <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Type</label>
-                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium" [class]="movement.type === 'entry' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'">{{ movement.type === 'entry' ? 'Entrée' : 'Sortie' }}</span>
-                </div>
-              </div>
-
-              <!-- Product & Quantity -->
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Produit</label>
-                  <span class="text-sm text-foreground">{{ movement.produitNom }}</span>
-                </div>
-                <div>
-                  <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Quantité</label>
-                  <span class="font-semibold text-sm" [class]="movement.type === 'entry' ? 'text-emerald-600' : 'text-red-600'">{{ movement.type === 'entry' ? '+' : '-' }}{{ movement.quantite }}</span>
+                <div class="mv-detail-group">
+                  <label>Type</label>
+                  <span class="mv-type-badge" [attr.data-type]="movement.type">{{ movement.type === 'entry' ? 'Entrée' : 'Sortie' }}</span>
                 </div>
               </div>
 
-              <!-- Raison -->
-              <div>
-                <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Raison</label>
-                <span class="text-sm text-foreground">{{ getReasonLabel(movement.raison) }}</span>
+              <div class="mv-form-row">
+                <div class="mv-detail-group">
+                  <label>Produit</label>
+                  <span class="mv-detail-text">{{ movement.produitNom }}</span>
+                </div>
+                <div class="mv-detail-group">
+                  <label>Quantité</label>
+                  <span class="mv-qty" [attr.data-type]="movement.type">{{ movement.type === 'entry' ? '+' : '-' }}{{ movement.quantite }}</span>
+                </div>
+              </div>
+
+              <div class="mv-detail-group">
+                <label>Raison</label>
+                <span class="mv-detail-text">{{ getReasonLabel(movement.raison) }}</span>
               </div>
 
               <!-- Site flow visual for Sortie -->
               @if (movement.type === 'exit' && movement.destination) {
-                <div>
-                  <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Trajet</label>
-                  <div class="flex items-center gap-3 bg-muted/30 border border-border rounded-lg p-4">
-                    <div class="flex flex-col items-center text-center flex-1 min-w-0">
-                      <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center mb-1.5">
-                        <span class="material-symbols-rounded text-red-600 text-lg">domain</span>
+                <div class="mv-detail-group">
+                  <label>Trajet</label>
+                  <div class="mv-flow">
+                    <div class="mv-flow-node origin">
+                      <div class="mv-flow-icon">
+                        <span class="material-symbols-rounded">domain</span>
                       </div>
-                      <span class="text-sm font-medium text-foreground truncate w-full">{{ movement.siteNom }}</span>
-                      <span class="text-[10px] text-muted-foreground uppercase">Origine</span>
+                      <span class="mv-flow-name">{{ movement.siteNom }}</span>
+                      <span class="mv-flow-role">Origine</span>
                     </div>
-                    <div class="flex flex-col items-center gap-0.5 shrink-0">
-                      <span class="material-symbols-rounded text-primary text-xl">trending_flat</span>
-                      <span class="text-[10px] text-muted-foreground font-medium">Transfert</span>
+                    <div class="mv-flow-arrow">
+                      <span class="material-symbols-rounded">trending_flat</span>
+                      <span>Transfert</span>
                     </div>
-                    <div class="flex flex-col items-center text-center flex-1 min-w-0">
-                      <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center mb-1.5">
-                        <span class="material-symbols-rounded text-emerald-600 text-lg">location_city</span>
+                    <div class="mv-flow-node destination">
+                      <div class="mv-flow-icon">
+                        <span class="material-symbols-rounded">location_city</span>
                       </div>
-                      <span class="text-sm font-medium text-foreground truncate w-full">{{ getSiteName(movement.destination) }}</span>
-                      <span class="text-[10px] text-muted-foreground uppercase">Destination</span>
+                      <span class="mv-flow-name">{{ getSiteName(movement.destination) }}</span>
+                      <span class="mv-flow-role">Destination</span>
                     </div>
                   </div>
                 </div>
               } @else if (movement.type === 'exit') {
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Site</label>
-                    <span class="text-sm text-foreground">{{ movement.siteNom }}</span>
+                <div class="mv-form-row">
+                  <div class="mv-detail-group">
+                    <label>Site</label>
+                    <span class="mv-detail-text">{{ movement.siteNom }}</span>
                   </div>
-                  <div>
-                    <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Destination</label>
-                    <span class="text-sm text-muted-foreground">-</span>
+                  <div class="mv-detail-group">
+                    <label>Destination</label>
+                    <span class="mv-cell-muted">-</span>
                   </div>
                 </div>
               } @else {
-                <div>
-                  <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Site</label>
-                  <span class="text-sm text-foreground">{{ movement.siteNom }}</span>
+                <div class="mv-detail-group">
+                  <label>Site</label>
+                  <span class="mv-detail-text">{{ movement.siteNom }}</span>
                 </div>
               }
 
-              <!-- Meta info -->
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Effectué par</label>
-                  <span class="text-sm text-foreground">{{ movement.utilisateurNom || '-' }}</span>
+              <div class="mv-form-row">
+                <div class="mv-detail-group">
+                  <label>Effectué par</label>
+                  <span class="mv-detail-text">{{ movement.utilisateurNom || '-' }}</span>
                 </div>
-                <div>
-                  <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Date</label>
-                  <span class="text-sm text-foreground">{{ formatDate(movement.dateMouvement) }}</span>
+                <div class="mv-detail-group">
+                  <label>Date</label>
+                  <span class="mv-detail-text">{{ formatDate(movement.dateMouvement) }}</span>
                 </div>
               </div>
 
               @if (movement.note) {
-                <div>
-                  <label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Notes</label>
-                  <span class="text-sm text-foreground">{{ movement.note }}</span>
+                <div class="mv-detail-group">
+                  <label>Notes</label>
+                  <span class="mv-detail-text">{{ movement.note }}</span>
                 </div>
               }
             </div>
@@ -459,20 +481,20 @@
         }
       </div>
 
-      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
+      <div class="mv-modal-footer">
         @if (modalMode() === 'add') {
-          <button class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="closeModal()" [disabled]="isSaving()">Annuler</button>
-          <button class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" (click)="saveMovement()" [disabled]="isSaving()">
+          <button class="mv-btn cancel" (click)="closeModal()" [disabled]="isSaving()">Annuler</button>
+          <button class="mv-btn primary" (click)="saveMovement()" [disabled]="isSaving()">
             @if (isSaving()) {
-              <span class="saving-spinner"></span>
+              <span class="material-symbols-rounded spin">progress_activity</span>
               Enregistrement...
             } @else {
-              <span class="material-symbols-rounded text-lg">check_circle</span>
+              <span class="material-symbols-rounded">check_circle</span>
               Enregistrer
             }
           </button>
         } @else {
-          <button class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="closeModal()">Fermer</button>
+          <button class="mv-btn cancel" (click)="closeModal()">Fermer</button>
         }
       </div>
     </div>
@@ -481,31 +503,40 @@
 
 <!-- Add Custom Reason Modal -->
 @if (showAddReasonModal()) {
-  <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" (click)="closeAddReasonModal()">
-    <div class="bg-card border border-border rounded-2xl w-full max-w-[450px] animate-in" (click)="$event.stopPropagation()">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-border">
-        <h2 class="text-lg font-semibold text-foreground">Ajouter une raison personnalisée</h2>
-        <button class="p-2 rounded-md hover:bg-muted text-muted-foreground transition-colors" (click)="closeAddReasonModal()">
+  <div class="mv-overlay" (click)="closeAddReasonModal()">
+    <div class="mv-modal small" (click)="$event.stopPropagation()">
+      <div class="mv-modal-header">
+        <div class="mv-modal-title">
+          <h2>Ajouter une raison personnalisée</h2>
+        </div>
+        <button class="mv-modal-close" (click)="closeAddReasonModal()">
           <span class="material-symbols-rounded">close</span>
         </button>
       </div>
-      <div class="p-6 space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-foreground mb-1.5">Type de mouvement *</label>
-          <select class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="reasonType()" (change)="reasonType.set($any($event.target).value)">
-            <option value="entry">Entrée</option>
-            <option value="exit">Sortie</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-foreground mb-1.5">Raison {{ reasonType() === 'entry' ? "d'entrée" : 'de sortie' }} *</label>
-          <input type="text" placeholder="Saisir la raison du mouvement..." class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="newCustomReason()" (input)="newCustomReason.set($any($event.target).value)" (keyup.enter)="saveCustomReason()" autofocus>
+      <div class="mv-modal-body">
+        <div class="mv-form-stack">
+          <div class="mv-field">
+            <label>Type de mouvement <span class="req">*</span></label>
+            <div class="mv-input-wrap select">
+              <select [value]="reasonType()" (change)="reasonType.set($any($event.target).value)">
+                <option value="entry">Entrée</option>
+                <option value="exit">Sortie</option>
+              </select>
+            </div>
+          </div>
+          <div class="mv-field">
+            <label>Raison {{ reasonType() === 'entry' ? "d'entrée" : 'de sortie' }} <span class="req">*</span></label>
+            <div class="mv-input-wrap">
+              <span class="material-symbols-rounded">edit_note</span>
+              <input type="text" placeholder="Saisir la raison du mouvement..." [value]="newCustomReason()" (input)="newCustomReason.set($any($event.target).value)" (keyup.enter)="saveCustomReason()" autofocus>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
-        <button class="px-4 py-2.5 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-muted/80 transition-colors" (click)="closeAddReasonModal()">Annuler</button>
-        <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors" (click)="saveCustomReason()" [disabled]="!newCustomReason().trim()">
-          <span class="material-symbols-rounded text-lg">add</span>
+      <div class="mv-modal-footer">
+        <button class="mv-btn cancel" (click)="closeAddReasonModal()">Annuler</button>
+        <button class="mv-btn primary" (click)="saveCustomReason()" [disabled]="!newCustomReason().trim()">
+          <span class="material-symbols-rounded">add</span>
           Ajouter
         </button>
       </div>
@@ -515,16 +546,13 @@
 
 <!-- Toast / Snackbar -->
 @if (showToast()) {
-  <div class="fixed bottom-6 right-6 z-[60] toast-animate-in">
-    <div class="flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-lg border" [class]="toastType() === 'success' ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-red-600 border-red-500 text-white'">
-      <span class="material-symbols-rounded text-xl">{{ toastType() === 'success' ? 'check_circle' : 'error' }}</span>
-      <span class="text-sm font-medium">{{ toastMessage() }}</span>
-      <button class="ml-2 p-1 rounded-md hover:bg-white/20 transition-colors" (click)="dismissToast()">
-        <span class="material-symbols-rounded text-lg">close</span>
-      </button>
-    </div>
+  <div class="mv-toast" [attr.data-type]="toastType()">
+    <span class="material-symbols-rounded">{{ toastType() === 'success' ? 'check_circle' : 'error' }}</span>
+    <span class="mv-toast-msg">{{ toastMessage() }}</span>
+    <button class="mv-toast-close" (click)="dismissToast()">
+      <span class="material-symbols-rounded">close</span>
+    </button>
   </div>
-
 }
 
 @if (showQrScanModal()) {

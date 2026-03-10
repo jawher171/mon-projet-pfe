@@ -208,7 +208,8 @@ getproducts() {
       description: [''],
       id_c: [null, Validators.required],
       prix: [0, [Validators.required, Validators.min(0)]],
-      codeBarre: ['']
+      codeBarre: [''],
+      imageUrl: ['']
     });
   }
 
@@ -248,7 +249,8 @@ getproducts() {
       nom: '',
       description: '',
       id_c: null,
-      codeBarre: ''
+      codeBarre: '',
+      imageUrl: ''
     });
     this.showModal.set(true);
   }
@@ -259,7 +261,10 @@ getproducts() {
    */
   openEditModal(product: Product) {
     this.isEditMode.set(true);
-    this.productForm.patchValue(product);
+    this.productForm.patchValue({
+      ...product,
+      imageUrl: (product as { imageUrl?: string }).imageUrl ?? ''
+    });
     this.showModal.set(true);
   }
 
@@ -337,6 +342,7 @@ getproducts() {
     const category = this.categories().find(c => String(c.id_c) === String(formValue.id_c));
     const categorieLibelle = category?.categorieLibelle ?? 'Unknown';
 
+    const imageUrl = formValue.imageUrl || undefined;
     if (this.isEditMode()) {
       await this.productService.updateProduct(formValue.id_p, {
         nom: formValue.nom,
@@ -344,10 +350,11 @@ getproducts() {
         codeBarre: formValue.codeBarre,
         prix: formValue.prix,
         id_c: formValue.id_c,
-        categorieLibelle
-      });
+        categorieLibelle,
+        ...(imageUrl && { imageUrl })
+      } as Partial<Product>);
     } else {
-      const newProduct: Omit<Product, 'id_p'> = {
+      const newProduct: Omit<Product, 'id_p'> & { imageUrl?: string } = {
         nom: formValue.nom,
         description: formValue.description ?? '',
         codeBarre: formValue.codeBarre,
@@ -355,6 +362,7 @@ getproducts() {
         id_c: formValue.id_c,
         categorieLibelle
       };
+      if (imageUrl) (newProduct as { imageUrl?: string }).imageUrl = imageUrl;
       await this.productService.addProduct(newProduct);
     }
 
@@ -402,6 +410,34 @@ getproducts() {
 
   getProductImage(product: Product): string | null {
     return (product as { imageUrl?: string }).imageUrl ?? null;
+  }
+
+  /** Handle image file selection from PC */
+  onImageSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Veuillez sélectionner une image (PNG, JPG, WebP).');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('L\'image ne doit pas dépasser 5 Mo.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.productForm.patchValue({ imageUrl: reader.result as string });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /** Clear selected image */
+  clearImage(event: Event, input?: HTMLInputElement) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.productForm.patchValue({ imageUrl: '' });
+    if (input) input.value = '';
   }
 
   /**
