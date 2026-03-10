@@ -64,7 +64,7 @@
   <!-- Sites Grid/List -->
   <div [class]="viewMode() === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5' : 'flex flex-col gap-4'">
     @for (site of sites(); track site.id) {
-      <div class="bg-card border border-border rounded-xl overflow-hidden hover:shadow-md transition-shadow">
+      <div class="bg-card border rounded-xl overflow-hidden hover:shadow-md transition-shadow" [class]="site.estEntrepotPrincipal ? 'border-amber-300 ring-1 ring-amber-200' : 'border-border'">
         <div class="flex items-center gap-4 p-5 border-b border-border">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center" [ngClass]="{'bg-orange-50': site.type === 'warehouse', 'bg-blue-50': site.type === 'store', 'bg-emerald-50': site.type === 'distribution_center', 'bg-pink-50': site.type === 'production'}">
             <span class="material-symbols-rounded" [ngClass]="{'text-orange-500': site.type === 'warehouse', 'text-blue-500': site.type === 'store', 'text-emerald-500': site.type === 'distribution_center', 'text-pink-500': site.type === 'production'}">{{ getSiteTypeIcon(site.type) }}</span>
@@ -89,7 +89,15 @@
           </div>
         </div>
         <div class="p-5">
-          <span class="inline-block px-3 py-1 rounded-full text-xs font-medium mb-3" [ngClass]="{'bg-orange-50 text-orange-700': site.type === 'warehouse', 'bg-blue-50 text-blue-700': site.type === 'store', 'bg-emerald-50 text-emerald-700': site.type === 'distribution_center', 'bg-pink-50 text-pink-700': site.type === 'production'}">{{ getSiteTypeLabel(site.type) }}</span>
+          <div class="flex items-center gap-2 mb-3 flex-wrap">
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-medium" [ngClass]="{'bg-orange-50 text-orange-700': site.type === 'warehouse', 'bg-blue-50 text-blue-700': site.type === 'store', 'bg-emerald-50 text-emerald-700': site.type === 'distribution_center', 'bg-pink-50 text-pink-700': site.type === 'production'}">{{ getSiteTypeLabel(site.type) }}</span>
+            @if (site.estEntrepotPrincipal) {
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                <span class="material-symbols-rounded text-sm">star</span>
+                Principal
+              </span>
+            }
+          </div>
           <div class="flex items-center gap-2 text-sm text-muted-foreground mb-2">
             <span class="material-symbols-rounded text-base">near_me</span>
             {{ site.adresse }}, {{ site.ville }} {{ site.codeFiscale }}
@@ -143,6 +151,9 @@
           <div class="grid grid-cols-2 gap-4">
             <div><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Nom</label><span class="text-sm">{{ site.nom }}</span></div>
             <div><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Type</label><span class="text-sm">{{ getSiteTypeLabel(site.type) }}</span></div>
+            @if (site.estEntrepotPrincipal) {
+              <div><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Statut</label><span class="inline-flex items-center gap-1 text-sm font-medium text-amber-700"><span class="material-symbols-rounded text-base">star</span> Entrepôt Principal</span></div>
+            }
             <div class="col-span-2"><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Adresse</label><span class="text-sm">{{ site.adresse }}, {{ site.ville }} {{ site.codeFiscale }}</span></div>
             @if (site.telephone) { <div><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Téléphone</label><span class="text-sm">{{ site.telephone }}</span></div> }
             @if (site.email) { <div><label class="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Email</label><span class="text-sm">{{ site.email }}</span></div> }
@@ -153,6 +164,17 @@
           <div class="grid grid-cols-2 gap-4">
             <div><label class="block text-sm font-medium text-foreground mb-1.5">Nom *</label><input type="text" placeholder="Nom du site" class="w-full px-3 py-2.5 bg-background border rounded-lg text-sm focus:outline-none focus:ring-2" [class]="formErrors()['nom'] ? 'border-red-500 focus:ring-red-500' : 'border-input focus:ring-ring'" [value]="formData().nom" (input)="updateFormField('nom', $any($event.target).value)">@if (formErrors()['nom']) { <p class="text-xs text-red-500 mt-1">{{ formErrors()['nom'] }}</p> }</div>
             <div><label class="block text-sm font-medium text-foreground mb-1.5">Type *</label><select class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().type" (change)="updateFormField('type', $any($event.target).value)">@for (type of siteTypes; track type.value) { <option [value]="type.value">{{ type.label }}</option> }</select></div>
+            @if (formData().type === 'warehouse') {
+              <div class="col-span-2">
+                <label class="inline-flex items-center gap-3 cursor-pointer select-none">
+                  <input type="checkbox" class="w-5 h-5 rounded border-input text-primary focus:ring-ring accent-primary" [checked]="formData().estEntrepotPrincipal" (change)="updateFormField('estEntrepotPrincipal', $any($event.target).checked ? 1 : 0)">
+                  <div>
+                    <span class="text-sm font-medium text-foreground">Entrepôt Principal</span>
+                    <p class="text-xs text-muted-foreground">Marquer cet entrepôt comme l'entrepôt principal de l'entreprise</p>
+                  </div>
+                </label>
+              </div>
+            }
             <div><label class="block text-sm font-medium text-foreground mb-1.5">Capacité</label><input type="number" min="0" placeholder="Capacité en unités" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().capacite" (input)="updateFormField('capacite', +$any($event.target).value)"></div>
             <div class="col-span-2"><label class="block text-sm font-medium text-foreground mb-1.5">Adresse</label><input type="text" placeholder="Adresse complète" class="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="formData().adresse" (input)="updateFormField('adresse', $any($event.target).value)"></div>
             <div><label class="block text-sm font-medium text-foreground mb-1.5">Ville *</label><input type="text" placeholder="Ville" class="w-full px-3 py-2.5 bg-background border rounded-lg text-sm focus:outline-none focus:ring-2" [class]="formErrors()['ville'] ? 'border-red-500 focus:ring-red-500' : 'border-input focus:ring-ring'" [value]="formData().ville" (input)="updateFormField('ville', $any($event.target).value)">@if (formErrors()['ville']) { <p class="text-xs text-red-500 mt-1">{{ formErrors()['ville'] }}</p> }</div>

@@ -12,6 +12,7 @@ export interface Site {
   responsableSite?: string;
   type: string;
   capacite?: number;
+  estEntrepotPrincipal?: boolean;
 }
 
 export type SiteType = 'warehouse' | 'store';

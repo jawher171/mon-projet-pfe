@@ -17,6 +17,7 @@ namespace Domain.Models
         public string? ResponsableSite { get; set; }
         public string Type { get; set; }
         public int? Capacite { get; set; }
+        public bool EstEntrepotPrincipal { get; set; }
 
         public ICollection<Stock> Stocks { get; set; } = new List<Stock>();
     }

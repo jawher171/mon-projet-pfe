@@ -34,7 +34,10 @@ export class MovementsComponent implements OnInit, OnDestroy {
   selectedType = signal<'all' | 'entry' | 'exit'>('all');
   selectedSite = signal('');
   selectedReason = signal<MovementReason | ''>('');
-  
+  selectedDate = signal('');
+  onDateChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.selectedDate.set(input.value);}
   // Modal states
   showModal = signal(false);
   modalMode = signal<'add' | 'view'>('add');
@@ -86,6 +89,10 @@ export class MovementsComponent implements OnInit, OnDestroy {
     if (this.movementType() !== 'exit') return products;
     const siteId = this.formData().siteId;
     if (!siteId) return [];
+    const date = this.selectedDate();
+    if (date) {
+      return [];
+    }
     const siteStocks = this.stockService.getStocksBySite(siteId).filter(s => s.quantiteDisponible > 0);
     const productIdsInStock = new Set(siteStocks.map(s => String(s.produitId)));
     return products.filter(p => productIdsInStock.has(String(p.id_p)));
@@ -128,12 +135,23 @@ export class MovementsComponent implements OnInit, OnDestroy {
     return this.sites().filter(s => String(s.id) !== String(originId));
   });
   
-  filter = computed<MouvementFilter>(() => ({
-    search: this.searchTerm(),
-    type: this.selectedType() === 'all' ? undefined : this.selectedType(),
-    siteId: this.selectedSite() || undefined,
-    reason: this.selectedReason() || undefined
-  }));
+  filter = computed<MouvementFilter>(() => {
+    const date = this.selectedDate();
+    let startDate: Date | undefined;
+    let endDate: Date | undefined;
+    if (date) {
+      startDate = new Date(date + 'T00:00:00');
+      endDate = new Date(date + 'T23:59:59');
+    }
+    return {
+      search: this.searchTerm(),
+      type: this.selectedType() === 'all' ? undefined : this.selectedType(),
+      siteId: this.selectedSite() || undefined,
+      raison: this.selectedReason() || undefined,
+      startDate,
+      endDate
+    };
+  });
 
   movements = computed(() => this.movementService.getFilteredMovements(this.filter())());
   summary = computed(() => this.movementService.getMovementSummary());
@@ -318,7 +336,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
     const select = event.target as HTMLSelectElement;
     this.selectedSite.set(select.value);
   }
-
+  
   openAddModal(type: 'entry' | 'exit') {
     this.modalMode.set('add');
     this.movementType.set(type);

@@ -1,20 +1,25 @@
 /**
  * ScanSessionService
- * Manages phone-to-PC barcode relay via a lightweight HTTP polling relay.
- * The PC polls for new scans; the phone POSTs scanned barcodes.
+ * Manages phone-to-PC barcode relay via the backend SignalR InventoryHub.
+ * Both PC and phone connect to the same hub; the phone invokes SendScan,
+ * and the PC listens for the ScanDetected event.
  */
 
 import { Injectable, signal } from '@angular/core';
 import { Subject } from 'rxjs';
+import * as signalR from '@microsoft/signalr';
 
 export interface ScanEvent {
   purpose: string;
   code: string;
 }
 
+/** Hub URL goes through the Angular proxy so both PC and phone (via ngrok) can reach it. */
+const HUB_URL = '/backend/hubs/inventory';
+
 @Injectable({ providedIn: 'root' })
 export class ScanSessionService {
-  private pollTimer: ReturnType<typeof setInterval> | null = null;
+  private connection: signalR.HubConnection | null = null;
 
   /** Observable stream of incoming scan events */
   private scanSubject = new Subject<ScanEvent>();
@@ -28,43 +33,54 @@ export class ScanSessionService {
     return crypto.randomUUID();
   }
 
-  /** Start polling for scan events (PC side) */
+  /** Connect to SignalR hub and join a scan session group (PC side) */
   async joinSession(sessionId: string): Promise<void> {
-    this.stopPolling();
+    await this.stopConnection();
 
-    this.pollTimer = setInterval(async () => {
-      try {
-        const res = await fetch(`/relay/poll/${encodeURIComponent(sessionId)}`);
-        if (!res.ok) return;
-        const scans: ScanEvent[] = await res.json();
-        for (const scan of scans) {
-          this.scanSubject.next(scan);
-        }
-      } catch { /* ignore poll errors */ }
-    }, 1000);
+    this.connection = new signalR.HubConnectionBuilder()
+      .withUrl(HUB_URL)
+      .withAutomaticReconnect()
+      .build();
 
+    // Listen for scans broadcast by the phone
+    this.connection.on('ScanDetected', (purpose: string, code: string) => {
+      this.scanSubject.next({ purpose, code });
+    });
+
+    this.connection.onclose(() => this.connected.set(false));
+    this.connection.onreconnected(() => {
+      this.connected.set(true);
+      this.connection!.invoke('JoinSession', sessionId);
+    });
+
+    await this.connection.start();
+    await this.connection.invoke('JoinSession', sessionId);
     this.connected.set(true);
   }
 
-  /** Send a scanned barcode to the relay (Phone side) */
+  /** Connect to SignalR hub and send a scanned barcode (Phone side) */
   async sendScan(sessionId: string, purpose: string, code: string): Promise<void> {
-    const res = await fetch('/relay/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId, purpose, code })
-    });
-    if (!res.ok) throw new Error(`Relay send failed: ${res.status}`);
+    if (!this.connection || this.connection.state !== signalR.HubConnectionState.Connected) {
+      this.connection = new signalR.HubConnectionBuilder()
+        .withUrl(HUB_URL)
+        .build();
+
+      await this.connection.start();
+      await this.connection.invoke('JoinSession', sessionId);
+    }
+
+    await this.connection.invoke('SendScan', sessionId, purpose, code);
   }
 
-  /** Stop polling */
+  /** Disconnect from the hub */
   async stop(): Promise<void> {
-    this.stopPolling();
+    await this.stopConnection();
   }
 
-  private stopPolling(): void {
-    if (this.pollTimer) {
-      clearInterval(this.pollTimer);
-      this.pollTimer = null;
+  private async stopConnection(): Promise<void> {
+    if (this.connection) {
+      try { await this.connection.stop(); } catch { /* ignore */ }
+      this.connection = null;
     }
     this.connected.set(false);
   }

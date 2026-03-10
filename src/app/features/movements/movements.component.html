@@ -71,6 +71,15 @@
         <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
       }
     </select>
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-rounded text-muted-foreground text-lg">calendar_today</span>
+      <input type="date" class="px-3 py-2.5 bg-background border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring" [value]="selectedDate()" (change)="onDateChange($event)">
+      @if (selectedDate()) {
+        <button class="p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors" title="Réinitialiser la date" (click)="selectedDate.set('')">
+          <span class="material-symbols-rounded text-sm">close</span>
+        </button>
+      }
+    </div>
   </div>
 
   <!-- Table -->

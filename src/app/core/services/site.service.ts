@@ -22,6 +22,7 @@ interface SiteDto {
   responsableSite?: string;
   type: string;
   capacite?: number;
+  estEntrepotPrincipal?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -47,7 +48,8 @@ export class SiteService {
       email: dto.email,
       responsableSite: dto.responsableSite,
       type: dto.type,
-      capacite: dto.capacite
+      capacite: dto.capacite,
+      estEntrepotPrincipal: dto.estEntrepotPrincipal ?? false
     };
   }
 
@@ -86,6 +88,9 @@ export class SiteService {
       if (filter.type && filter.type !== 'all') {
         sites = sites.filter(s => s.type === filter.type);
       }
+      // Sort: entrepôt principal first, then normal warehouses, then stores
+      const typeOrder = (s: Site) => s.estEntrepotPrincipal ? 0 : s.type === 'warehouse' ? 1 : 2;
+      sites = [...sites].sort((a, b) => typeOrder(a) - typeOrder(b));
       return sites;
     });
   }
@@ -111,7 +116,8 @@ export class SiteService {
         email: site.email,
         responsableSite: site.responsableSite,
         type: site.type,
-        capacite: site.capacite
+        capacite: site.capacite,
+        estEntrepotPrincipal: site.estEntrepotPrincipal ?? false
       };
       const result = await firstValueFrom(this.http.post<SiteDto>(`${API_BASE_URL}/api/Sites/AddSite`, dto));
       const created = this.dtoToSite(result);
@@ -147,7 +153,8 @@ export class SiteService {
         email: merged.email,
         responsableSite: merged.responsableSite,
         type: merged.type,
-        capacite: merged.capacite
+        capacite: merged.capacite,
+        estEntrepotPrincipal: merged.estEntrepotPrincipal ?? false
       };
       const result = await firstValueFrom(this.http.put<SiteDto>(`${API_BASE_URL}/api/Sites/UpdateSite`, dto));
       const updated = this.dtoToSite(result);

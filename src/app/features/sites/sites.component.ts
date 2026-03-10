@@ -35,7 +35,8 @@ export class SitesComponent implements OnInit {
     email: '',
     responsableSite: '',
     type: 'warehouse' as SiteType,
-    capacite: 0
+    capacite: 0,
+    estEntrepotPrincipal: false
   });
 
   formErrors = signal<Record<string, string>>({});
@@ -123,7 +124,8 @@ export class SitesComponent implements OnInit {
       email: site.email || '',
       responsableSite: site.responsableSite || '',
       type: site.type as SiteType,
-      capacite: site.capacite || 0
+      capacite: site.capacite || 0,
+      estEntrepotPrincipal: site.estEntrepotPrincipal || false
     });
     this.showModal.set(true);
   }
@@ -150,13 +152,14 @@ export class SitesComponent implements OnInit {
       email: '',
       responsableSite: '',
       type: 'warehouse',
-      capacite: 0
+      capacite: 0,
+      estEntrepotPrincipal: false
     });
     this.formErrors.set({});
   }
 
-  updateFormField(field: string, value: string | number) {
-    this.formData.update(data => ({ ...data, [field]: value }));
+  updateFormField(field: string, value: string | number | boolean) {
+    this.formData.update(data => ({ ...data, [field]: field === 'estEntrepotPrincipal' ? !!value : value }));
   }
 
   private readonly NAME_PATTERN = /^[A-Za-zÀ-ÿ0-9\s\-']+$/;
@@ -193,7 +196,8 @@ export class SitesComponent implements OnInit {
       email: form.email || undefined,
       responsableSite: form.responsableSite || undefined,
       type: form.type,
-      capacite: form.capacite || undefined
+      capacite: form.capacite || undefined,
+      estEntrepotPrincipal: form.type === 'warehouse' ? form.estEntrepotPrincipal : false
     };
 
     if (this.modalMode() === 'add') {

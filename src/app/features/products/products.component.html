@@ -5,17 +5,11 @@
       <h1 class="text-2xl font-bold tracking-tight text-foreground">Produits</h1>
       <p class="text-sm text-muted-foreground mt-1">Gérer vos articles d'inventaire</p>
     </div>
-    <div class="flex gap-3">
-      <button class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-border bg-card text-muted-foreground hover:bg-accent transition-colors">
-        <span class="material-symbols-rounded text-lg">download</span>
-        Exporter
-      </button>
       <button class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:brightness-110 shadow-sm transition-all" (click)="openAddModal()">
         <span class="material-symbols-rounded text-lg">add_box</span>
         Ajouter un produit
       </button>
     </div>
-  </div>
 
   <!-- Filters -->
   <div class="flex flex-wrap items-center gap-3 p-4 bg-card border border-border rounded-xl">
@@ -25,11 +19,12 @@
         class="w-full pl-10 pr-4 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent placeholder:text-muted-foreground/60"
         (input)="onSearch($event)">
     </div>
-    <select class="px-3 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring" (change)="onStatusChange($event)">
-      <option value="all">Tous les statuts</option>
-      <option value="active">Actif</option>
-      <option value="inactive">Inactif</option>
-      <option value="discontinued">Discontinué</option>
+    <select class="px-3 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring" (change)="onCategoryChange($event)">
+      <option value="all">Toutes les catégories</option>
+       @for (category of listCategories; track category.id_c) {
+        <option [value]="category.id_c">{{ category.categorieLibelle }}</option>
+
+      }
     </select>
     <button class="p-2 rounded-lg border border-border hover:bg-accent text-muted-foreground transition-colors" (click)="toggleViewMode()">
       <span class="material-symbols-rounded text-xl">{{ viewMode() === 'grid' ? 'view_list' : 'grid_view' }}</span>
@@ -37,18 +32,18 @@
   </div>
 
   <!-- Count -->
-  <div class="text-sm text-muted-foreground">{{ listProducts.length }} produits trouvés</div>
+  <div class="text-sm text-muted-foreground">{{ filteredProducts().length }} produits trouvés</div>
 
   <!-- Products Grid -->
   <div class="grid gap-4" [class]="viewMode() === 'list' ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'">
-    @if (listProducts.length === 0) {
+    @if (filteredProducts().length === 0) {
       <div class="col-span-full flex flex-col items-center justify-center py-16 text-muted-foreground">
         <span class="material-symbols-rounded text-5xl mb-3">deployed_code</span>
         <h3 class="text-lg font-semibold text-foreground">Aucun produit trouvé</h3>
         <p class="text-sm">Essayez d'ajuster votre recherche ou vos filtres</p>
       </div>
     } @else {
-      @for (product of listProducts; track product.id_p) {
+      @for (product of filteredProducts(); track product.id_p) {
         <div class="bg-card border border-border rounded-xl overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all group">
           <div class="h-40 bg-muted/30 flex items-center justify-center overflow-hidden">
             @if (getProductImage(product)) {
@@ -205,7 +200,7 @@
             </div>
             <div class="space-y-1">
               <span class="text-xs text-muted-foreground font-medium uppercase tracking-wider">Prix</span>
-              <span class="block text-sm font-bold text-foreground">{{ selectedProduct()!.prix.toFixed(2) }} DH</span>
+              <span class="block text-sm font-bold text-foreground">{{ selectedProduct()!.prix.toFixed(2) }} TND</span>
             </div>
             <div class="space-y-1">
               <span class="text-xs text-muted-foreground font-medium uppercase tracking-wider">Code-barres</span>

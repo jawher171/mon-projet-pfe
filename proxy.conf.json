@@ -8,11 +8,5 @@
       "^/backend": ""
     },
     "logLevel": "debug"
-  },
-  "/relay": {
-    "target": "http://localhost:3199",
-    "secure": false,
-    "changeOrigin": true,
-    "logLevel": "debug"
   }
 }

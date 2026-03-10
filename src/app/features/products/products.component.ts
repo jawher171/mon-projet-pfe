@@ -28,8 +28,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
   /** Search input value */
   searchTerm = signal('');
   
-  /** Selected status filter */
-  selectedStatus = signal('all');
+  /** Selected category filter */
+  selectedCategory = signal('all');
   
   /** Current view mode (grid or list) */
   viewMode = signal<'grid' | 'list'>('grid');
@@ -77,7 +77,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
   
   /** Filtered and searched products */
   filteredProducts = computed(() => {
-    let filtered = this.products();
+    let filtered = this.productsList();
     
     const search = this.searchTerm().toLowerCase();
     if (search) {
@@ -86,9 +86,9 @@ export class ProductsComponent implements OnInit, OnDestroy {
       );
     }
     
-    const status = this.selectedStatus();
-    if (status !== 'all') {
-      filtered = filtered.filter(p => (p as any).status === status);
+    const category = this.selectedCategory();
+    if (category !== 'all') {
+      filtered = filtered.filter(p => String(p.id_c) === category);
     }
     
     return filtered;
@@ -105,6 +105,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
   }
   listCategories: Category[] = [];
   listProducts: Product[] = [];
+  productsList = signal<Product[]>([]);
 
   ngOnInit(): void {
     this.initForm();
@@ -188,6 +189,7 @@ getCategories() {
 getproducts() {
      this.productService.getProduit().subscribe(products => {
       this.listProducts = products as Product[];
+      this.productsList.set(this.listProducts);
       this.cdr.detectChanges();
      });
 }
@@ -223,9 +225,9 @@ getproducts() {
    * Handle status filter change
    * @param event Select change event
    */
-  onStatusChange(event: Event) {
+  onCategoryChange(event: Event) {
     const select = event.target as HTMLSelectElement;
-    this.selectedStatus.set(select.value);
+    this.selectedCategory.set(select.value);
   }
 
   /**

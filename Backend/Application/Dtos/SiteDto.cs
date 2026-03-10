@@ -15,5 +15,6 @@ namespace Application.Dtos
         public string? ResponsableSite { get; set; }
         public string Type { get; set; } = string.Empty;
         public int? Capacite { get; set; }
+        public bool EstEntrepotPrincipal { get; set; }
     }
 }
