@@ -311,6 +311,12 @@
                       Stock disponible : {{ availableStock() }} unités
                     </div>
                   }
+                  @if (movementType() === 'entry' && entryCapacityLeft() !== null) {
+                    <div class="mv-stock-info" [class.ok]="entryCapacityLeft()! > 0" [class.low]="entryCapacityLeft()! <= 0">
+                      <span class="material-symbols-rounded">inventory_2</span>
+                      Capacité restante avant seuil maximum : {{ entryCapacityLeft() }} unités
+                    </div>
+                  }
                 </div>
               </div>
             }

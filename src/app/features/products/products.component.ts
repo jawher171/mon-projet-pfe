@@ -10,10 +10,13 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, A
 import { RouterModule } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
 import { CategoryService } from '../../core/services/category.service';
+import { SiteService } from '../../core/services/site.service';
+import { StockService } from '../../core/services/stock.service';
 import { ScanSessionService } from '../../core/services/scan-session.service';
 import { QrScanModalComponent } from '../../shared/components/qr-scan-modal.component';
 import { Product } from '../../core/models/product.model';
 import { Category } from '../../core/models/category.model';
+import { Site } from '../../core/models/site.model';
 import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
@@ -63,6 +66,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
   scanSessionId = signal('');
   scanUrl = signal('');
   scanConnected = signal(false);
+  selectedWarehouseSiteIds = signal<string[]>([]);
   private scanSub?: Subscription;
   private scanSessionService: ScanSessionService;
 
@@ -71,6 +75,11 @@ export class ProductsComponent implements OnInit, OnDestroy {
   
   /** All categories */
   categories = computed(() => this.categoryService.getCategories()());
+
+  /** Warehouse sites for pre-creating stock rows */
+  warehouseSites = computed(() =>
+    this.siteService.getSites()().filter((site: Site) => site.type === 'warehouse')
+  );
   
   /** All products from service */
   products = computed(() => this.productService.getProducts()());
@@ -97,6 +106,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
   constructor(
     private productService: ProductService,
     private categoryService: CategoryService,
+    private siteService: SiteService,
+    private stockService: StockService,
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
     scanSessionService: ScanSessionService
@@ -111,6 +122,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.initForm();
     this.getCategories(); 
     this.getproducts();
+    void this.siteService.fetchSites();
+    void this.stockService.fetchStocks();
     console.log('ProductsComponent initialized',this.listProducts.length);
    }
 
@@ -243,6 +256,7 @@ getproducts() {
    */
   openAddModal() {
     this.isEditMode.set(false);
+    this.selectedWarehouseSiteIds.set([]);
     this.productForm.reset({
       id_p: '',
       prix: 0,
@@ -265,6 +279,7 @@ getproducts() {
       ...product,
       imageUrl: (product as { imageUrl?: string }).imageUrl ?? ''
     });
+    this.syncSelectedWarehousesForProduct(product.id_p);
     this.showModal.set(true);
   }
 
@@ -281,8 +296,63 @@ getproducts() {
    */
   closeModal() {
     this.showModal.set(false);
+    this.selectedWarehouseSiteIds.set([]);
     this.productForm.reset();
     this.cancelAddCategory();
+  }
+
+  isWarehouseSelected(siteId: string | number): boolean {
+    return this.selectedWarehouseSiteIds().includes(String(siteId));
+  }
+
+  onWarehouseToggle(siteId: string | number, checked: boolean) {
+    const id = String(siteId);
+    this.selectedWarehouseSiteIds.update(current => {
+      if (checked) {
+        return current.includes(id) ? current : [...current, id];
+      }
+      return current.filter(x => x !== id);
+    });
+  }
+
+  private syncSelectedWarehousesForProduct(productId: string | number) {
+    const assigned = this.stockService
+      .getStocksByProduct(productId)
+      .map(stock => String(stock.siteId));
+
+    const warehouseIds = new Set(this.warehouseSites().map(site => String(site.id)));
+    this.selectedWarehouseSiteIds.set(assigned.filter(id => warehouseIds.has(id)));
+  }
+
+  private async createMissingStocksForSelectedWarehouses(productId: string | number): Promise<void> {
+    const selectedIds = this.selectedWarehouseSiteIds();
+    if (selectedIds.length === 0) return;
+
+    await this.stockService.fetchStocks();
+
+    const existingBySite = new Set(
+      this.stockService
+        .getStocksByProduct(productId)
+        .map(stock => String(stock.siteId))
+    );
+
+    const warehouseIds = new Set(this.warehouseSites().map(site => String(site.id)));
+
+    for (const siteId of selectedIds) {
+      if (!warehouseIds.has(siteId) || existingBySite.has(siteId)) continue;
+
+      await this.stockService.addStock({
+        quantiteDisponible: 0,
+        seuilAlerte: 0,
+        seuilSecurite: 0,
+        seuilMinimum: 0,
+        seuilMaximum: 0,
+        produitId: String(productId),
+        siteId
+      });
+    }
+
+    await this.stockService.fetchStocks();
   }
 
   /**
@@ -342,7 +412,7 @@ getproducts() {
     const category = this.categories().find(c => String(c.id_c) === String(formValue.id_c));
     const categorieLibelle = category?.categorieLibelle ?? 'Unknown';
 
-    const imageUrl = formValue.imageUrl || undefined;
+    const imageUrl = formValue.imageUrl ?? '';
     if (this.isEditMode()) {
       await this.productService.updateProduct(formValue.id_p, {
         nom: formValue.nom,
@@ -351,8 +421,9 @@ getproducts() {
         prix: formValue.prix,
         id_c: formValue.id_c,
         categorieLibelle,
-        ...(imageUrl && { imageUrl })
+        imageUrl
       } as Partial<Product>);
+      await this.createMissingStocksForSelectedWarehouses(formValue.id_p);
     } else {
       const newProduct: Omit<Product, 'id_p'> & { imageUrl?: string } = {
         nom: formValue.nom,
@@ -363,7 +434,8 @@ getproducts() {
         categorieLibelle
       };
       if (imageUrl) (newProduct as { imageUrl?: string }).imageUrl = imageUrl;
-      await this.productService.addProduct(newProduct);
+      const created = await this.productService.addProduct(newProduct);
+      await this.createMissingStocksForSelectedWarehouses(created.id_p);
     }
 
     this.closeModal();

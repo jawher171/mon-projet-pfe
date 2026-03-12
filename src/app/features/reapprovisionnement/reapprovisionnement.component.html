@@ -1,0 +1,66 @@
+<div class="max-w-[1400px] mx-auto space-y-5">
+  <div>
+    <h1 class="text-2xl font-bold text-foreground">Reapprovisionnement</h1>
+    <p class="text-sm text-muted-foreground">Suggestions automatiques selon les seuils de stock</p>
+  </div>
+
+  <div class="rp-table-wrap">
+    <table class="rp-table">
+      <thead>
+        <tr>
+          <th>Produit</th>
+          <th>Site</th>
+          <th class="num">Qté dispo</th>
+          <th class="num">Seuil max</th>
+          <th class="num">Seuil min</th>
+          <th class="num">Seuil sécurité</th>
+          <th class="num">Seuil alerte</th>
+          <th>Statut</th>
+          <th class="num">Suggestion</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of suggestions(); track item.stock.id; let i = $index) {
+          <tr class="rp-row" [style.animation-delay.ms]="i * 40" [attr.data-status]="item.status">
+            <td>
+              <div class="rp-product">
+                <span class="material-symbols-rounded">package_2</span>
+                <strong>{{ item.stock.produitNom || item.stock.produitId }}</strong>
+              </div>
+            </td>
+            <td class="muted">{{ getSiteName(item.stock.siteId) }}</td>
+            <td class="num qty">{{ item.stock.quantiteDisponible }}</td>
+            <td class="num">{{ item.stock.seuilMaximum || '-' }}</td>
+            <td class="num">{{ item.stock.seuilMinimum || '-' }}</td>
+            <td class="num">{{ item.stock.seuilSecurite || '-' }}</td>
+            <td class="num">{{ item.stock.seuilAlerte || '-' }}</td>
+            <td>
+              <span class="rp-status" [attr.data-status]="item.status">
+                <span class="material-symbols-rounded">{{ getStatusIcon(item.status) }}</span>
+                {{ getStatusLabel(item.status) }}
+              </span>
+            </td>
+            <td class="num suggestion">{{ item.recommendedQty }} unites</td>
+            <td>
+              <a
+                class="rp-action"
+                [routerLink]="['/movements']"
+                [queryParams]="{ mode: 'entry', productId: item.stock.produitId, siteId: item.stock.siteId, stockId: item.stock.id, productName: item.stock.produitNom }">
+                <span class="material-symbols-rounded">add_circle</span>
+                Approvisionner
+              </a>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="10" class="rp-empty">
+              <span class="material-symbols-rounded">task_alt</span>
+              Aucun besoin de reapprovisionnement pour le moment.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

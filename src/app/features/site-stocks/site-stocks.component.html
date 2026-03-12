@@ -57,9 +57,14 @@
                 <td class="text-right ss-muted">{{ stock.seuilMinimum }}</td>
                 <td class="text-right ss-muted">{{ stock.seuilMaximum }}</td>
                 <td>
-                  <span class="ss-status-badge" [attr.data-status]="getStockStatus(stock)">
-                    {{ getStockStatusLabel(stock) }}
-                  </span>
+                  <div class="ss-status-cell">
+                    <span class="ss-status-badge" [attr.data-status]="getStockStatus(stock)">
+                      {{ getStockStatusLabel(stock) }}
+                    </span>
+                    @if (getStockStatus(stock) !== 'ok' && getStockStatus(stock) !== 'overstock') {
+                      <div class="ss-reco">{{ getReplenishmentSuggestion(stock) }}</div>
+                    }
+                  </div>
                 </td>
                 <td>
                   <div class="ss-actions">
@@ -120,21 +125,22 @@
             <label>Seuil d'Alerte</label>
             <div class="ss-input-wrap">
               <span class="material-symbols-rounded">warning</span>
-              <input type="number" min="0" [ngModel]="editForm().seuilAlerte" (ngModelChange)="editForm.set({...editForm(), seuilAlerte: $event})" name="seuilAlerte">
+              <input type="number" min="0" [ngModel]="editForm().seuilAlerte" name="seuilAlerte" readonly disabled>
             </div>
+            <p class="ss-field-note">Calcule automatiquement: seuil minimum + seuil securite</p>
           </div>
           <div class="ss-field">
             <label>Seuil Sécurité</label>
             <div class="ss-input-wrap">
               <span class="material-symbols-rounded">shield</span>
-              <input type="number" min="0" [ngModel]="editForm().seuilSecurite" (ngModelChange)="editForm.set({...editForm(), seuilSecurite: $event})" name="seuilSecurite">
+              <input type="number" min="0" [ngModel]="editForm().seuilSecurite" (ngModelChange)="updateSeuilSecurite($event)" name="seuilSecurite">
             </div>
           </div>
           <div class="ss-field">
             <label>Seuil Minimum</label>
             <div class="ss-input-wrap">
               <span class="material-symbols-rounded">trending_down</span>
-              <input type="number" min="0" [ngModel]="editForm().seuilMinimum" (ngModelChange)="editForm.set({...editForm(), seuilMinimum: $event})" name="seuilMinimum">
+              <input type="number" min="0" [ngModel]="editForm().seuilMinimum" (ngModelChange)="updateSeuilMinimum($event)" name="seuilMinimum">
             </div>
           </div>
           <div class="ss-field">

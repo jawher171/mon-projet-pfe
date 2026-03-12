@@ -84,26 +84,28 @@ export class StockService {
 
   /** Update a stock entry (seuils, etc.) via PUT */
   async updateStock(stock: Stock): Promise<Stock> {
+    const computedSeuilAlerte = (stock.seuilMinimum ?? 0) + (stock.seuilSecurite ?? 0);
+    const normalizedStock: Stock = { ...stock, seuilAlerte: computedSeuilAlerte };
     if (!USE_BACKEND) {
       // Update local signal
       const current = this.stocksSignal();
       const idx = current.findIndex(s => String(s.id) === String(stock.id));
       if (idx >= 0) {
         const updated = [...current];
-        updated[idx] = stock;
+        updated[idx] = normalizedStock;
         this.stocksSignal.set(updated);
       }
-      return stock;
+      return normalizedStock;
     }
     const body = {
-      id_s: String(stock.id),
-      quantiteDisponible: stock.quantiteDisponible,
-      seuilAlerte: stock.seuilAlerte,
-      seuilSecurite: stock.seuilSecurite,
-      seuilMinimum: stock.seuilMinimum,
-      seuilMaximum: stock.seuilMaximum,
-      id_p: String(stock.produitId),
-      id_site: String(stock.siteId)
+      id_s: String(normalizedStock.id),
+      quantiteDisponible: normalizedStock.quantiteDisponible,
+      seuilAlerte: normalizedStock.seuilAlerte,
+      seuilSecurite: normalizedStock.seuilSecurite,
+      seuilMinimum: normalizedStock.seuilMinimum,
+      seuilMaximum: normalizedStock.seuilMaximum,
+      id_p: String(normalizedStock.produitId),
+      id_site: String(normalizedStock.siteId)
     };
     const dto = await firstValueFrom(
       this.http.put<StockDto>(`${API_BASE_URL}/api/Stocks/UpdateStock`, body)
@@ -122,19 +124,21 @@ export class StockService {
 
   /** Add a new stock entry via POST */
   async addStock(stock: Omit<Stock, 'id'>): Promise<Stock> {
+    const computedSeuilAlerte = (stock.seuilMinimum ?? 0) + (stock.seuilSecurite ?? 0);
+    const normalizedStock = { ...stock, seuilAlerte: computedSeuilAlerte };
     if (!USE_BACKEND) {
-      const newStock: Stock = { ...stock, id: 'stk_' + Date.now() } as Stock;
+      const newStock: Stock = { ...normalizedStock, id: 'stk_' + Date.now() } as Stock;
       this.stocksSignal.update(list => [newStock, ...list]);
       return newStock;
     }
     const body = {
-      quantiteDisponible: stock.quantiteDisponible,
-      seuilAlerte: stock.seuilAlerte,
-      seuilSecurite: stock.seuilSecurite,
-      seuilMinimum: stock.seuilMinimum,
-      seuilMaximum: stock.seuilMaximum,
-      id_p: String(stock.produitId),
-      id_site: String(stock.siteId)
+      quantiteDisponible: normalizedStock.quantiteDisponible,
+      seuilAlerte: normalizedStock.seuilAlerte,
+      seuilSecurite: normalizedStock.seuilSecurite,
+      seuilMinimum: normalizedStock.seuilMinimum,
+      seuilMaximum: normalizedStock.seuilMaximum,
+      id_p: String(normalizedStock.produitId),
+      id_site: String(normalizedStock.siteId)
     };
     const dto = await firstValueFrom(
       this.http.post<StockDto>(`${API_BASE_URL}/api/Stocks/AddStock`, body)

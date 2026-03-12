@@ -46,7 +46,7 @@ export class ProductService {
       id_c: p.id_c,
       categorieLibelle: p.categorieLibelle
     };
-    if (p.imageUrl) dto.imageUrl = p.imageUrl;
+    if (p.imageUrl !== undefined) dto.imageUrl = p.imageUrl;
     return dto;
   }
 

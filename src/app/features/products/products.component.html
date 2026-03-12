@@ -199,6 +199,28 @@
               </div>
             </div>
           </div>
+          <div class="pd-form-row full">
+            <div class="pd-field">
+              <label>Entrepots cibles (initialisation stock a 0)</label>
+              <p class="pd-field-help">Selectionnez les entrepots ou ce produit doit exister avant le premier mouvement. Les seuils et la quantite disponible seront initialises a 0.</p>
+              <div class="pd-warehouse-list">
+                @for (site of warehouseSites(); track site.id) {
+                  <label class="pd-warehouse-item">
+                    <input
+                      type="checkbox"
+                      [checked]="isWarehouseSelected(site.id)"
+                      (change)="onWarehouseToggle(site.id, $any($event.target).checked)">
+                    <span class="name">{{ site.nom }}</span>
+                    @if (site.estEntrepotPrincipal) {
+                      <span class="badge">Principal</span>
+                    }
+                  </label>
+                } @empty {
+                  <div class="pd-warehouse-empty">Aucun entrepot disponible</div>
+                }
+              </div>
+            </div>
+          </div>
           <div class="pd-form-row">
             <div class="pd-field">
               <label for="prix">Prix (DH) <span class="req">*</span></label>

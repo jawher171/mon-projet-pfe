@@ -381,6 +381,58 @@
   padding: 1.25rem 1.5rem;
 }
 
+.pd-field-help {
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.pd-warehouse-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.5rem;
+}
+
+.pd-warehouse-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.55rem;
+  background: hsl(var(--background));
+  font-size: 0.8rem;
+  cursor: pointer;
+
+  input {
+    width: 15px;
+    height: 15px;
+  }
+
+  .name {
+    color: hsl(var(--foreground));
+    font-weight: 500;
+  }
+
+  .badge {
+    margin-left: auto;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #92400e;
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: 999px;
+    padding: 0.15rem 0.45rem;
+  }
+}
+
+.pd-warehouse-empty {
+  font-size: 0.78rem;
+  color: hsl(var(--muted-foreground));
+  padding: 0.4rem 0;
+}
+
 .pd-modal-footer {
   display: flex;
   gap: 0.625rem;

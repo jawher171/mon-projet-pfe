@@ -53,6 +53,6 @@ export const ALERT_TYPES: { value: string; label: string; icon: string }[] = [
 
 export const SEVERITY_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: string }> = {
   critical: { label: 'Critique', color: '#d32f2f', bgColor: '#ffebee', icon: 'error' },
-  warning: { label: 'Élevée', color: '#f57c00', bgColor: '#fff3e0', icon: 'warning_amber' },
+  warning: { label: 'Avertissement', color: '#f57c00', bgColor: '#fff3e0', icon: 'warning_amber' },
   info: { label: 'Info', color: '#1976d2', bgColor: '#e3f2fd', icon: 'info' }
 };

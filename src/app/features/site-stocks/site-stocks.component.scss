@@ -121,8 +121,11 @@
     &:last-child { border-bottom: none; }
     &:hover { background: hsl(var(--muted) / 0.25); }
 
+    &[data-status="rupture"] { background: rgba(239, 68, 68, 0.06); &:hover { background: rgba(239, 68, 68, 0.1); } }
     &[data-status="critical"] { background: rgba(239, 68, 68, 0.04); &:hover { background: rgba(239, 68, 68, 0.08); } }
+    &[data-status="low"] { background: rgba(249, 115, 22, 0.04); &:hover { background: rgba(249, 115, 22, 0.08); } }
     &[data-status="warning"] { background: rgba(245, 158, 11, 0.04); &:hover { background: rgba(245, 158, 11, 0.08); } }
+    &[data-status="overstock"] { background: rgba(99, 102, 241, 0.04); &:hover { background: rgba(99, 102, 241, 0.08); } }
   }
 
   td { padding: 0.75rem 1rem; vertical-align: middle; }
@@ -157,8 +160,11 @@
   font-size: 0.75rem;
   font-weight: 700;
 
+  &[data-status="rupture"] { background: rgba(127, 29, 29, 0.15); color: #991b1b; }
   &[data-status="critical"] { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
+  &[data-status="low"] { background: rgba(249, 115, 22, 0.12); color: #ea580c; }
   &[data-status="warning"] { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+  &[data-status="overstock"] { background: rgba(99, 102, 241, 0.12); color: #4f46e5; }
   &[data-status="ok"] { background: rgba(16, 185, 129, 0.12); color: #059669; }
 }
 
@@ -170,9 +176,30 @@
   font-size: 0.6875rem;
   font-weight: 600;
 
+  &[data-status="rupture"] { background: rgba(127, 29, 29, 0.15); color: #991b1b; }
   &[data-status="critical"] { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
+  &[data-status="low"] { background: rgba(249, 115, 22, 0.12); color: #ea580c; }
   &[data-status="warning"] { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+  &[data-status="overstock"] { background: rgba(99, 102, 241, 0.12); color: #4f46e5; }
   &[data-status="ok"] { background: rgba(16, 185, 129, 0.12); color: #059669; }
+}
+
+.ss-status-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ss-reco {
+  font-size: 0.6875rem;
+  color: #0f766e;
+  font-weight: 500;
+}
+
+.ss-field-note {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  color: hsl(var(--muted-foreground));
 }
 
 /* ── Actions ── */

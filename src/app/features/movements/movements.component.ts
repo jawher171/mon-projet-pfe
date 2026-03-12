@@ -119,6 +119,16 @@ export class MovementsComponent implements OnInit, OnDestroy {
     return stock?.quantiteDisponible ?? 0;
   });
 
+  entryCapacityLeft = computed(() => {
+    if (this.movementType() !== 'entry') return null;
+    const product = this.selectedProduct();
+    const siteId = this.formData().siteId;
+    if (!product || !siteId) return null;
+    const stock = this.stockService.getStockForProductSite(String(product.id_p), siteId);
+    if (!stock || !stock.seuilMaximum || stock.seuilMaximum <= 0) return null;
+    return Math.max(0, stock.seuilMaximum - stock.quantiteDisponible);
+  });
+
   // Get data from services
   sites = computed(() => this.siteService.getActiveSites()());
 
@@ -165,6 +175,12 @@ export class MovementsComponent implements OnInit, OnDestroy {
     if (!form.quantity || form.quantity <= 0) errors['quantity'] = 'La quantité doit être supérieure à 0';
     if (this.movementType() === 'exit' && this.availableStock() !== null && form.quantity > this.availableStock()!) {
       errors['quantity'] = `Quantité insuffisante en stock (disponible: ${this.availableStock()})`;
+    }
+    if (this.movementType() === 'entry') {
+      const remaining = this.entryCapacityLeft();
+      if (remaining !== null && form.quantity > remaining) {
+        errors['quantity'] = `La quantité dépasse le seuil maximum (capacité restante: ${remaining})`;
+      }
     }
     if (!form.reason) errors['reason'] = 'Veuillez sélectionner une raison';
     if (!form.siteId) errors['siteId'] = 'Veuillez sélectionner un site';
@@ -448,6 +464,12 @@ export class MovementsComponent implements OnInit, OnDestroy {
 
     try {
       const form = this.formData();
+      const remainingCapacity = this.entryCapacityLeft();
+      if (this.movementType() === 'entry' && remainingCapacity !== null && form.quantity > remainingCapacity) {
+        this.isSaving.set(false);
+        this.displayToast(`Quantité invalide: capacité restante ${remainingCapacity} avant seuil maximum`, 'error');
+        return;
+      }
       const site = this.sites().find(s => String(s.id) === String(form.siteId));
       const product = this.selectedProduct()!;
       const productId = String(product.id_p);
@@ -480,9 +502,10 @@ export class MovementsComponent implements OnInit, OnDestroy {
           : 'Sortie de stock enregistrée avec succès',
         'success'
       );
-    } catch {
+    } catch (err: any) {
       this.isSaving.set(false);
-      this.displayToast('Erreur lors de l\'enregistrement du mouvement', 'error');
+      const backendMessage = err?.error?.message;
+      this.displayToast(backendMessage || 'Erreur lors de l\'enregistrement du mouvement', 'error');
     }
   }
 

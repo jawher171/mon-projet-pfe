@@ -94,17 +94,26 @@ export class SiteStocksComponent implements OnInit {
     });
   }
 
-  getStockStatus(stock: Stock): 'critical' | 'warning' | 'ok' {
-    if (stock.quantiteDisponible === 0) return 'critical';
-    if (stock.seuilAlerte > 0 && stock.quantiteDisponible <= stock.seuilAlerte) return 'warning';
+  getStockStatus(stock: Stock): 'rupture' | 'critical' | 'low' | 'warning' | 'overstock' | 'ok' {
+    const qty = stock.quantiteDisponible;
+    if (qty === 0) return 'rupture';
+    if (stock.seuilMinimum > 0 && qty <= stock.seuilMinimum) return 'critical';
+    if (stock.seuilSecurite > 0 && qty <= stock.seuilSecurite) return 'low';
+    if (stock.seuilAlerte > 0 && qty <= stock.seuilAlerte) return 'warning';
+    if (stock.seuilMaximum > 0 && qty >= stock.seuilMaximum) return 'overstock';
     return 'ok';
   }
 
   getStockStatusLabel(stock: Stock): string {
     const status = this.getStockStatus(stock);
-    if (status === 'critical') return 'Rupture';
-    if (status === 'warning') return 'Stock bas';
-    return 'Normal';
+    switch (status) {
+      case 'rupture': return 'Rupture';
+      case 'critical': return 'Critique';
+      case 'low': return 'Sécurité';
+      case 'warning': return 'Alerte';
+      case 'overstock': return 'Surstock';
+      default: return 'Normal';
+    }
   }
 
   // ── Delete stock ────────────────────────────────
@@ -137,13 +146,41 @@ export class SiteStocksComponent implements OnInit {
   // ── Edit seuils ─────────────────────────────────
   openEdit(stock: Stock) {
     this.editingStock.set(stock);
+    const seuilAlerte = (stock.seuilMinimum ?? 0) + (stock.seuilSecurite ?? 0);
     this.editForm.set({
-      seuilAlerte: stock.seuilAlerte,
+      seuilAlerte,
       seuilSecurite: stock.seuilSecurite,
       seuilMinimum: stock.seuilMinimum,
       seuilMaximum: stock.seuilMaximum
     });
     this.showEditModal.set(true);
+  }
+
+  updateSeuilSecurite(value: number) {
+    const form = this.editForm();
+    const seuilSecurite = Number.isFinite(value) ? Math.max(0, value) : 0;
+    const seuilAlerte = (form.seuilMinimum ?? 0) + seuilSecurite;
+    this.editForm.set({ ...form, seuilSecurite, seuilAlerte });
+  }
+
+  updateSeuilMinimum(value: number) {
+    const form = this.editForm();
+    const seuilMinimum = Number.isFinite(value) ? Math.max(0, value) : 0;
+    const seuilAlerte = seuilMinimum + (form.seuilSecurite ?? 0);
+    this.editForm.set({ ...form, seuilMinimum, seuilAlerte });
+  }
+
+  getRecommendedReplenishmentQty(stock: Stock): number {
+    const status = this.getStockStatus(stock);
+    if (status === 'ok' || status === 'overstock') return 0;
+    const target = stock.seuilMaximum > 0 ? stock.seuilMaximum : stock.seuilAlerte;
+    return Math.max(0, target - stock.quantiteDisponible);
+  }
+
+  getReplenishmentSuggestion(stock: Stock): string {
+    const qty = this.getRecommendedReplenishmentQty(stock);
+    if (qty <= 0) return 'Surveiller ce stock';
+    return `Suggestion: reapprovisionner ${qty} unite(s)`;
   }
 
   closeEdit() {

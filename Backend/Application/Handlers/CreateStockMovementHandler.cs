@@ -103,13 +103,20 @@ namespace Application.Handlers
             int delta;
             if (isExit)
             {
+                if (stock.QuantiteDisponible <= 0)
+                    return CreateStockMovementResult.Fail("Cannot create exit movement: stock available is 0.");
+
+                if (stockMovement.Quantite > stock.QuantiteDisponible)
+                    return CreateStockMovementResult.Fail($"Cannot create exit movement: requested quantity ({stockMovement.Quantite}) exceeds available stock ({stock.QuantiteDisponible}).");
+
                 delta = -stockMovement.Quantite;
                 stock.QuantiteDisponible -= stockMovement.Quantite;
-                if (stock.QuantiteDisponible < 0)
-                    stock.QuantiteDisponible = 0;
             }
             else
             {
+                if (stock.SeuilMaximum > 0 && stock.QuantiteDisponible + stockMovement.Quantite > stock.SeuilMaximum)
+                    return CreateStockMovementResult.Fail($"Entry exceeds SeuilMaximum. Remaining capacity: {Math.Max(0, stock.SeuilMaximum - stock.QuantiteDisponible)}.");
+
                 delta = stockMovement.Quantite;
                 stock.QuantiteDisponible += stockMovement.Quantite;
             }
@@ -144,6 +151,9 @@ namespace Application.Handlers
                         };
                         destStock = await _mediator.Send(new AddGenericCommand<Stock>(destStock), cancellationToken);
                     }
+
+                    if (destStock.SeuilMaximum > 0 && destStock.QuantiteDisponible + stockMovement.Quantite > destStock.SeuilMaximum)
+                        return CreateStockMovementResult.Fail($"Transfer exceeds destination SeuilMaximum. Remaining capacity: {Math.Max(0, destStock.SeuilMaximum - destStock.QuantiteDisponible)}.");
 
                     destStock.QuantiteDisponible += stockMovement.Quantite;
                     await _mediator.Send(new PutGenericCommand<Stock>(destStock), cancellationToken);

@@ -80,6 +80,13 @@ export const routes: Routes = [
         loadComponent: () => import('./features/alerts/alerts.component').then(m => m.AlertsComponent),
         canActivate: [permissionGuard('manage_alerts')]
       },
+
+      // Replenishment suggestions based on stock thresholds
+      {
+        path: 'reapprovisionnement',
+        loadComponent: () => import('./features/reapprovisionnement/reapprovisionnement.component').then(m => m.ReapprovisionnementComponent),
+        canActivate: [permissionGuard('manage_movements')]
+      },
       
       // Scanner - barcode/QR code scanning feature (operators and admin)
       {

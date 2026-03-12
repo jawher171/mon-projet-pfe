@@ -50,6 +50,7 @@ export class MainLayoutComponent implements OnInit {
     { icon: 'qr_code_2', label: 'Scanner', route: '/scanner', permission: 'scan_barcode' },
     { icon: 'domain', label: 'Sites', route: '/sites', permission: 'view_sites' },
     { icon: 'campaign', label: 'Alertes', route: '/alerts', permission: 'manage_alerts' },
+    { icon: 'local_shipping', label: 'Reapprovisionnement', route: '/reapprovisionnement', permission: 'manage_movements' },
     { icon: 'admin_panel_settings', label: 'Gestion Utilisateurs', route: '/user-management', adminOnly: true, section: 'Système' },
     { icon: 'settings', label: 'Paramètres', route: '/settings' },
   ];

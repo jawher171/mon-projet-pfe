@@ -67,6 +67,7 @@ namespace Application.Controllers
         public async Task<IActionResult> Add([FromBody] StockDto dto)
         {
             var stock = _mapper.Map<Stock>(dto);
+            stock.SeuilAlerte = Math.Max(0, stock.SeuilMinimum + stock.SeuilSecurite);
 
             if (stock.id_s == Guid.Empty)
                 stock.id_s = Guid.NewGuid();
@@ -100,7 +101,7 @@ namespace Application.Controllers
 
             // Map DTO values onto the tracked entity
             existing.QuantiteDisponible = dto.QuantiteDisponible;
-            existing.SeuilAlerte = dto.SeuilAlerte;
+            existing.SeuilAlerte = Math.Max(0, dto.SeuilMinimum + dto.SeuilSecurite);
             existing.SeuilSecurite = dto.SeuilSecurite;
             existing.SeuilMinimum = dto.SeuilMinimum;
             existing.SeuilMaximum = dto.SeuilMaximum;
