@@ -1,5 +1,5 @@
 export const environment = {
-    inventaire: 'https://localhost:44353/api',
+    inventaire: 'https://inventory-pro-ldrq.onrender.com/api',
     scanPublicBaseUrl: ''
     
 };
