@@ -1,4 +1,4 @@
-<div class="pd-page">
+﻿<div class="pd-page">
   <!-- Header -->
   <div class="pd-header">
     <div class="pd-header-text">
@@ -8,10 +8,12 @@
       </h1>
       <p>Gérer vos articles d'inventaire</p>
     </div>
-    <button class="pd-btn primary" (click)="openAddModal()">
-      <span class="material-symbols-rounded">add_box</span>
-      Ajouter un produit
-    </button>
+    @if (canManageProducts()) {
+      <button class="pd-btn primary" (click)="openAddModal()">
+        <span class="material-symbols-rounded">add_box</span>
+        Ajouter un produit
+      </button>
+    }
   </div>
 
   <!-- Filters -->
@@ -64,18 +66,20 @@
             <div class="pd-card-footer">
               <div class="pd-card-price">
                 <span class="label">Prix:</span>
-                <span class="value">{{ product.prix.toFixed(2) }} DH</span>
+                <span class="value">{{ product.prix.toFixed(2) }} TND</span>
               </div>
               <div class="pd-card-actions">
                 <button class="pd-act view" title="Voir" (click)="openDetailsModal(product)">
                   <span class="material-symbols-rounded">open_in_new</span>
                 </button>
-                <button class="pd-act edit" title="Modifier" (click)="openEditModal(product)">
-                  <span class="material-symbols-rounded">edit_square</span>
-                </button>
-                <button class="pd-act delete" title="Supprimer" (click)="deleteProduct(product.id_p)">
-                  <span class="material-symbols-rounded">delete_outline</span>
-                </button>
+                @if (canManageProducts()) {
+                  <button class="pd-act edit" title="Modifier" (click)="openEditModal(product)">
+                    <span class="material-symbols-rounded">edit_square</span>
+                  </button>
+                  <button class="pd-act delete" title="Supprimer" (click)="deleteProduct(product.id_p)">
+                    <span class="material-symbols-rounded">delete_outline</span>
+                  </button>
+                }
               </div>
             </div>
           </div>
@@ -223,7 +227,7 @@
           </div>
           <div class="pd-form-row">
             <div class="pd-field">
-              <label for="prix">Prix (DH) <span class="req">*</span></label>
+              <label for="prix">Prix (TND) <span class="req">*</span></label>
               <div class="pd-input-wrap">
                 <span class="material-symbols-rounded">payments</span>
                 <input type="number" id="prix" formControlName="prix" min="0" step="0.01" placeholder="0.00">

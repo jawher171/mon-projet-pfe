@@ -12,6 +12,7 @@ import { ProductService } from '../../core/services/product.service';
 import { CategoryService } from '../../core/services/category.service';
 import { SiteService } from '../../core/services/site.service';
 import { StockService } from '../../core/services/stock.service';
+import { AuthService } from '../../core/services/auth.service';
 import { ScanSessionService } from '../../core/services/scan-session.service';
 import { QrScanModalComponent } from '../../shared/components/qr-scan-modal.component';
 import { Product } from '../../core/models/product.model';
@@ -54,6 +55,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
   productToDelete = signal<Product | null>(null);
   categoryToDelete = signal<{ id: string | number; name: string } | null>(null);
   deleting = signal(false);
+  submitError = signal('');
 
   /** Inline add category state */
   isAddingCategory = signal(false);
@@ -108,6 +110,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
     private categoryService: CategoryService,
     private siteService: SiteService,
     private stockService: StockService,
+    private authService: AuthService,
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
     scanSessionService: ScanSessionService
@@ -226,6 +229,16 @@ getproducts() {
     });
   }
 
+  canManageProducts(): boolean {
+    return this.authService.hasPermission('manage_products');
+  }
+
+  private guardManageProductsAction(): boolean {
+    if (this.canManageProducts()) return true;
+    this.submitError.set('Acces refuse: vous n avez pas la permission de gerer les produits.');
+    return false;
+  }
+
   /**
    * Handle search input changes
    * @param event Input change event
@@ -255,8 +268,10 @@ getproducts() {
    * Open modal to add new product
    */
   openAddModal() {
+    if (!this.guardManageProductsAction()) return;
     this.isEditMode.set(false);
     this.selectedWarehouseSiteIds.set([]);
+    this.submitError.set('');
     this.productForm.reset({
       id_p: '',
       prix: 0,
@@ -274,7 +289,9 @@ getproducts() {
    * @param product Product to edit
    */
   openEditModal(product: Product) {
+    if (!this.guardManageProductsAction()) return;
     this.isEditMode.set(true);
+    this.submitError.set('');
     this.productForm.patchValue({
       ...product,
       imageUrl: (product as { imageUrl?: string }).imageUrl ?? ''
@@ -297,6 +314,7 @@ getproducts() {
   closeModal() {
     this.showModal.set(false);
     this.selectedWarehouseSiteIds.set([]);
+    this.submitError.set('');
     this.productForm.reset();
     this.cancelAddCategory();
   }
@@ -379,6 +397,7 @@ getproducts() {
   }
 
   async addCategoryFromForm() {
+    if (!this.guardManageProductsAction()) return;
     const libelle = this.newCategoryName().trim();
     if (!libelle) {
       return;
@@ -392,6 +411,7 @@ getproducts() {
   }
 
   deleteCategory(id: string | number) {
+    if (!this.guardManageProductsAction()) return;
     if (!id) return;
     const category = this.listCategories.find(c => String(c.id_c) === String(id));
     const name = category?.categorieLibelle ?? 'cette catégorie';
@@ -403,6 +423,7 @@ getproducts() {
    * Handle form submission
    */
   async onSubmit() {
+    if (!this.guardManageProductsAction()) return;
     if (this.productForm.invalid) {
       this.productForm.markAllAsTouched();
       return;
@@ -413,29 +434,40 @@ getproducts() {
     const categorieLibelle = category?.categorieLibelle ?? 'Unknown';
 
     const imageUrl = formValue.imageUrl ?? '';
-    if (this.isEditMode()) {
-      await this.productService.updateProduct(formValue.id_p, {
-        nom: formValue.nom,
-        description: formValue.description ?? '',
-        codeBarre: formValue.codeBarre,
-        prix: formValue.prix,
-        id_c: formValue.id_c,
-        categorieLibelle,
-        imageUrl
-      } as Partial<Product>);
-      await this.createMissingStocksForSelectedWarehouses(formValue.id_p);
-    } else {
-      const newProduct: Omit<Product, 'id_p'> & { imageUrl?: string } = {
-        nom: formValue.nom,
-        description: formValue.description ?? '',
-        codeBarre: formValue.codeBarre,
-        prix: formValue.prix,
-        id_c: formValue.id_c,
-        categorieLibelle
-      };
-      if (imageUrl) (newProduct as { imageUrl?: string }).imageUrl = imageUrl;
-      const created = await this.productService.addProduct(newProduct);
-      await this.createMissingStocksForSelectedWarehouses(created.id_p);
+    this.submitError.set('');
+    try {
+      if (this.isEditMode()) {
+        await this.productService.updateProduct(formValue.id_p, {
+          nom: formValue.nom,
+          description: formValue.description ?? '',
+          codeBarre: formValue.codeBarre,
+          prix: formValue.prix,
+          id_c: formValue.id_c,
+          categorieLibelle,
+          imageUrl
+        } as Partial<Product>);
+        await this.createMissingStocksForSelectedWarehouses(formValue.id_p);
+      } else {
+        const newProduct: Omit<Product, 'id_p'> & { imageUrl?: string } = {
+          nom: formValue.nom,
+          description: formValue.description ?? '',
+          codeBarre: formValue.codeBarre,
+          prix: formValue.prix,
+          id_c: formValue.id_c,
+          categorieLibelle
+        };
+        if (imageUrl) (newProduct as { imageUrl?: string }).imageUrl = imageUrl;
+        const created = await this.productService.addProduct(newProduct);
+        await this.createMissingStocksForSelectedWarehouses(created.id_p);
+      }
+    } catch (error: unknown) {
+      const status = (error as { status?: number })?.status;
+      if (status === 403) {
+        this.submitError.set('Operation refusee par le serveur (403). Connectez-vous avec un role autorise.');
+      } else {
+        this.submitError.set('Erreur lors de l enregistrement du produit.');
+      }
+      return;
     }
 
     this.closeModal();
@@ -447,6 +479,7 @@ getproducts() {
    * @param productId Product ID to delete
    */
   deleteProduct(productId: string | number) {
+    if (!this.guardManageProductsAction()) return;
     const product = this.listProducts.find(p => String(p.id_p) === String(productId))
       ?? this.products().find(p => String(p.id_p) === String(productId));
     if (product) {
@@ -462,6 +495,7 @@ getproducts() {
   }
 
   async confirmDelete() {
+    if (!this.guardManageProductsAction()) return;
     this.deleting.set(true);
     try {
       const product = this.productToDelete();

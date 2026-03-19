@@ -5,13 +5,28 @@ import { tap } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { API_BASE_URL, USE_BACKEND } from '../../app.config';
 
+function isBackendApiRequest(url: string): boolean {
+  if (url.startsWith(API_BASE_URL)) return true;
+
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    try {
+      const parsed = new URL(url);
+      return parsed.pathname === API_BASE_URL || parsed.pathname.startsWith(`${API_BASE_URL}/`);
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
+}
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   if (!USE_BACKEND) return next(req);
   const auth = inject(AuthService);
   const router = inject(Router);
   const token = auth.getToken();
   let request = req;
-  if (token && req.url.startsWith(API_BASE_URL)) {
+  if (token && isBackendApiRequest(req.url)) {
     request = req.clone({
       setHeaders: { Authorization: `Bearer ${token}` }
     });

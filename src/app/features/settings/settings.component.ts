@@ -39,7 +39,7 @@ export class SettingsComponent implements OnInit {
       icon: 'inventory_2',
       permissions: [
         { key: 'view_products', label: 'Voir' },
-        { key: 'manage_products', label: 'Gestion' }
+        { key: 'manage_products', label: 'Gérer' }
       ]
     },
     {
@@ -47,7 +47,7 @@ export class SettingsComponent implements OnInit {
       icon: 'sync_alt',
       permissions: [
         { key: 'view_movements', label: 'Voir' },
-        { key: 'manage_movements', label: 'Gestion' }
+        { key: 'manage_movements', label: 'Gérer' }
       ]
     },
     {
@@ -55,7 +55,7 @@ export class SettingsComponent implements OnInit {
       icon: 'apartment',
       permissions: [
         { key: 'view_sites', label: 'Voir' },
-        { key: 'manage_sites', label: 'Gestion' }
+        { key: 'manage_sites', label: 'Gérer' }
       ]
     },
     {
@@ -63,7 +63,7 @@ export class SettingsComponent implements OnInit {
       icon: 'notifications_active',
       permissions: [
         { key: 'view_alerts', label: 'Voir' },
-        { key: 'manage_alerts', label: 'Gestion' }
+        { key: 'manage_alerts', label: 'Gérer' }
       ]
     },
     {
@@ -77,18 +77,11 @@ export class SettingsComponent implements OnInit {
       label: 'Utilisateurs',
       icon: 'manage_accounts',
       permissions: [
-        { key: 'manage_users', label: 'Gestion Utilisateurs' },
-        { key: 'manage_roles', label: 'Gestion Rôles' }
+        { key: 'manage_users', label: 'Gérer les Utilisateurs' },
+        { key: 'manage_roles', label: 'Gérer les Rôles' }
       ]
     },
-    {
-      label: 'Autres',
-      icon: 'widgets',
-      permissions: [
-        { key: 'basic_entry_exit', label: 'Entrée/Sortie basique' },
-        { key: 'view_reports', label: 'Voir Rapports' }
-      ]
-    }
+   
   ];
 
   /** Track save feedback */
