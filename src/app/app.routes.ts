@@ -85,7 +85,7 @@ export const routes: Routes = [
       {
         path: 'reapprovisionnement',
         loadComponent: () => import('./features/reapprovisionnement/reapprovisionnement.component').then(m => m.ReapprovisionnementComponent),
-        canActivate: [permissionGuard('manage_movements')]
+        canActivate: [permissionGuard('view_reapprovisionnement')]
       },
       
       // Scanner - barcode/QR code scanning feature (operators and admin)

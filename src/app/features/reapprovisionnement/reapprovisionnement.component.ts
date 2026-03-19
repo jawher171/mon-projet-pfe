@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { StockService } from '../../core/services/stock.service';
 import { SiteService } from '../../core/services/site.service';
 import { Stock } from '../../core/models/stock.model';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-reapprovisionnement',
@@ -15,6 +16,7 @@ import { Stock } from '../../core/models/stock.model';
 export class ReapprovisionnementComponent implements OnInit {
   private stockService = inject(StockService);
   private siteService = inject(SiteService);
+  private authService = inject(AuthService);
 
   stocks = computed(() => this.stockService.getStocks()());
 
@@ -78,5 +80,9 @@ export class ReapprovisionnementComponent implements OnInit {
       case 'warning': return 'notifications_active';
       default: return 'check_circle';
     }
+  }
+
+  canManageReapprovisionnement(): boolean {
+    return this.authService.hasPermission('manage_reapprovisionnement');
   }
 }

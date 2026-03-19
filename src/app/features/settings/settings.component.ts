@@ -74,6 +74,14 @@ export class SettingsComponent implements OnInit {
       ]
     },
     {
+      label: 'Réapprovisionnement',
+      icon: 'local_shipping',
+      permissions: [
+        { key: 'view_reapprovisionnement', label: 'Voir' },
+        { key: 'manage_reapprovisionnement', label: 'Gérer' }
+      ]
+    },
+    {
       label: 'Utilisateurs',
       icon: 'manage_accounts',
       permissions: [
@@ -148,14 +156,14 @@ export class SettingsComponent implements OnInit {
         'view_dashboard', 'manage_movements', 'view_movements',
         'manage_alerts', 'view_alerts', 'manage_products', 'view_products',
         'manage_sites', 'view_sites', 'scan_barcode', 'basic_entry_exit',
-        'manage_users', 'manage_roles', 'view_reports'
+        'manage_users', 'manage_roles', 'view_reports', 'view_reapprovisionnement', 'manage_reapprovisionnement'
       ],
       gestionnaire_de_stock: [
         'view_dashboard', 'manage_movements', 'view_movements',
-        'manage_alerts', 'view_alerts', 'view_products', 'view_sites', 'view_reports'
+        'manage_alerts', 'view_alerts', 'view_products', 'view_sites', 'view_reports', 'view_reapprovisionnement', 'manage_reapprovisionnement'
       ],
       operateur: [
-        'view_products', 'scan_barcode', 'basic_entry_exit'
+        'view_products', 'scan_barcode', 'basic_entry_exit', 'view_reapprovisionnement'
       ]
     };
 

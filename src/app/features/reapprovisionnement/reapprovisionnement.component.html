@@ -43,13 +43,15 @@
             </td>
             <td class="num suggestion">{{ item.recommendedQty }} unites</td>
             <td>
-              <a
-                class="rp-action"
-                [routerLink]="['/movements']"
-                [queryParams]="{ mode: 'entry', productId: item.stock.produitId, siteId: item.stock.siteId, stockId: item.stock.id, productName: item.stock.produitNom }">
-                <span class="material-symbols-rounded">add_circle</span>
-                Approvisionner
-              </a>
+              @if (canManageReapprovisionnement()) {
+                <a
+                  class="rp-action"
+                  [routerLink]="['/movements']"
+                  [queryParams]="{ mode: 'entry', productId: item.stock.produitId, siteId: item.stock.siteId, stockId: item.stock.id, productName: item.stock.produitNom }">
+                  <span class="material-symbols-rounded">add_circle</span>
+                  Approvisionner
+                </a>
+              }
             </td>
           </tr>
         } @empty {

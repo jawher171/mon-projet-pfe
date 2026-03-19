@@ -66,6 +66,7 @@ namespace Application.Controllers
             var role = await _mediator.Send(
                 new GetGenericQuery<Role>(condition: r => r.RoleId == user.RoleId, includes: null));
             var roleNom = role?.Nom ?? string.Empty;
+            roleNom = roleNom.Trim().ToLower();
 
             var rolePermissions = await _context.rolepermission
                 .Include(rp => rp.Permission)

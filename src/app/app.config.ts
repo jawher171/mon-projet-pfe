@@ -12,7 +12,7 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 
 /** API base URL - set when backend is ready */
-export const API_BASE_URL = 'https://inventory-pro-ldrq.onrender.com';
+export const API_BASE_URL = '/backend';
 
 /** When false, app uses mock data and works without backend */
 export const USE_BACKEND = true;

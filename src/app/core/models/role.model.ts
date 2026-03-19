@@ -33,7 +33,9 @@ export type Permission =
   | 'basic_entry_exit'
   | 'manage_users'
   | 'manage_roles'
-  | 'view_reports';
+  | 'view_reports'
+  | 'view_reapprovisionnement'
+  | 'manage_reapprovisionnement';
 
 /** User role names (backend nom values) */
 export type UserRole = 'admin' | 'gestionnaire_de_stock' | 'operateur' | string;
@@ -61,7 +63,7 @@ export const ROLES: Record<UserRole, RoleWithLabel> = {
     description: 'Full system access',
     color: '#f44336',
     icon: 'admin_panel_settings',
-    permissions: ['view_dashboard', 'manage_movements', 'view_movements', 'manage_alerts', 'view_alerts', 'manage_products', 'view_products', 'manage_sites', 'view_sites', 'scan_barcode', 'basic_entry_exit', 'manage_users', 'manage_roles', 'view_reports']
+    permissions: ['view_dashboard', 'manage_movements', 'view_movements', 'manage_alerts', 'view_alerts', 'manage_products', 'view_products', 'manage_sites', 'view_sites', 'scan_barcode', 'basic_entry_exit', 'manage_users', 'manage_roles', 'view_reports', 'view_reapprovisionnement', 'manage_reapprovisionnement']
   },
   gestionnaire_de_stock: {
     idRole: 2,
@@ -70,7 +72,7 @@ export const ROLES: Record<UserRole, RoleWithLabel> = {
     description: 'Manages inventory',
     color: '#2196f3',
     icon: 'inventory_2',
-    permissions: ['view_dashboard', 'manage_movements', 'view_movements', 'manage_alerts', 'view_alerts', 'view_products', 'view_sites', 'view_reports']
+    permissions: ['view_dashboard', 'manage_movements', 'view_movements', 'manage_alerts', 'view_alerts', 'view_products', 'view_sites', 'view_reports', 'view_reapprovisionnement', 'manage_reapprovisionnement']
   },
   operateur: {
     idRole: 3,
@@ -79,6 +81,6 @@ export const ROLES: Record<UserRole, RoleWithLabel> = {
     description: 'Basic operations',
     color: '#4caf50',
     icon: 'engineering',
-    permissions: ['view_products', 'scan_barcode', 'basic_entry_exit']
+    permissions: ['view_products', 'scan_barcode', 'basic_entry_exit', 'view_reapprovisionnement']
   }
 };

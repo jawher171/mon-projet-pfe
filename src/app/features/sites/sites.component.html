@@ -8,10 +8,12 @@
       </h1>
       <p>Administrer les magasins et entrepôts</p>
     </div>
-    <button class="si-btn-add" (click)="openAddModal()">
-      <span class="material-symbols-rounded">add_business</span>
-      Nouveau Site
-    </button>
+    @if (canManageSites()) {
+      <button class="si-btn-add" (click)="openAddModal()">
+        <span class="material-symbols-rounded">add_business</span>
+        Nouveau Site
+      </button>
+    }
   </div>
 
   <!-- Stats strip -->
@@ -78,12 +80,14 @@
             <button class="si-act view" (click)="openViewModal(site)" title="Voir">
               <span class="material-symbols-rounded">open_in_new</span>
             </button>
-            <button class="si-act edit" (click)="openEditModal(site)" title="Modifier">
-              <span class="material-symbols-rounded">edit_square</span>
-            </button>
-            <button class="si-act delete" (click)="deleteSite(site)" title="Supprimer">
-              <span class="material-symbols-rounded">delete_sweep</span>
-            </button>
+            @if (canManageSites()) {
+              <button class="si-act edit" (click)="openEditModal(site)" title="Modifier">
+                <span class="material-symbols-rounded">edit_square</span>
+              </button>
+              <button class="si-act delete" (click)="deleteSite(site)" title="Supprimer">
+                <span class="material-symbols-rounded">delete_sweep</span>
+              </button>
+            }
           </div>
         </div>
         <div class="si-card-body">
@@ -128,10 +132,12 @@
         </div>
         <h3>Aucun site trouvé</h3>
         <p>Essayez d'ajuster vos filtres ou ajoutez un nouveau site.</p>
-        <button class="si-btn-add sm" (click)="openAddModal()">
-          <span class="material-symbols-rounded">add_business</span>
-          Nouveau Site
-        </button>
+        @if (canManageSites()) {
+          <button class="si-btn-add sm" (click)="openAddModal()">
+            <span class="material-symbols-rounded">add_business</span>
+            Nouveau Site
+          </button>
+        }
       </div>
     }
   </div>
@@ -272,10 +278,12 @@
       <div class="si-modal-footer">
         @if (modalMode() === 'view') {
           <button class="si-btn cancel" (click)="closeModal()">Fermer</button>
-          <button class="si-btn primary" (click)="openEditModal(selectedSite()!)">
-            <span class="material-symbols-rounded">edit_square</span>
-            Modifier
-          </button>
+          @if (canManageSites()) {
+            <button class="si-btn primary" (click)="openEditModal(selectedSite()!)">
+              <span class="material-symbols-rounded">edit_square</span>
+              Modifier
+            </button>
+          }
         } @else {
           <button class="si-btn cancel" (click)="closeModal()">Annuler</button>
           <button class="si-btn primary" (click)="saveSite()">

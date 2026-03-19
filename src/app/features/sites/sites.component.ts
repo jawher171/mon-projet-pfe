@@ -9,6 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { SiteService } from '../../core/services/site.service';
 import { StockService } from '../../core/services/stock.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Site, SiteFilter, SiteType, SITE_TYPES } from '../../core/models/site.model';
 
 @Component({
@@ -59,7 +60,7 @@ export class SitesComponent implements OnInit {
   /** Map of siteId → total stock quantity, updated on init */
   siteStockUsage = signal<Record<string, number>>({});
 
-  constructor(private siteService: SiteService, private stockService: StockService) {}
+  constructor(private siteService: SiteService, private stockService: StockService, private authService: AuthService) {}
 
   ngOnInit(): void {
     this.siteService.fetchSites();
@@ -238,5 +239,9 @@ export class SitesComponent implements OnInit {
 
   getSiteTypeIcon(type: string): string {
     return this.siteService.getSiteTypeIcon(type);
+  }
+
+  canManageSites(): boolean {
+    return this.authService.hasPermission('manage_sites');
   }
 }
