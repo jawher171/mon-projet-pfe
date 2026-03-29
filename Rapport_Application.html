@@ -349,6 +349,7 @@
     <h2><span class="icon">📑</span> Table des Matières</h2>
     <ol>
       <li>Présentation Générale de l'Application</li>
+      <li>Ce que fait l'Application — Fonctionnalités Détaillées</li>
       <li>Architecture Technique</li>
       <li>Stack Technologique</li>
       <li>Modules Fonctionnels (Frontend)</li>
@@ -386,9 +387,239 @@
     <li>Tableau de bord (Dashboard) avec statistiques en temps réel</li>
   </ul>
 
+  <!-- ==================== 2. CE QUE FAIT L'APPLICATION ==================== -->
+  <div class="page-break"></div>
+  <h1>2. Ce que fait l'Application — Fonctionnalités Détaillées</h1>
+  <p>
+    Cette section décrit en détail <strong>ce que l'application permet de faire</strong> du point de vue de l'utilisateur final, en couvrant chaque fonctionnalité majeure avec ses cas d'utilisation concrets.
+  </p>
+
+  <!-- 2.1 Dashboard -->
+  <h2><span class="icon">📊</span> 2.1 Tableau de Bord (Dashboard)</h2>
+  <p>Le tableau de bord est la <strong>page d'accueil</strong> de l'application. Il offre une vue synthétique de l'état de l'inventaire en un coup d'œil :</p>
+  <ul>
+    <li><strong>Cartes de statistiques</strong> : Nombre total de produits, valeur du stock, nombre de mouvements récents, nombre d'alertes actives — chacune avec un indicateur de tendance (hausse/baisse).</li>
+    <li><strong>Top 5 des alertes actives</strong> : Affichage instantané des alertes les plus critiques (rupture de stock, stock bas, surstock) avec code couleur par sévérité (critique, haute, moyenne, basse, info).</li>
+    <li><strong>Résumé des mouvements</strong> : Synthèse des entrées et sorties de stock récentes.</li>
+    <li><strong>Statistiques des sites</strong> : Vue d'ensemble de tous les entrepôts et magasins avec leur état actuel.</li>
+    <li><strong>Produits à stock bas</strong> : Liste des produits dont le stock est sous le seuil critique, avec statut "Critique", "Attention", ou "À commander".</li>
+    <li><strong>Activités récentes</strong> : Fil d'activité en temps réel montrant les dernières opérations effectuées.</li>
+  </ul>
+
+  <!-- 2.2 Products -->
+  <h2><span class="icon">📦</span> 2.2 Gestion des Produits</h2>
+  <p>Le module produits permet la <strong>gestion complète du catalogue de produits</strong> de l'entreprise :</p>
+
+  <h3>Ce que l'utilisateur peut faire :</h3>
+  <ul>
+    <li><strong>Consulter les produits</strong> en vue <strong>grille</strong> (cartes visuelles avec image) ou en vue <strong>liste</strong> (tableau détaillé).</li>
+    <li><strong>Rechercher un produit</strong> par nom en temps réel grâce au champ de recherche instantané.</li>
+    <li><strong>Filtrer par catégorie</strong> (ex: "Électronique", "Alimentation", etc.).</li>
+    <li><strong>Ajouter un nouveau produit</strong> avec : nom, description, prix, catégorie, code-barres, et image (upload depuis le PC, stocké en Base64).</li>
+    <li><strong>Scanner le code-barres</strong> d'un produit depuis un téléphone via un QR code affiché à l'écran — le code-barres scanné est automatiquement rempli dans le formulaire grâce à SignalR.</li>
+    <li><strong>Modifier un produit</strong> existant : mettre à jour les informations, changer la catégorie, ajouter/remplacer l'image.</li>
+    <li><strong>Supprimer un produit</strong> avec confirmation.</li>
+    <li><strong>Créer/supprimer des catégories</strong> directement depuis le formulaire de produit (ajout inline).</li>
+    <li><strong>Assigner un produit à des entrepôts</strong> : Lors de la création/modification, l'utilisateur peut cocher les entrepôts où le produit doit être stocké, et des lignes de stock (quantité = 0) sont automatiquement créées.</li>
+  </ul>
+
+  <div class="arch-box no-break">
+    <h4>🔒 Contrôle d'accès</h4>
+    <p>Seuls les utilisateurs ayant la permission <code>manage_products</code> (Admin) peuvent ajouter, modifier ou supprimer des produits. Les utilisateurs avec <code>view_products</code> (Admin, Gestionnaire, Opérateur) peuvent consulter les produits.</p>
+  </div>
+
+  <!-- 2.3 Movements -->
+  <h2><span class="icon">🔄</span> 2.3 Mouvements de Stock (Entrées / Sorties)</h2>
+  <p>Le module mouvements permet d'<strong>enregistrer et suivre toutes les opérations d'entrée et de sortie de stock</strong> en temps réel :</p>
+
+  <h3>Enregistrer un mouvement :</h3>
+  <ul>
+    <li><strong>Entrée de stock</strong> — Raisons possibles : achat fournisseur, retour fournisseur, production, transfert entrant, ajustement positif, stock initial.</li>
+    <li><strong>Sortie de stock</strong> — Raisons possibles : vente, retour client, produit endommagé, périmé, transfert sortant, ajustement négatif, usage interne.</li>
+    <li>L'utilisateur sélectionne : le <strong>produit</strong> (avec recherche et auto-complétion), le <strong>site/entrepôt</strong>, la <strong>quantité</strong>, la <strong>raison</strong>, et des <strong>notes</strong> optionnelles.</li>
+    <li>Pour les sorties : sélection obligatoire d'un site de <strong>destination</strong>.</li>
+  </ul>
+
+  <h3>Validation intelligente :</h3>
+  <ul>
+    <li><strong>Contrôle de stock disponible</strong> : Lors d'une sortie, l'application vérifie que la quantité demandée ne dépasse pas le stock disponible sur le site sélectionné.</li>
+    <li><strong>Contrôle du seuil maximum</strong> : Lors d'une entrée, l'application vérifie que la quantité ajoutée ne dépasse pas la capacité restante avant le seuil maximum.</li>
+    <li><strong>Filtrage des produits par stock</strong> : En mode sortie, seuls les produits ayant du stock disponible sur le site sélectionné sont proposés.</li>
+    <li><strong>Filtrage des sites</strong> : En mode entrée, seuls les entrepôts (type "warehouse") sont affichés.</li>
+  </ul>
+
+  <h3>Après enregistrement :</h3>
+  <ul>
+    <li>La <strong>quantité de stock</strong> est automatiquement mise à jour.</li>
+    <li>Les <strong>alertes</strong> sont automatiquement recalculées (si le stock passe sous un seuil → alerte créée).</li>
+    <li>L'utilisateur peut <strong>scanner un code-barres avec son téléphone</strong> (via QR code + SignalR) pour sélectionner rapidement un produit.</li>
+  </ul>
+
+  <h3>Consultation et filtrage :</h3>
+  <ul>
+    <li>Historique complet de tous les mouvements avec <strong>filtres</strong> par : type (entrée/sortie), site, raison, date, et recherche textuelle.</li>
+    <li>Résumé avec les <strong>totaux</strong> : nombre d'entrées, nombre de sorties, total des quantités.</li>
+    <li>L'utilisateur peut consulter les détails de n'importe quel mouvement passé.</li>
+    <li><strong>Ajout de raisons personnalisées</strong> : l'utilisateur peut créer ses propres raisons d'entrée ou de sortie.</li>
+  </ul>
+
+  <!-- 2.4 Sites -->
+  <div class="page-break"></div>
+  <h2><span class="icon">🏭</span> 2.4 Gestion des Sites (Multi-Magasin)</h2>
+  <p>L'application supporte la <strong>gestion multi-sites</strong> pour les entreprises ayant plusieurs entrepôts, magasins ou centres de distribution :</p>
+  <ul>
+    <li><strong>Créer un site</strong> avec : nom, adresse, ville, code fiscal, téléphone, email, responsable, type (entrepôt, magasin, centre de distribution, production), capacité maximale, et indicateur "entrepôt principal".</li>
+    <li><strong>Consulter les sites</strong> en vue grille ou liste, avec filtrage par type et recherche.</li>
+    <li><strong>Voir la capacité d'occupation</strong> de chaque site : barre de progression colorée (vert → jaune → orange → rouge) basée sur le ratio stock actuel / capacité maximale.</li>
+    <li><strong>Consulter les stocks d'un site</strong> : Naviguer vers les stocks détaillés d'un site spécifique (<code>/sites/:id/stocks</code>).</li>
+    <li><strong>Modifier ou supprimer un site</strong> (avec confirmation).</li>
+    <li><strong>Statistiques globales</strong> : nombre total de sites, sites actifs, par type.</li>
+  </ul>
+
+  <!-- 2.5 Alerts -->
+  <h2><span class="icon">🔔</span> 2.5 Système d'Alertes</h2>
+  <p>Le système d'alertes <strong>surveille automatiquement les niveaux de stock</strong> et génère des notifications lorsque des situations anormales sont détectées :</p>
+
+  <h3>Types d'alertes générées automatiquement :</h3>
+  <table>
+    <thead>
+      <tr><th>Type</th><th>Déclencheur</th><th>Sévérité</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Rupture de stock</strong> (out_of_stock)</td><td>Quantité = 0</td><td>🔴 Critique</td></tr>
+      <tr><td><strong>Stock bas</strong> (low_stock)</td><td>Quantité &lt; seuil d'alerte</td><td>🟠 Haute</td></tr>
+      <tr><td><strong>Point de réapprovisionnement</strong> (reorder_point)</td><td>Quantité &lt; seuil minimum</td><td>🟡 Moyenne</td></tr>
+      <tr><td><strong>Surstock</strong> (overstock)</td><td>Quantité &gt; seuil maximum</td><td>🔵 Basse</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Ce que l'utilisateur peut faire :</h3>
+  <ul>
+    <li><strong>Voir toutes les alertes</strong> avec filtrage par : type, sévérité, date, produit, et statut (résolue ou non).</li>
+    <li><strong>Consulter le détail d'une alerte</strong> : type, message, produit concerné, site, date de création, sévérité.</li>
+    <li><strong>Résoudre une alerte</strong> : Marquer une alerte comme résolue via l'API backend.</li>
+    <li><strong>Supprimer une alerte</strong> avec confirmation.</li>
+    <li><strong>Marquer toutes les alertes comme lues</strong> en un clic.</li>
+    <li><strong>Dédoublonnage automatique</strong> : Le backend utilise un "Fingerprint" unique par type et stock pour éviter les alertes en double.</li>
+    <li><strong>Statistiques d'alertes</strong> : Nombre total, critiques, actives, par sévérité.</li>
+  </ul>
+
+  <!-- 2.6 Scanner -->
+  <h2><span class="icon">📱</span> 2.6 Scanner de Codes-Barres</h2>
+  <p>L'application intègre un <strong>scanner de codes-barres multi-mode</strong> qui permet de gérer les stocks rapidement :</p>
+
+  <h3>Trois modes de scan :</h3>
+  <ul>
+    <li><strong>Caméra intégrée</strong> : Utilisation de la bibliothèque ZXing pour scanner via la webcam ou la caméra du périphérique. Détection automatique et en continu.</li>
+    <li><strong>Saisie manuelle</strong> : Entrée manuelle du code-barres au clavier avec validation par touche Entrée.</li>
+    <li><strong>Scan téléphone distant</strong> : L'app génère un QR code que l'utilisateur scanne avec son téléphone. Le téléphone ouvre une page dédiée (<code>/scan</code>) qui capture le code-barres via la caméra du téléphone et envoie le résultat en temps réel au PC via <strong>SignalR</strong>.</li>
+  </ul>
+
+  <h3>Actions rapides après scan :</h3>
+  <ul>
+    <li><strong>Mode Consultation</strong> : Afficher les informations du produit (nom, description, prix, catégorie, image).</li>
+    <li><strong>Mode Entrée rapide</strong> : Enregistrer une entrée de stock immédiatement après le scan (choix du site, quantité, raison).</li>
+    <li><strong>Mode Sortie rapide</strong> : Enregistrer une sortie de stock immédiatement.</li>
+    <li><strong>Historique de scan</strong> : Les 20 derniers scans sont conservés avec statut (trouvé / non trouvé).</li>
+  </ul>
+
+  <!-- 2.7 Réappro -->
+  <h2><span class="icon">📋</span> 2.7 Suggestions de Réapprovisionnement</h2>
+  <p>Le module de réapprovisionnement <strong>analyse les seuils de stock</strong> et propose des suggestions intelligentes :</p>
+  <ul>
+    <li>Identification automatique des produits dont le stock est <strong>sous le seuil minimum</strong>.</li>
+    <li>Calcul de la <strong>quantité recommandée</strong> à commander pour atteindre le niveau optimal.</li>
+    <li>Priorisation des suggestions par <strong>urgence</strong> (critique, attention, à commander).</li>
+    <li>Vue par site pour savoir <strong>quel entrepôt</strong> a besoin de réapprovisionnement.</li>
+  </ul>
+
+  <!-- 2.8 User Mgmt -->
+  <div class="page-break"></div>
+  <h2><span class="icon">👥</span> 2.8 Gestion des Utilisateurs et des Rôles</h2>
+  <p>L'application fournit un système complet de <strong>gestion des utilisateurs</strong> réservé aux administrateurs :</p>
+
+  <h3>Gestion des membres (Admin uniquement) :</h3>
+  <ul>
+    <li><strong>Voir tous les membres</strong> de l'équipe avec leur rôle, statut (actif/inactif), dernier login.</li>
+    <li><strong>Ajouter un nouveau membre</strong> : Nom, prénom, email, mot de passe, et attribution d'un rôle.</li>
+    <li><strong>Modifier un membre</strong> : Changer les informations, le rôle, ou le statut.</li>
+    <li><strong>Activer / Désactiver un membre</strong> : Les membres inactifs ne peuvent plus se connecter.</li>
+    <li><strong>Supprimer un membre</strong> avec confirmation.</li>
+    <li><strong>Statistiques de l'équipe</strong> : Nombre total de membres, d'admins, de gestionnaires, d'opérateurs.</li>
+  </ul>
+
+  <h3>Gestion des rôles et permissions :</h3>
+  <ul>
+    <li><strong>Consulter les rôles</strong> : Admin, Gestionnaire de Stock, Opérateur — chacun avec sa couleur et ses permissions.</li>
+    <li><strong>Matrice de permissions</strong> : 16 permissions organisées en catégories (consultation, gestion, opérations).</li>
+    <li><strong>Attribution dynamique</strong> : Les permissions sont vérifiées côté frontend (guards Angular) et côté backend (claims JWT).</li>
+  </ul>
+
+  <!-- 2.9 Profile -->
+  <h2><span class="icon">👤</span> 2.9 Profil Utilisateur</h2>
+  <ul>
+    <li>Chaque utilisateur connecté peut <strong>consulter son profil</strong> : nom, prénom, email, rôle, dernière connexion.</li>
+    <li><strong>Modifier ses informations personnelles</strong>.</li>
+    <li>Voir son <strong>badge de rôle</strong> avec la couleur correspondante (Rouge = Admin, Bleu = Gestionnaire, Vert = Opérateur).</li>
+  </ul>
+
+  <!-- 2.10 Settings -->
+  <h2><span class="icon">⚙️</span> 2.10 Paramètres Système</h2>
+  <ul>
+    <li>Accessible aux <strong>administrateurs uniquement</strong>.</li>
+    <li>Configuration de l'application et des préférences système.</li>
+  </ul>
+
+  <!-- 2.11 Summary flow -->
+  <h2><span class="icon">🔁</span> 2.11 Flux de Travail Principal</h2>
+  <p>Voici le flux de travail typique d'un opérateur ou gestionnaire utilisant l'application :</p>
+
+  <div class="flow">
+    <div class="flow-step">1️⃣ Connexion</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">2️⃣ Dashboard</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">3️⃣ Vérifier alertes</div>
+  </div>
+  <div class="flow">
+    <div class="flow-arrow">↓</div>
+  </div>
+  <div class="flow">
+    <div class="flow-step">4️⃣ Scanner produit</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">5️⃣ Enregistrer mouvement</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">6️⃣ Stock mis à jour</div>
+  </div>
+  <div class="flow">
+    <div class="flow-arrow">↓</div>
+  </div>
+  <div class="flow">
+    <div class="flow-step">7️⃣ Alertes recalculées</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">8️⃣ Réappro. suggéré</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">9️⃣ Commander</div>
+  </div>
+
+  <div class="arch-box no-break" style="margin-top:20px;">
+    <h4>🎯 En résumé, ce que fait Inventory Pro :</h4>
+    <ul>
+      <li>✅ Gérer le catalogue de produits avec images, codes-barres et catégories</li>
+      <li>✅ Suivre les stocks en temps réel sur plusieurs sites/entrepôts</li>
+      <li>✅ Enregistrer chaque entrée et sortie de stock avec traçabilité complète</li>
+      <li>✅ Alerter automatiquement quand un stock est bas, en rupture ou en surstock</li>
+      <li>✅ Scanner des codes-barres via caméra, téléphone distant, ou saisie manuelle</li>
+      <li>✅ Proposer des réapprovisionnements intelligents basés sur les seuils</li>
+      <li>✅ Gérer les utilisateurs avec 3 niveaux de rôles et 16 permissions</li>
+      <li>✅ Fournir un tableau de bord avec toutes les métriques clés</li>
+      <li>✅ Communiquer en temps réel entre PC et téléphone via SignalR</li>
+    </ul>
+  </div>
+
   <!-- ==================== 2. ARCHITECTURE ==================== -->
   <div class="page-break"></div>
-  <h1>2. Architecture Technique</h1>
+  <h1>3. Architecture Technique</h1>
   <p>L'application suit une architecture <strong>client-serveur</strong> découplée avec un frontend SPA (Single Page Application) et un backend API REST.</p>
 
   <div class="flow">
@@ -427,7 +658,7 @@
 
   <!-- ==================== 3. TECH STACK ==================== -->
   <div class="page-break"></div>
-  <h1>3. Stack Technologique</h1>
+  <h1>4. Stack Technologique</h1>
 
   <table>
     <thead>
@@ -455,7 +686,7 @@
 
   <!-- ==================== 4. MODULES ==================== -->
   <div class="page-break"></div>
-  <h1>4. Modules Fonctionnels (Frontend)</h1>
+  <h1>5. Modules Fonctionnels (Frontend)</h1>
   <p>L'application est organisée en <strong>13 modules fonctionnels</strong>, chacun chargé dynamiquement (lazy loading) :</p>
 
   <table>
@@ -481,7 +712,7 @@
 
   <!-- ==================== 5. BACKEND ==================== -->
   <div class="page-break"></div>
-  <h1>5. Architecture Backend (API REST)</h1>
+  <h1>6. Architecture Backend (API REST)</h1>
 
   <h3>Structure des couches</h3>
   <div class="code-block">
@@ -514,7 +745,7 @@ Backend/
 
   <!-- ==================== 6. MODELE DE DONNEES ==================== -->
   <div class="page-break"></div>
-  <h1>6. Modèle de Données</h1>
+  <h1>7. Modèle de Données</h1>
   <p>La base de données <strong>SQL Server</strong> (nom : <code>Inventaire</code>) contient les entités suivantes :</p>
 
   <table>
@@ -587,7 +818,7 @@ Stock ──1:N──▶ Alert
 
   <!-- ==================== 7. AUTH ==================== -->
   <div class="page-break"></div>
-  <h1>7. Système d'Authentification & Autorisation</h1>
+  <h1>8. Système d'Authentification & Autorisation</h1>
 
   <h3>Authentification (JWT)</h3>
   <ul>
@@ -650,7 +881,7 @@ Stock ──1:N──▶ Alert
 
   <!-- ==================== 8. PERMISSIONS ==================== -->
   <div class="page-break"></div>
-  <h1>8. Matrice des Permissions</h1>
+  <h1>9. Matrice des Permissions</h1>
   <p>Le système définit <strong>16 permissions</strong> réparties en 3 catégories :</p>
 
   <table>
@@ -688,7 +919,7 @@ Stock ──1:N──▶ Alert
 
   <!-- ==================== 9. SERVICES ==================== -->
   <div class="page-break"></div>
-  <h1>9. Services & Logique Métier</h1>
+  <h1>10. Services & Logique Métier</h1>
 
   <h3>Services Frontend (Angular)</h3>
   <table>
@@ -739,7 +970,7 @@ Stock ──1:N──▶ Alert
   </div>
 
   <!-- ==================== 10. SIGNALR ==================== -->
-  <h1>10. Fonctionnalités Temps Réel (SignalR)</h1>
+  <h1>11. Fonctionnalités Temps Réel (SignalR)</h1>
   <p>L'application utilise <strong>SignalR</strong> pour les notifications temps réel :</p>
   <ul>
     <li><strong>Hub Endpoint</strong> : <code>/hubs/inventory</code></li>
@@ -749,7 +980,7 @@ Stock ──1:N──▶ Alert
 
   <!-- ==================== 11. CONTROLLERS ==================== -->
   <div class="page-break"></div>
-  <h1>11. APIs REST — Contrôleurs</h1>
+  <h1>12. APIs REST — Contrôleurs</h1>
 
   <table>
     <thead>
@@ -770,7 +1001,7 @@ Stock ──1:N──▶ Alert
   </table>
 
   <!-- ==================== 12. SECURITE ==================== -->
-  <h1>12. Sécurité</h1>
+  <h1>13. Sécurité</h1>
 
   <table>
     <thead>
@@ -789,7 +1020,7 @@ Stock ──1:N──▶ Alert
 
   <!-- ==================== 13. UI/UX ==================== -->
   <div class="page-break"></div>
-  <h1>13. Interface Utilisateur (UI/UX)</h1>
+  <h1>14. Interface Utilisateur (UI/UX)</h1>
 
   <h3>Design System</h3>
   <ul>
