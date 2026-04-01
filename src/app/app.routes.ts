@@ -73,6 +73,13 @@ export const routes: Routes = [
         loadComponent: () => import('./features/site-stocks/site-stocks.component').then(m => m.SiteStocksComponent),
         canActivate: [permissionGuard('view_sites')]
       },
+
+      // Stocks Overview - all stocks across all sites
+      {
+        path: 'stocks',
+        loadComponent: () => import('./features/stocks-overview/stocks-overview.component').then(m => m.StocksOverviewComponent),
+        canActivate: [permissionGuard('view_sites')]
+      },
       
       // Alerts - view system alerts and notifications (admin and stock managers)
       {

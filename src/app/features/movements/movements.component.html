@@ -48,34 +48,28 @@
       </div>
       <span class="mv-summary-badge exit">-{{ summary().exitsQuantity }} unités</span>
     </div>
-    <div class="mv-summary-card" [style.--accent]="summary().netChange >= 0 ? '#3b82f6' : '#f97316'">
-      <div class="mv-summary-bar"></div>
-      <div class="mv-summary-icon">
-        <span class="material-symbols-rounded">{{ summary().netChange >= 0 ? 'trending_up' : 'trending_down' }}</span>
-      </div>
-      <div class="mv-summary-body">
-        <span class="mv-summary-value" [class.positive]="summary().netChange >= 0" [class.negative]="summary().netChange < 0">{{ summary().netChange >= 0 ? '+' : '' }}{{ summary().netChange }}</span>
-        <span class="mv-summary-label">Variation Nette</span>
-      </div>
-    </div>
   </div>
 
   <!-- Filters -->
   <div class="mv-toolbar">
     <div class="mv-search">
       <span class="material-symbols-rounded">search</span>
-      <input type="text" placeholder="Rechercher par numéro, produit..." [value]="searchTerm()" (input)="onSearch($event)">
+      <input type="text" placeholder="Rechercher par numéro, produit..." [value]="searchTerm()"
+        (input)="onSearch($event)">
     </div>
     <div class="mv-type-tabs">
-      <button class="mv-tab" [class.active]="selectedType() === 'all'" [attr.data-variant]="'all'" (click)="onTypeChange('all')">Tous</button>
-      <button class="mv-tab" [class.active]="selectedType() === 'entry'" [attr.data-variant]="'entry'" (click)="onTypeChange('entry')">Entrées</button>
-      <button class="mv-tab" [class.active]="selectedType() === 'exit'" [attr.data-variant]="'exit'" (click)="onTypeChange('exit')">Sorties</button>
+      <button class="mv-tab" [class.active]="selectedType() === 'all'" [attr.data-variant]="'all'"
+        (click)="onTypeChange('all')">Tous</button>
+      <button class="mv-tab" [class.active]="selectedType() === 'entry'" [attr.data-variant]="'entry'"
+        (click)="onTypeChange('entry')">Entrées</button>
+      <button class="mv-tab" [class.active]="selectedType() === 'exit'" [attr.data-variant]="'exit'"
+        (click)="onTypeChange('exit')">Sorties</button>
     </div>
     <div class="mv-select-wrap">
       <select (change)="onSiteChange($event)">
         <option value="">Tous les sites</option>
         @for (site of sites(); track site.id) {
-          <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
+        <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
         }
       </select>
     </div>
@@ -83,9 +77,9 @@
       <span class="material-symbols-rounded">calendar_today</span>
       <input type="date" [value]="selectedDate()" (change)="onDateChange($event)">
       @if (selectedDate()) {
-        <button class="mv-date-clear" title="Réinitialiser la date" (click)="selectedDate.set('')">
-          <span class="material-symbols-rounded">close</span>
-        </button>
+      <button class="mv-date-clear" title="Réinitialiser la date" (click)="selectedDate.set('')">
+        <span class="material-symbols-rounded">close</span>
+      </button>
       }
     </div>
   </div>
@@ -95,7 +89,7 @@
     <table class="mv-table">
       <thead>
         <tr>
-          <th>N°</th>
+          <th>Réf. Mouvement</th>
           <th>Type</th>
           <th>Produit</th>
           <th>Qté</th>
@@ -107,460 +101,482 @@
         </tr>
       </thead>
       <tbody>
-        @for (movement of movements(); track movement.id) {
-          <tr (click)="openViewModal(movement)">
-            <td>
-              <span class="mv-id" [title]="'' + movement.id">{{ truncateId('' + movement.id) }}</span>
-            </td>
-            <td>
-              <span class="mv-type-badge" [attr.data-type]="movement.type">
-                <span class="material-symbols-rounded">{{ movement.type === 'entry' ? 'south' : 'north' }}</span>
-                {{ movement.type === 'entry' ? 'Entrée' : 'Sortie' }}
-              </span>
-            </td>
-            <td><span class="mv-product-name">{{ movement.produitNom }}</span></td>
-            <td>
-              <span class="mv-qty" [attr.data-type]="movement.type">
-                {{ movement.type === 'entry' ? '+' : '-' }}{{ movement.quantite }}
-              </span>
-            </td>
-            <td><span class="mv-reason-tag">{{ getReasonLabel(movement.raison) }}</span></td>
-            <td><span class="mv-cell-text">{{ movement.siteNom }}</span></td>
-            <td>
-              @if (movement.type === 'exit' && movement.destination) {
-                <span class="mv-destination">
-                  <span class="material-symbols-rounded">domain</span>
-                  {{ getSiteName(movement.destination) }}
-                </span>
-              } @else {
-                <span class="mv-cell-muted">-</span>
-              }
-            </td>
-            <td>
-              <div class="mv-date-cell">
-                <span class="mv-date-ago">{{ getTimeAgo(movement.dateMouvement) }}</span>
-                <span class="mv-date-full">{{ formatDate(movement.dateMouvement) }}</span>
-              </div>
-            </td>
-            <td>
-              <button class="mv-act view" (click)="openViewModal(movement); $event.stopPropagation()">
-                <span class="material-symbols-rounded">open_in_new</span>
-              </button>
-            </td>
-          </tr>
+        @for (movement of displayedMovements(); track movement.id) {
+        <tr (click)="openViewModal(movement)">
+          <td>
+            <span class="mv-id">{{ formatMovementRef(movement) }}</span>
+          </td>
+          <td>
+            <span class="mv-type-badge" [attr.data-type]="movement.type">
+              <span class="material-symbols-rounded">{{ movement.type === 'entry' ? 'south' : 'north' }}</span>
+              {{ movement.type === 'entry' ? 'Entrée' : 'Sortie' }}
+            </span>
+          </td>
+          <td><span class="mv-product-name">{{ movement.produitNom }}</span></td>
+          <td>
+            <span class="mv-qty" [attr.data-type]="movement.type">
+              {{ movement.type === 'entry' ? '+' : '-' }}{{ movement.quantite }}
+            </span>
+          </td>
+          <td><span class="mv-reason-tag">{{ getReasonLabel(movement.raison) }}</span></td>
+          <td><span class="mv-cell-text">{{ movement.siteNom }}</span></td>
+          <td>
+            @if (movement.type === 'exit' && movement.destination) {
+            <span class="mv-destination">
+              <span class="material-symbols-rounded">domain</span>
+              {{ getSiteName(movement.destination) }}
+            </span>
+            } @else {
+            <span class="mv-cell-muted">-</span>
+            }
+          </td>
+          <td>
+            <div class="mv-date-cell">
+              <span class="mv-date-ago">{{ getTimeAgo(movement.dateMouvement) }}</span>
+              <span class="mv-date-full">{{ formatDate(movement.dateMouvement) }}</span>
+            </div>
+          </td>
+          <td>
+            <button class="mv-act view" (click)="openViewModal(movement); $event.stopPropagation()">
+              <span class="material-symbols-rounded">open_in_new</span>
+            </button>
+          </td>
+        </tr>
         } @empty {
-          <tr>
-            <td colspan="9">
-              <div class="mv-empty">
-                <div class="mv-empty-icon">
-                  <span class="material-symbols-rounded">deployed_code</span>
-                </div>
-                <p>Aucun mouvement trouvé</p>
+        <tr>
+          <td colspan="9">
+            <div class="mv-empty">
+              <div class="mv-empty-icon">
+                <span class="material-symbols-rounded">deployed_code</span>
               </div>
-            </td>
-          </tr>
+              <p>Aucun mouvement trouvé</p>
+            </div>
+          </td>
+        </tr>
         }
       </tbody>
     </table>
+
+    @if (movements().length > 7) {
+    <div class="mv-pagination-action" [class.is-collapsed]="!showAllMovements()">
+      <button class="btn-toggle-view" (click)="toggleMovements()">
+        <span>{{ showAllMovements() ? 'Voir moins' : 'Voir plus' }}</span>
+        <span class="material-symbols-rounded">{{ showAllMovements() ? 'expand_less' : 'expand_more' }}</span>
+      </button>
+    </div>
+    }
   </div>
 </div>
 
 <!-- Modal -->
 @if (showModal()) {
-  <div class="mv-overlay" (click)="closeModal()">
-    <div class="mv-modal" (click)="$event.stopPropagation()">
-      <div class="mv-modal-header">
-        <div class="mv-modal-title">
-          @if (modalMode() === 'add') {
-            <div class="mv-modal-icon" [attr.data-type]="movementType()">
-              <span class="material-symbols-rounded">{{ movementType() === 'entry' ? 'south' : 'north' }}</span>
-            </div>
-          }
-          <div>
-            <h2>
-              @if (modalMode() === 'add') {
-                {{ movementType() === 'entry' ? 'Nouvelle Entrée' : 'Nouvelle Sortie' }}
-              } @else {
-                Détails du Mouvement
+<div class="mv-overlay" (click)="closeModal()">
+  <div class="mv-modal" (click)="$event.stopPropagation()">
+    <div class="mv-modal-header">
+      <div class="mv-modal-title">
+        @if (modalMode() === 'add') {
+        <div class="mv-modal-icon" [attr.data-type]="movementType()">
+          <span class="material-symbols-rounded">{{ movementType() === 'entry' ? 'south' : 'north' }}</span>
+        </div>
+        }
+        <div>
+          <h2>
+            @if (modalMode() === 'add') {
+            {{ movementType() === 'entry' ? 'Nouvelle Entrée' : 'Nouvelle Sortie' }}
+            } @else {
+            Détails du Mouvement
+            }
+          </h2>
+        </div>
+      </div>
+      <button class="mv-modal-close" (click)="closeModal()">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+
+    <div class="mv-modal-body">
+      @if (modalMode() === 'add') {
+      <div class="mv-form-grid">
+        <!-- Site (shown FIRST for exit mode) -->
+        @if (movementType() === 'exit') {
+        <div class="mv-field">
+          <label>Site (origine) <span class="req">*</span></label>
+          <div class="mv-input-wrap select">
+            <select [class.has-error]="formErrors()['siteId']" [value]="formData().siteId"
+              (change)="updateFormField('siteId', $any($event.target).value)">
+              <option value="">Sélectionner un site</option>
+              @for (site of formSites(); track site.id) {
+              <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
               }
-            </h2>
+            </select>
+          </div>
+          @if (formErrors()['siteId']) {
+          <p class="mv-field-error">
+            <span class="material-symbols-rounded">warning</span>
+            {{ formErrors()['siteId'] }}
+          </p>
+          }
+        </div>
+        <div class="mv-field">
+          <label>Destination <span class="req">*</span></label>
+          <div class="mv-input-wrap select">
+            <select [class.has-error]="formErrors()['destination']" [value]="formData().destination"
+              (change)="updateFormField('destination', $any($event.target).value)">
+              <option value="">Sélectionner la destination</option>
+              @for (site of destinationSites(); track site.id) {
+              <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
+              }
+            </select>
+          </div>
+          @if (formErrors()['destination']) {
+          <p class="mv-field-error">
+            <span class="material-symbols-rounded">warning</span>
+            {{ formErrors()['destination'] }}
+          </p>
+          }
+        </div>
+        }
+
+        <!-- Product Search -->
+        <div class="mv-field full product-search-group">
+          <div class="mv-field-header">
+            <label>Produit <span class="req">*</span></label>
+            <button type="button" class="mv-scan-btn" (click)="openProductScan()">
+              <span class="material-symbols-rounded">qr_code_scanner</span> Scanner
+            </button>
+          </div>
+          @if (movementType() === 'exit' && !formData().siteId) {
+          <p class="mv-field-hint italic">Veuillez d'abord sélectionner un site d'origine.</p>
+          } @else {
+          <div class="mv-input-wrap">
+            <span class="material-symbols-rounded">search</span>
+            <input type="text" placeholder="Rechercher un produit par nom, code-barres..."
+              [class.has-error]="formErrors()['product']" [value]="productSearch()" (input)="onProductSearch($event)"
+              (focus)="showProductDropdown.set(true)" autocomplete="off">
+          </div>
+          @if (formErrors()['product']) {
+          <p class="mv-field-error">
+            <span class="material-symbols-rounded">warning</span>
+            {{ formErrors()['product'] }}
+          </p>
+          }
+          @if (showProductDropdown() && filteredProducts().length > 0) {
+          <div class="mv-dropdown">
+            @for (product of filteredProducts(); track product.id_p) {
+            <div class="mv-dropdown-item" (click)="selectProduct(product)">
+              <div>
+                <div class="mv-dropdown-name">{{ product.nom }}</div>
+                <div class="mv-dropdown-meta">
+                  @if (product.codeBarre) {
+                  <span><span class="material-symbols-rounded">barcode</span>{{ product.codeBarre }}</span>
+                  }
+                  @if (product.categorieLibelle) {
+                  <span>{{ product.categorieLibelle }}</span>
+                  }
+                </div>
+              </div>
+              <span class="mv-dropdown-price">{{ product.prix | number:'1.2-2' }} DT</span>
+            </div>
+            }
+          </div>
+          }
+          @if (showProductDropdown() && productSearch() && filteredProducts().length === 0) {
+          <div class="mv-dropdown empty">
+            <span class="material-symbols-rounded">manage_search</span>
+            Aucun produit trouvé
+          </div>
+          }
+          }
+        </div>
+
+        <!-- Selected Product Card -->
+        @if (selectedProduct(); as product) {
+        <div class="mv-field full">
+          <div class="mv-selected-product">
+            <div class="mv-selected-header">
+              <div class="mv-selected-label">
+                <span class="material-symbols-rounded">package_2</span>
+                Produit sélectionné
+              </div>
+              <button class="mv-selected-remove" (click)="clearSelectedProduct()" title="Retirer le produit">
+                <span class="material-symbols-rounded">close</span>
+              </button>
+            </div>
+            <div class="mv-selected-name">{{ product.nom }}</div>
+            <div class="mv-selected-details">
+              @if (product.codeBarre) {
+              <span><span class="material-symbols-rounded">barcode</span>{{ product.codeBarre }}</span>
+              }
+              @if (product.categorieLibelle) {
+              <span><span class="material-symbols-rounded">label</span>{{ product.categorieLibelle }}</span>
+              }
+              <span><span class="material-symbols-rounded">sell</span>{{ product.prix | number:'1.2-2' }} DT</span>
+            </div>
+            @if (movementType() === 'exit' && availableStock() !== null) {
+            <div class="mv-stock-info" [class.ok]="availableStock()! > 0" [class.low]="availableStock()! <= 0">
+              <span class="material-symbols-rounded">inventory</span>
+              Stock disponible : {{ availableStock() }} unités
+            </div>
+            }
+            @if (movementType() === 'entry' && entryCapacityLeft() !== null) {
+            <div class="mv-stock-info" [class.ok]="entryCapacityLeft()! > 0" [class.low]="entryCapacityLeft()! <= 0">
+              <span class="material-symbols-rounded">inventory_2</span>
+              Capacité restante avant seuil maximum : {{ entryCapacityLeft() }} unités
+            </div>
+            }
           </div>
         </div>
-        <button class="mv-modal-close" (click)="closeModal()">
-          <span class="material-symbols-rounded">close</span>
-        </button>
+        }
+
+        <!-- Quantité -->
+        <div class="mv-field">
+          <label>Quantité <span class="req">*</span></label>
+          <div class="mv-input-wrap">
+            <span class="material-symbols-rounded">tag</span>
+            <input id="movement-quantity" type="number" min="1" placeholder="Quantité"
+              [class.has-error]="formErrors()['quantity']" [value]="formData().quantity"
+              (input)="updateFormField('quantity', +$any($event.target).value)">
+          </div>
+          @if (formErrors()['quantity']) {
+          <p class="mv-field-error">
+            <span class="material-symbols-rounded">warning</span>
+            {{ formErrors()['quantity'] }}
+          </p>
+          }
+        </div>
+
+        <!-- Raison -->
+        <div class="mv-field">
+          <label>Raison <span class="req">*</span></label>
+          <div class="mv-input-wrap select">
+            <select [class.has-error]="formErrors()['reason']" [value]="formData().reason"
+              (change)="updateFormField('reason', $any($event.target).value)">
+              <option value="">Sélectionner une raison</option>
+              @for (reason of getReasonsByType(movementType()); track reason.value) {
+              <option [value]="reason.value">{{ reason.label }}</option>
+              }
+            </select>
+          </div>
+          @if (formErrors()['reason']) {
+          <p class="mv-field-error">
+            <span class="material-symbols-rounded">warning</span>
+            {{ formErrors()['reason'] }}
+          </p>
+          }
+        </div>
+
+        <!-- Site (shown here only for entry mode) -->
+        @if (movementType() === 'entry') {
+        <div class="mv-field">
+          <label>Site <span class="req">*</span></label>
+          <div class="mv-input-wrap select">
+            <select [class.has-error]="formErrors()['siteId']" [value]="formData().siteId"
+              (change)="updateFormField('siteId', $any($event.target).value)">
+              <option value="">Sélectionner un site</option>
+              @for (site of formSites(); track site.id) {
+              <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
+              }
+            </select>
+          </div>
+          @if (formErrors()['siteId']) {
+          <p class="mv-field-error">
+            <span class="material-symbols-rounded">warning</span>
+            {{ formErrors()['siteId'] }}
+          </p>
+          }
+        </div>
+        }
+
+        <!-- Référence -->
+        <div class="mv-field" [class.full]="movementType() !== 'entry'">
+          <label>Référence</label>
+          <div class="mv-input-wrap">
+            <span class="material-symbols-rounded">receipt_long</span>
+            <input type="text" placeholder="N° commande, bon de livraison..." [value]="formData().reference"
+              (input)="updateFormField('reference', $any($event.target).value)">
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="mv-field full">
+          <label>Notes</label>
+          <textarea rows="3" placeholder="Notes additionnelles..." [value]="formData().notes"
+            (input)="updateFormField('notes', $any($event.target).value)"></textarea>
+        </div>
       </div>
+      } @else {
+      <!-- View mode -->
+      @if (selectedMovement(); as movement) {
+      <div class="mv-view-details">
+        <div class="mv-form-row">
+          <div class="mv-detail-group">
+            <label>Référence (N°)</label>
+            <span class="mv-detail-mono">{{ formatMovementRef(movement) }}</span>
+          </div>
+          <div class="mv-detail-group">
+            <label>Type</label>
+            <span class="mv-type-badge" [attr.data-type]="movement.type">{{ movement.type === 'entry' ? 'Entrée' :
+              'Sortie' }}</span>
+          </div>
+        </div>
 
-      <div class="mv-modal-body">
-        @if (modalMode() === 'add') {
-          <div class="mv-form-grid">
-            <!-- Site (shown FIRST for exit mode) -->
-            @if (movementType() === 'exit') {
-              <div class="mv-field">
-                <label>Site (origine) <span class="req">*</span></label>
-                <div class="mv-input-wrap select">
-                  <select [class.has-error]="formErrors()['siteId']" [value]="formData().siteId" (change)="updateFormField('siteId', $any($event.target).value)">
-                    <option value="">Sélectionner un site</option>
-                    @for (site of formSites(); track site.id) {
-                      <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
-                    }
-                  </select>
-                </div>
-                @if (formErrors()['siteId']) {
-                  <p class="mv-field-error">
-                    <span class="material-symbols-rounded">warning</span>
-                    {{ formErrors()['siteId'] }}
-                  </p>
-                }
-              </div>
-              <div class="mv-field">
-                <label>Destination <span class="req">*</span></label>
-                <div class="mv-input-wrap select">
-                  <select [class.has-error]="formErrors()['destination']" [value]="formData().destination" (change)="updateFormField('destination', $any($event.target).value)">
-                    <option value="">Sélectionner la destination</option>
-                    @for (site of destinationSites(); track site.id) {
-                      <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
-                    }
-                  </select>
-                </div>
-                @if (formErrors()['destination']) {
-                  <p class="mv-field-error">
-                    <span class="material-symbols-rounded">warning</span>
-                    {{ formErrors()['destination'] }}
-                  </p>
-                }
-              </div>
-            }
+        <div class="mv-form-row">
+          <div class="mv-detail-group">
+            <label>Produit</label>
+            <span class="mv-detail-text">{{ movement.produitNom }}</span>
+          </div>
+          <div class="mv-detail-group">
+            <label>Quantité</label>
+            <span class="mv-qty" [attr.data-type]="movement.type">{{ movement.type === 'entry' ? '+' : '-' }}{{
+              movement.quantite }}</span>
+          </div>
+        </div>
 
-            <!-- Product Search -->
-            <div class="mv-field full product-search-group">
-              <div class="mv-field-header">
-                <label>Produit <span class="req">*</span></label>
-                <button type="button" class="mv-scan-btn" (click)="openProductScan()">
-                  <span class="material-symbols-rounded">qr_code_scanner</span> Scanner
-                </button>
+        <div class="mv-detail-group">
+          <label>Raison</label>
+          <span class="mv-detail-text">{{ getReasonLabel(movement.raison) }}</span>
+        </div>
+
+        <!-- Site flow visual for Sortie -->
+        @if (movement.type === 'exit' && movement.destination) {
+        <div class="mv-detail-group">
+          <label>Trajet</label>
+          <div class="mv-flow">
+            <div class="mv-flow-node origin">
+              <div class="mv-flow-icon">
+                <span class="material-symbols-rounded">domain</span>
               </div>
-              @if (movementType() === 'exit' && !formData().siteId) {
-                <p class="mv-field-hint italic">Veuillez d'abord sélectionner un site d'origine.</p>
-              } @else {
-                <div class="mv-input-wrap">
-                  <span class="material-symbols-rounded">search</span>
-                  <input type="text" placeholder="Rechercher un produit par nom, code-barres..." [class.has-error]="formErrors()['product']" [value]="productSearch()" (input)="onProductSearch($event)" (focus)="showProductDropdown.set(true)" autocomplete="off">
-                </div>
-                @if (formErrors()['product']) {
-                  <p class="mv-field-error">
-                    <span class="material-symbols-rounded">warning</span>
-                    {{ formErrors()['product'] }}
-                  </p>
-                }
-                @if (showProductDropdown() && filteredProducts().length > 0) {
-                  <div class="mv-dropdown">
-                    @for (product of filteredProducts(); track product.id_p) {
-                      <div class="mv-dropdown-item" (click)="selectProduct(product)">
-                        <div>
-                          <div class="mv-dropdown-name">{{ product.nom }}</div>
-                          <div class="mv-dropdown-meta">
-                            @if (product.codeBarre) {
-                              <span><span class="material-symbols-rounded">barcode</span>{{ product.codeBarre }}</span>
-                            }
-                            @if (product.categorieLibelle) {
-                              <span>{{ product.categorieLibelle }}</span>
-                            }
-                          </div>
-                        </div>
-                        <span class="mv-dropdown-price">{{ product.prix | number:'1.2-2' }} DT</span>
-                      </div>
-                    }
-                  </div>
-                }
-                @if (showProductDropdown() && productSearch() && filteredProducts().length === 0) {
-                  <div class="mv-dropdown empty">
-                    <span class="material-symbols-rounded">manage_search</span>
-                    Aucun produit trouvé
-                  </div>
-                }
-              }
+              <span class="mv-flow-name">{{ movement.siteNom }}</span>
+              <span class="mv-flow-role">Origine</span>
             </div>
-
-            <!-- Selected Product Card -->
-            @if (selectedProduct(); as product) {
-              <div class="mv-field full">
-                <div class="mv-selected-product">
-                  <div class="mv-selected-header">
-                    <div class="mv-selected-label">
-                      <span class="material-symbols-rounded">package_2</span>
-                      Produit sélectionné
-                    </div>
-                    <button class="mv-selected-remove" (click)="clearSelectedProduct()" title="Retirer le produit">
-                      <span class="material-symbols-rounded">close</span>
-                    </button>
-                  </div>
-                  <div class="mv-selected-name">{{ product.nom }}</div>
-                  <div class="mv-selected-details">
-                    @if (product.codeBarre) {
-                      <span><span class="material-symbols-rounded">barcode</span>{{ product.codeBarre }}</span>
-                    }
-                    @if (product.categorieLibelle) {
-                      <span><span class="material-symbols-rounded">label</span>{{ product.categorieLibelle }}</span>
-                    }
-                    <span><span class="material-symbols-rounded">sell</span>{{ product.prix | number:'1.2-2' }} DT</span>
-                  </div>
-                  @if (movementType() === 'exit' && availableStock() !== null) {
-                    <div class="mv-stock-info" [class.ok]="availableStock()! > 0" [class.low]="availableStock()! <= 0">
-                      <span class="material-symbols-rounded">inventory</span>
-                      Stock disponible : {{ availableStock() }} unités
-                    </div>
-                  }
-                  @if (movementType() === 'entry' && entryCapacityLeft() !== null) {
-                    <div class="mv-stock-info" [class.ok]="entryCapacityLeft()! > 0" [class.low]="entryCapacityLeft()! <= 0">
-                      <span class="material-symbols-rounded">inventory_2</span>
-                      Capacité restante avant seuil maximum : {{ entryCapacityLeft() }} unités
-                    </div>
-                  }
-                </div>
-              </div>
-            }
-
-            <!-- Quantité -->
-            <div class="mv-field">
-              <label>Quantité <span class="req">*</span></label>
-              <div class="mv-input-wrap">
-                <span class="material-symbols-rounded">tag</span>
-                <input id="movement-quantity" type="number" min="1" placeholder="Quantité" [class.has-error]="formErrors()['quantity']" [value]="formData().quantity" (input)="updateFormField('quantity', +$any($event.target).value)">
-              </div>
-              @if (formErrors()['quantity']) {
-                <p class="mv-field-error">
-                  <span class="material-symbols-rounded">warning</span>
-                  {{ formErrors()['quantity'] }}
-                </p>
-              }
+            <div class="mv-flow-arrow">
+              <span class="material-symbols-rounded">trending_flat</span>
+              <span>Transfert</span>
             </div>
-
-            <!-- Raison -->
-            <div class="mv-field">
-              <label>Raison <span class="req">*</span></label>
-              <div class="mv-input-wrap select">
-                <select [class.has-error]="formErrors()['reason']" [value]="formData().reason" (change)="updateFormField('reason', $any($event.target).value)">
-                  <option value="">Sélectionner une raison</option>
-                  @for (reason of getReasonsByType(movementType()); track reason.value) {
-                    <option [value]="reason.value">{{ reason.label }}</option>
-                  }
-                </select>
+            <div class="mv-flow-node destination">
+              <div class="mv-flow-icon">
+                <span class="material-symbols-rounded">location_city</span>
               </div>
-              @if (formErrors()['reason']) {
-                <p class="mv-field-error">
-                  <span class="material-symbols-rounded">warning</span>
-                  {{ formErrors()['reason'] }}
-                </p>
-              }
-            </div>
-
-            <!-- Site (shown here only for entry mode) -->
-            @if (movementType() === 'entry') {
-              <div class="mv-field">
-                <label>Site <span class="req">*</span></label>
-                <div class="mv-input-wrap select">
-                  <select [class.has-error]="formErrors()['siteId']" [value]="formData().siteId" (change)="updateFormField('siteId', $any($event.target).value)">
-                    <option value="">Sélectionner un site</option>
-                    @for (site of formSites(); track site.id) {
-                      <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
-                    }
-                  </select>
-                </div>
-                @if (formErrors()['siteId']) {
-                  <p class="mv-field-error">
-                    <span class="material-symbols-rounded">warning</span>
-                    {{ formErrors()['siteId'] }}
-                  </p>
-                }
-              </div>
-            }
-
-            <!-- Référence -->
-            <div class="mv-field" [class.full]="movementType() !== 'entry'">
-              <label>Référence</label>
-              <div class="mv-input-wrap">
-                <span class="material-symbols-rounded">receipt_long</span>
-                <input type="text" placeholder="N° commande, bon de livraison..." [value]="formData().reference" (input)="updateFormField('reference', $any($event.target).value)">
-              </div>
-            </div>
-
-            <!-- Notes -->
-            <div class="mv-field full">
-              <label>Notes</label>
-              <textarea rows="3" placeholder="Notes additionnelles..." [value]="formData().notes" (input)="updateFormField('notes', $any($event.target).value)"></textarea>
+              <span class="mv-flow-name">{{ getSiteName(movement.destination) }}</span>
+              <span class="mv-flow-role">Destination</span>
             </div>
           </div>
+        </div>
+        } @else if (movement.type === 'exit') {
+        <div class="mv-form-row">
+          <div class="mv-detail-group">
+            <label>Site</label>
+            <span class="mv-detail-text">{{ movement.siteNom }}</span>
+          </div>
+          <div class="mv-detail-group">
+            <label>Destination</label>
+            <span class="mv-cell-muted">-</span>
+          </div>
+        </div>
         } @else {
-          <!-- View mode -->
-          @if (selectedMovement(); as movement) {
-            <div class="mv-view-details">
-              <div class="mv-form-row">
-                <div class="mv-detail-group">
-                  <label>Numéro</label>
-                  <span class="mv-detail-mono">{{ movement.id }}</span>
-                </div>
-                <div class="mv-detail-group">
-                  <label>Type</label>
-                  <span class="mv-type-badge" [attr.data-type]="movement.type">{{ movement.type === 'entry' ? 'Entrée' : 'Sortie' }}</span>
-                </div>
-              </div>
+        <div class="mv-detail-group">
+          <label>Site</label>
+          <span class="mv-detail-text">{{ movement.siteNom }}</span>
+        </div>
+        }
 
-              <div class="mv-form-row">
-                <div class="mv-detail-group">
-                  <label>Produit</label>
-                  <span class="mv-detail-text">{{ movement.produitNom }}</span>
-                </div>
-                <div class="mv-detail-group">
-                  <label>Quantité</label>
-                  <span class="mv-qty" [attr.data-type]="movement.type">{{ movement.type === 'entry' ? '+' : '-' }}{{ movement.quantite }}</span>
-                </div>
-              </div>
+        <div class="mv-form-row">
+          <div class="mv-detail-group">
+            <label>Effectué par</label>
+            <span class="mv-detail-text">{{ movement.utilisateurNom || '-' }}</span>
+          </div>
+          <div class="mv-detail-group">
+            <label>Date</label>
+            <span class="mv-detail-text">{{ formatDate(movement.dateMouvement) }}</span>
+          </div>
+        </div>
 
-              <div class="mv-detail-group">
-                <label>Raison</label>
-                <span class="mv-detail-text">{{ getReasonLabel(movement.raison) }}</span>
-              </div>
-
-              <!-- Site flow visual for Sortie -->
-              @if (movement.type === 'exit' && movement.destination) {
-                <div class="mv-detail-group">
-                  <label>Trajet</label>
-                  <div class="mv-flow">
-                    <div class="mv-flow-node origin">
-                      <div class="mv-flow-icon">
-                        <span class="material-symbols-rounded">domain</span>
-                      </div>
-                      <span class="mv-flow-name">{{ movement.siteNom }}</span>
-                      <span class="mv-flow-role">Origine</span>
-                    </div>
-                    <div class="mv-flow-arrow">
-                      <span class="material-symbols-rounded">trending_flat</span>
-                      <span>Transfert</span>
-                    </div>
-                    <div class="mv-flow-node destination">
-                      <div class="mv-flow-icon">
-                        <span class="material-symbols-rounded">location_city</span>
-                      </div>
-                      <span class="mv-flow-name">{{ getSiteName(movement.destination) }}</span>
-                      <span class="mv-flow-role">Destination</span>
-                    </div>
-                  </div>
-                </div>
-              } @else if (movement.type === 'exit') {
-                <div class="mv-form-row">
-                  <div class="mv-detail-group">
-                    <label>Site</label>
-                    <span class="mv-detail-text">{{ movement.siteNom }}</span>
-                  </div>
-                  <div class="mv-detail-group">
-                    <label>Destination</label>
-                    <span class="mv-cell-muted">-</span>
-                  </div>
-                </div>
-              } @else {
-                <div class="mv-detail-group">
-                  <label>Site</label>
-                  <span class="mv-detail-text">{{ movement.siteNom }}</span>
-                </div>
-              }
-
-              <div class="mv-form-row">
-                <div class="mv-detail-group">
-                  <label>Effectué par</label>
-                  <span class="mv-detail-text">{{ movement.utilisateurNom || '-' }}</span>
-                </div>
-                <div class="mv-detail-group">
-                  <label>Date</label>
-                  <span class="mv-detail-text">{{ formatDate(movement.dateMouvement) }}</span>
-                </div>
-              </div>
-
-              @if (movement.note) {
-                <div class="mv-detail-group">
-                  <label>Notes</label>
-                  <span class="mv-detail-text">{{ movement.note }}</span>
-                </div>
-              }
-            </div>
-          }
+        @if (movement.note) {
+        <div class="mv-detail-group">
+          <label>Notes</label>
+          <span class="mv-detail-text">{{ movement.note }}</span>
+        </div>
         }
       </div>
+      }
+      }
+    </div>
 
-      <div class="mv-modal-footer">
-        @if (modalMode() === 'add') {
-          <button class="mv-btn cancel" (click)="closeModal()" [disabled]="isSaving()">Annuler</button>
-          <button class="mv-btn primary" (click)="saveMovement()" [disabled]="isSaving()">
-            @if (isSaving()) {
-              <span class="material-symbols-rounded spin">progress_activity</span>
-              Enregistrement...
-            } @else {
-              <span class="material-symbols-rounded">check_circle</span>
-              Enregistrer
-            }
-          </button>
+    <div class="mv-modal-footer">
+      @if (modalMode() === 'add') {
+      <button class="mv-btn cancel" (click)="closeModal()" [disabled]="isSaving()">Annuler</button>
+      <button class="mv-btn primary" (click)="saveMovement()" [disabled]="isSaving()">
+        @if (isSaving()) {
+        <span class="material-symbols-rounded spin">progress_activity</span>
+        Enregistrement...
         } @else {
-          <button class="mv-btn cancel" (click)="closeModal()">Fermer</button>
+        <span class="material-symbols-rounded">check_circle</span>
+        Enregistrer
         }
-      </div>
+      </button>
+      } @else {
+      <button class="mv-btn cancel" (click)="closeModal()">Fermer</button>
+      }
     </div>
   </div>
+</div>
 }
 
 <!-- Add Custom Reason Modal -->
 @if (showAddReasonModal()) {
-  <div class="mv-overlay" (click)="closeAddReasonModal()">
-    <div class="mv-modal small" (click)="$event.stopPropagation()">
-      <div class="mv-modal-header">
-        <div class="mv-modal-title">
-          <h2>Ajouter une raison personnalisée</h2>
-        </div>
-        <button class="mv-modal-close" (click)="closeAddReasonModal()">
-          <span class="material-symbols-rounded">close</span>
-        </button>
+<div class="mv-overlay" (click)="closeAddReasonModal()">
+  <div class="mv-modal small" (click)="$event.stopPropagation()">
+    <div class="mv-modal-header">
+      <div class="mv-modal-title">
+        <h2>Ajouter une raison personnalisée</h2>
       </div>
-      <div class="mv-modal-body">
-        <div class="mv-form-stack">
-          <div class="mv-field">
-            <label>Type de mouvement <span class="req">*</span></label>
-            <div class="mv-input-wrap select">
-              <select [value]="reasonType()" (change)="reasonType.set($any($event.target).value)">
-                <option value="entry">Entrée</option>
-                <option value="exit">Sortie</option>
-              </select>
-            </div>
-          </div>
-          <div class="mv-field">
-            <label>Raison {{ reasonType() === 'entry' ? "d'entrée" : 'de sortie' }} <span class="req">*</span></label>
-            <div class="mv-input-wrap">
-              <span class="material-symbols-rounded">edit_note</span>
-              <input type="text" placeholder="Saisir la raison du mouvement..." [value]="newCustomReason()" (input)="newCustomReason.set($any($event.target).value)" (keyup.enter)="saveCustomReason()" autofocus>
-            </div>
+      <button class="mv-modal-close" (click)="closeAddReasonModal()">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+    <div class="mv-modal-body">
+      <div class="mv-form-stack">
+        <div class="mv-field">
+          <label>Type de mouvement <span class="req">*</span></label>
+          <div class="mv-input-wrap select">
+            <select [value]="reasonType()" (change)="reasonType.set($any($event.target).value)">
+              <option value="entry">Entrée</option>
+              <option value="exit">Sortie</option>
+            </select>
           </div>
         </div>
-      </div>
-      <div class="mv-modal-footer">
-        <button class="mv-btn cancel" (click)="closeAddReasonModal()">Annuler</button>
-        <button class="mv-btn primary" (click)="saveCustomReason()" [disabled]="!newCustomReason().trim()">
-          <span class="material-symbols-rounded">add</span>
-          Ajouter
-        </button>
+        <div class="mv-field">
+          <label>Raison {{ reasonType() === 'entry' ? "d'entrée" : 'de sortie' }} <span class="req">*</span></label>
+          <div class="mv-input-wrap">
+            <span class="material-symbols-rounded">edit_note</span>
+            <input type="text" placeholder="Saisir la raison du mouvement..." [value]="newCustomReason()"
+              (input)="newCustomReason.set($any($event.target).value)" (keyup.enter)="saveCustomReason()" autofocus>
+          </div>
+        </div>
       </div>
     </div>
+    <div class="mv-modal-footer">
+      <button class="mv-btn cancel" (click)="closeAddReasonModal()">Annuler</button>
+      <button class="mv-btn primary" (click)="saveCustomReason()" [disabled]="!newCustomReason().trim()">
+        <span class="material-symbols-rounded">add</span>
+        Ajouter
+      </button>
+    </div>
   </div>
+</div>
 }
 
 <!-- Toast / Snackbar -->
 @if (showToast()) {
-  <div class="mv-toast" [attr.data-type]="toastType()">
-    <span class="material-symbols-rounded">{{ toastType() === 'success' ? 'check_circle' : 'error' }}</span>
-    <span class="mv-toast-msg">{{ toastMessage() }}</span>
-    <button class="mv-toast-close" (click)="dismissToast()">
-      <span class="material-symbols-rounded">close</span>
-    </button>
-  </div>
+<div class="mv-toast" [attr.data-type]="toastType()">
+  <span class="material-symbols-rounded">{{ toastType() === 'success' ? 'check_circle' : 'error' }}</span>
+  <span class="mv-toast-msg">{{ toastMessage() }}</span>
+  <button class="mv-toast-close" (click)="dismissToast()">
+    <span class="material-symbols-rounded">close</span>
+  </button>
+</div>
 }
 
 @if (showQrScanModal()) {
-  <app-qr-scan-modal [scanUrl]="scanUrl()" [connected]="scanConnected" (close)="closeQrScanModal()"></app-qr-scan-modal>
+<app-qr-scan-modal [scanUrl]="scanUrl()" [connected]="scanConnected" (close)="closeQrScanModal()"></app-qr-scan-modal>
 }

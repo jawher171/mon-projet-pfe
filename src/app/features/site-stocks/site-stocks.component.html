@@ -127,7 +127,7 @@
               <span class="material-symbols-rounded">warning</span>
               <input type="number" min="0" [ngModel]="editForm().seuilAlerte" name="seuilAlerte" readonly disabled>
             </div>
-            <p class="ss-field-note">Calcule automatiquement: seuil minimum + seuil securite</p>
+            <p class="ss-field-note">Calculé automatiquement : seuil minimum + seuil sécurité</p>
           </div>
           <div class="ss-field">
             <label>Seuil Sécurité</label>
@@ -150,9 +150,23 @@
               <input type="number" min="0" [ngModel]="editForm().seuilMaximum" (ngModelChange)="editForm.set({...editForm(), seuilMaximum: $event})" name="seuilMaximum">
             </div>
           </div>
+
+          @if (editForm().seuilMinimum < editForm().seuilSecurite) {
+            <div style="color: #ef4444; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca; margin-bottom: 8px;">
+              <span class="material-symbols-rounded" style="font-size: 18px;">error</span>
+              Le seuil minimum doit être ≥ au seuil de sécurité.
+            </div>
+          }
+          @if (editForm().seuilMaximum > 0 && editForm().seuilMaximum < editForm().seuilAlerte) {
+            <div style="color: #ef4444; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca; margin-bottom: 8px;">
+              <span class="material-symbols-rounded" style="font-size: 18px;">error</span>
+              Le seuil maximum doit être ≥ au seuil d'alerte ({{ editForm().seuilAlerte }}).
+            </div>
+          }
+
           <div class="ss-form-actions">
             <button type="button" class="ss-btn cancel" (click)="closeEdit()">Annuler</button>
-            <button type="submit" class="ss-btn primary" [disabled]="saving()">
+            <button type="submit" class="ss-btn primary" [disabled]="saving() || editForm().seuilMinimum < editForm().seuilSecurite || (editForm().seuilMaximum > 0 && editForm().seuilMaximum < editForm().seuilAlerte)">
               @if (saving()) {
                 <span class="material-symbols-rounded spin">progress_activity</span>
               }
@@ -168,18 +182,33 @@
   @if (showDeleteModal() && stockToDelete(); as stock) {
     <div class="ss-overlay" (click)="cancelDelete()">
       <div class="ss-confirm-modal" (click)="$event.stopPropagation()">
-        <div class="ss-confirm-icon danger">
-          <span class="material-symbols-rounded">delete_forever</span>
-        </div>
-        <h2>Supprimer ce stock ?</h2>
-        <p>Le stock de <strong>{{ stock.produitNom || stock.produitId }}</strong> sera définitivement supprimé. Cette action est irréversible.</p>
-        <div class="ss-confirm-actions">
-          <button class="ss-btn cancel" (click)="cancelDelete()">Annuler</button>
-          <button class="ss-btn danger" (click)="confirmDelete()" [disabled]="deleting()">
-            @if (deleting()) { <span class="material-symbols-rounded spin">progress_activity</span> }
-            Supprimer
-          </button>
-        </div>
+        @if (deleteError()) {
+          <div class="ss-confirm-icon blocked">
+            <span class="material-symbols-rounded">block</span>
+          </div>
+          <h2>Suppression impossible</h2>
+          <p class="ss-error-msg">{{ deleteError() }}</p>
+          <div class="ss-confirm-actions">
+            <button class="ss-btn cancel" (click)="cancelDelete()">Fermer</button>
+            <button class="ss-btn primary" (click)="openMovement(stock, 'exit')">
+              <span class="material-symbols-rounded">output</span>
+              Sortie de stock
+            </button>
+          </div>
+        } @else {
+          <div class="ss-confirm-icon danger">
+            <span class="material-symbols-rounded">delete_forever</span>
+          </div>
+          <h2>Supprimer ce stock ?</h2>
+          <p>Le stock de <strong>{{ stock.produitNom || stock.produitId }}</strong> sera définitivement supprimé. Cette action est irréversible.</p>
+          <div class="ss-confirm-actions">
+            <button class="ss-btn cancel" (click)="cancelDelete()">Annuler</button>
+            <button class="ss-btn danger" (click)="confirmDelete()" [disabled]="deleting()">
+              @if (deleting()) { <span class="material-symbols-rounded spin">progress_activity</span> }
+              Supprimer
+            </button>
+          </div>
+        }
       </div>
     </div>
   }

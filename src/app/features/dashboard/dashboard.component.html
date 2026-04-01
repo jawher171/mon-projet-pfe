@@ -1,132 +1,288 @@
 <div class="db-page">
-  <!-- Header -->
-  <div class="db-header">
-    <div class="db-header-text">
-      <h1>
-        <span class="material-symbols-rounded db-header-icon">dashboard</span>
-        Tableau de Bord
-      </h1>
-      <p>Vue d'ensemble de votre inventaire intelligent</p>
-    </div>
-    <div class="db-header-actions">
-      <a routerLink="/scanner" class="db-btn outline">
-        <span class="material-symbols-rounded">qr_code_2</span>
-        Scanner
-      </a>
-      <a routerLink="/movements" class="db-btn primary">
-        <span class="material-symbols-rounded">swap_vert</span>
-        Nouveau Mouvement
-      </a>
-    </div>
+  <!-- Loading Overlay -->
+  @if (isLoading()) {
+  <div class="db-loading">
+    <div class="spinner-ring"></div>
+    <span>Actualisation des données...</span>
   </div>
+  }
 
-  <!-- Stat Cards -->
-  <div class="db-stats-grid">
-    @for (stat of stats(); track stat.title) {
-      <div class="db-stat-card">
-        <div class="db-stat-icon" [style.--stat-color]="stat.color">
-          <span class="material-symbols-rounded">{{ stat.icon }}</span>
+  <!-- Data View -->
+  @if (data(); as d) {
+
+  <!-- Header & Filters combined in a modern card -->
+  <div class="db-header-panel">
+    <div class="db-header-top">
+      <div>
+        <h1 class="db-title">Aperçu Réapprovisionnement</h1>
+        <p class="db-subtitle">Données synchronisées à {{ formatDate(d.lastRefresh) }}</p>
+      </div>
+      <div class="db-header-actions">
+        <button (click)="forceRefresh()" class="btn-clean" [disabled]="isLoading()" title="Rafraîchir">
+          <span class="material-symbols-rounded" [class.spinning]="isLoading()">refresh</span>
+        </button>
+        <a routerLink="/movements" class="btn-primary">
+          + Nouveau Mouvement
+        </a>
+      </div>
+    </div>
+
+    <!-- Filters Container -->
+    <div class="db-filters-container">
+
+      <div class="db-filter-item">
+        <label>Type de site</label>
+        <div class="filter-input-wrap">
+          <span class="material-symbols-rounded fb-icon">store</span>
+          <select [(ngModel)]="currentFilter.siteType" (change)="onSiteTypeChange()" class="fb-select">
+            <option [ngValue]="undefined">Tous confondus</option>
+            <option value="warehouse">Entrepôts uniquement</option>
+            <option value="store">Magasins uniquement</option>
+          </select>
         </div>
-        <div class="db-stat-body">
-          <span class="db-stat-label">{{ stat.title }}</span>
-          <span class="db-stat-value">{{ stat.value }}</span>
-          <div class="db-stat-trend" [class.up]="stat.trend === 'up'" [class.down]="stat.trend !== 'up'">
-            <span class="material-symbols-rounded">{{ stat.trend === 'up' ? 'trending_up' : 'trending_down' }}</span>
-            <span>{{ stat.change }}% ce mois</span>
-          </div>
+      </div>
+
+      <div class="db-filter-item">
+        <label>Emplacement</label>
+        <div class="filter-input-wrap">
+          <span class="material-symbols-rounded fb-icon">domain</span>
+          <select [(ngModel)]="currentFilter.siteId" (change)="onSiteChange()" class="fb-select">
+            <option [ngValue]="undefined">{{ currentFilter.siteType === 'warehouse' ? 'Tous les Entrepôts' :
+              (currentFilter.siteType === 'store' ? 'Tous les Magasins' : 'Tous les Sites') }}</option>
+            @for (site of filteredSites(); track site.id) {
+            <option [value]="site.id">{{ site.nom }}</option>
+            }
+          </select>
         </div>
       </div>
-    }
-  </div>
 
-  <!-- Movement Summary -->
-  <div class="db-summary-grid">
-    <div class="db-summary-card" style="--accent: #10b981">
-      <div class="db-summary-bar"></div>
-      <div class="db-summary-icon">
-        <span class="material-symbols-rounded">move_to_inbox</span>
+      <div class="db-filter-item">
+        <label>Catégorie</label>
+        <div class="filter-input-wrap">
+          <span class="material-symbols-rounded fb-icon">category</span>
+          <select [(ngModel)]="currentFilter.categoryId" (change)="onCategoryChange()" class="fb-select">
+            <option [ngValue]="undefined">Toutes les Catégories</option>
+            @for (cat of categories(); track cat.id_c) {
+            <option [value]="cat.id_c">{{ cat.categorieLibelle }}</option>
+            }
+          </select>
+        </div>
       </div>
-      <div class="db-summary-body">
-        <span class="db-summary-value">{{ movementSummary().totalEntries }}</span>
-        <span class="db-summary-label">Entrées</span>
-      </div>
-      <span class="db-summary-badge">+{{ movementSummary().entriesQuantity }} unités</span>
-    </div>
 
-    <div class="db-summary-card" style="--accent: #ef4444">
-      <div class="db-summary-bar"></div>
-      <div class="db-summary-icon">
-        <span class="material-symbols-rounded">outbox</span>
+      <div class="db-filter-item">
+        <label>Produit</label>
+        <div class="filter-input-wrap">
+          <span class="material-symbols-rounded fb-icon">package_2</span>
+          <select [(ngModel)]="currentFilter.productId" (change)="onFilterChange()" class="fb-select">
+            <option [ngValue]="undefined">Tous les Produits</option>
+            @for (prod of filteredProducts(); track prod.id_p) {
+            <option [value]="prod.id_p">{{ prod.nom }}</option>
+            }
+          </select>
+        </div>
       </div>
-      <div class="db-summary-body">
-        <span class="db-summary-value">{{ movementSummary().totalExits }}</span>
-        <span class="db-summary-label">Sorties</span>
-      </div>
-      <span class="db-summary-badge">-{{ movementSummary().exitsQuantity }} unités</span>
-    </div>
 
-    <div class="db-summary-card" style="--accent: #3b82f6">
-      <div class="db-summary-bar"></div>
-      <div class="db-summary-icon">
-        <span class="material-symbols-rounded">domain</span>
+      <div class="db-filter-item date-filter">
+        <label>Période d'analyse</label>
+        <div class="filter-input-wrap highlight-wrap">
+          <span class="material-symbols-rounded fb-icon">calendar_month</span>
+          <select [(ngModel)]="currentFilter.dateRange" (change)="onFilterChange()" class="fb-select text-bold">
+            <option value="today">Aujourd'hui</option>
+            <option value="7days">7 Derniers Jours</option>
+            <option value="30days">30 Derniers Jours</option>
+            <option value="thisMonth">Ce Mois-ci</option>
+            <option value="all">Tout l'historique</option>
+          </select>
+        </div>
       </div>
-      <div class="db-summary-body">
-        <span class="db-summary-value">{{ siteStats().active }}</span>
-        <span class="db-summary-label">Sites Actifs</span>
-      </div>
-      <span class="db-summary-badge">{{ siteStats().total }} total</span>
-    </div>
 
-    <div class="db-summary-card" style="--accent: #f59e0b">
-      <div class="db-summary-bar"></div>
-      <div class="db-summary-icon">
-        <span class="material-symbols-rounded">campaign</span>
-      </div>
-      <div class="db-summary-body">
-        <span class="db-summary-value">{{ alertStats().unread }}</span>
-        <span class="db-summary-label">Alertes Non Lues</span>
-      </div>
-      <span class="db-summary-badge">{{ alertStats().critical }} critiques</span>
     </div>
   </div>
 
-  <!-- 3-Column Content -->
-  <div class="db-panels-3">
+  <!-- Row 1: Key Metrics Cards -->
+  <div class="grid-metrics">
+    <!-- Value -->
+    <div class="metric-card">
+      <div class="mc-icon bg-indigo"><span class="material-symbols-rounded">account_balance_wallet</span></div>
+      <div class="mc-data">
+        <span class="mc-label">Valorisation du Stock</span>
+        <span class="mc-value">{{ formatCurrency(d.valeurTotaleStock) }}</span>
+      </div>
+    </div>
+    <!-- Stock Total -->
+    <div class="metric-card">
+      <div class="mc-icon bg-blue"><span class="material-symbols-rounded">inventory_2</span></div>
+      <div class="mc-data">
+        <span class="mc-label">Unités en Stock</span>
+        <span class="mc-value">{{ d.totalStockDisponible | number }}</span>
+      </div>
+    </div>
+    <!-- Total Products -->
+    <div class="metric-card">
+      <div class="mc-icon bg-purple"><span class="material-symbols-rounded">package_2</span></div>
+      <div class="mc-data">
+        <span class="mc-label">Produits Gérés</span>
+        <span class="mc-value">{{ d.nombreProduits }}</span>
+      </div>
+    </div>
+    <!-- Active Movements -->
+    <div class="metric-card">
+      <div class="mc-icon bg-green"><span class="material-symbols-rounded">sync_alt</span></div>
+      <div class="mc-data">
+        <span class="mc-label">Mouvements (E/S)</span>
+        <span class="mc-value">{{ d.totalEntrees }} <small class="text-green">↑</small> / {{ d.totalSorties }} <small
+            class="text-red">↓</small></span>
+      </div>
+    </div>
     <!-- Critical Alerts -->
-    <div class="db-panel">
-      <div class="db-panel-header">
-        <h2>
-          <span class="material-symbols-rounded" style="color: #f59e0b">emergency</span>
-          Alertes Critiques
-        </h2>
-        <a routerLink="/alerts" class="db-link">Voir tout</a>
+    <div class="metric-card">
+      <div class="mc-icon bg-red"><span class="material-symbols-rounded">notification_important</span></div>
+      <div class="mc-data">
+        <span class="mc-label">Alertes Critiques</span>
+        <span class="mc-value" [class.text-red]="d.totalAlertesCritiques > 0">{{ d.totalAlertesCritiques }}</span>
       </div>
-      <div class="db-panel-body">
-        @for (alert of criticalAlerts(); track alert.id) {
-          <div class="db-alert-item">
-            <div class="db-alert-icon" [class]="getSeverityForAlert(alert) === 'critical' ? 'critical' : getSeverityForAlert(alert) === 'high' ? 'high' : 'medium'">
-              <span class="material-symbols-rounded">{{ getAlertIcon(alert.type) }}</span>
-            </div>
-            <div class="db-alert-body">
-              <span class="db-alert-title">{{ alert.type }}</span>
-              <span class="db-alert-msg">{{ alert.message }}</span>
-            </div>
-            <span class="db-alert-badge" [class]="getSeverityForAlert(alert) === 'critical' ? 'critical' : getSeverityForAlert(alert) === 'high' ? 'high' : 'medium'">
-              {{ severityConfig[getSeverityForAlert(alert)]?.label || alert.type }}
+    </div>
+  </div>
+
+  <!-- Row 2: Charts (Line & Doughnut) -->
+  <div class="grid-charts-top">
+    <!-- Line Chart: Trends -->
+    <div class="chart-card span-2">
+      <div class="card-header">
+        <h3 class="card-title">Tendance des Flux Comparatifs</h3>
+        <span class="card-action badge-light">{{ currentFilter.dateRange === 'thisMonth' ? 'Ce Mois' :
+          currentFilter.dateRange }}</span>
+      </div>
+      <div class="card-body chart-container-large">
+        <canvas baseChart [data]="d.movementTrendChart" [options]="lineOptions" [type]="'line'">
+        </canvas>
+      </div>
+    </div>
+
+    <!-- Doughnut Chart: Health -->
+    <div class="chart-card">
+      <div class="card-header">
+        <h3 class="card-title">Santé de l'Inventaire</h3>
+        <span class="card-action material-symbols-rounded text-muted tooltip-icon"
+          title="Affiche la proportion de vos produits selon leur état (Normal, En Sur-stock, En Alerte, Critique, ou En Rupture).">info</span>
+      </div>
+      <div class="card-body chart-container-pie">
+        <canvas baseChart [data]="d.stockHealthChart" [options]="pieOptions" [type]="'doughnut'">
+        </canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Bar Chart & Recent Activity -->
+  <div class="grid-charts-mid">
+    <div class="chart-card">
+      <div class="card-header">
+        <h3 class="card-title">Stock Total par Produit</h3>
+      </div>
+      <div class="card-body chart-container-bar">
+        <canvas baseChart [data]="d.productStockChart" [options]="barOptions" [type]="'bar'">
+        </canvas>
+      </div>
+    </div>
+
+    <div class="chart-card no-padding">
+      <div class="card-header border-bottom padding-header">
+        <h3 class="card-title">Derniers Mouvements</h3>
+      </div>
+      <div class="list-container">
+        @for (mov of showAllMovements() ? d.recentMovements : d.recentMovements.slice(0, 4); track mov.id) {
+        <div class="list-item">
+          <div class="li-icon" [class.is-in]="mov.type === 'entry'" [class.is-out]="mov.type === 'exit'">
+            <span class="material-symbols-rounded">{{ mov.type === 'entry' ? 'arrow_downward' : 'arrow_upward' }}</span>
+          </div>
+          <div class="li-body">
+            <span class="li-title">{{ mov.produitNom }}</span>
+            <span class="li-sub">{{ mov.siteNom }} • {{ mov.utilisateur }}</span>
+          </div>
+          <div class="li-right">
+            <span class="li-qty" [class.text-green]="mov.type === 'entry'" [class.text-red]="mov.type === 'exit'">
+              {{ mov.type === 'entry' ? '+' : '-' }}{{ mov.quantite }}
             </span>
+            <span class="li-time">{{ mov.date | date:'HH:mm (dd/MM)' }}</span>
           </div>
+        </div>
         } @empty {
-          <div class="db-empty-panel">
-            <span class="material-symbols-rounded">verified</span>
-            <p>Aucune alerte critique</p>
-          </div>
+        <div class="empty-state">Aucune activité récente.</div>
         }
       </div>
+      @if (d.recentMovements.length > 4) {
+      <div class="card-footer-action" [class.is-collapsed]="!showAllMovements()">
+        <button class="btn-secondary-link" (click)="showAllMovements.set(!showAllMovements())">
+          {{ showAllMovements() ? 'Voir moins' : 'Voir plus' }}
+          <span class="material-symbols-rounded">{{ showAllMovements() ? 'expand_less' : 'expand_more' }}</span>
+        </button>
+      </div>
+      } @else if (d.recentMovements.length > 0 && d.recentMovements.length <= 4) { <div class="card-footer-action">
+        <a routerLink="/movements" class="btn-secondary-link" title="Gérer tous les mouvements">Historique Complet <span
+            class="material-symbols-rounded">arrow_right_alt</span></a>
     </div>
-    <div class="dashboard">
-<iframe title="DASHBORD" width="600" height="373.5" src="https://app.powerbi.com/view?r=eyJrIjoiYmNjYmQyZjQtNDYzMi00ZTJmLWI4MzctNTFjYWMxNzM5NzJmIiwidCI6ImRiZDY2NjRkLTRlYjktNDZlYi05OWQ4LTVjNDNiYTE1M2M2MSIsImMiOjl9" frameborder="0" allowFullScreen="true"></iframe></div>
+    }
+  </div>
+</div>
 
-    
-  
+<!-- Row 4: Stocks Table -->
+<div class="chart-card action-table-card mt-4">
+  <div class="card-header border-bottom padding-header">
+    <h3 class="card-title d-flex-align">
+      <span class="material-symbols-rounded text-indigo mr-2">list_alt</span>
+      État Global des Stocks
+    </h3>
+    <span class="badge-indigo">{{ d.replenishmentItems.length }} produits</span>
+  </div>
 
-    
+  <div class="table-scroll">
+    <table class="data-grid">
+      <thead>
+        <tr>
+          <th>Produit</th>
+          <th>Site / Localisation</th>
+          <th class="text-right">Stock Actuel</th>
+          <th class="text-right">Seuil Critique</th>
+          <th>État</th>
+          <th class="text-right bg-highlight">Qté Recommandée</th>
+          <th class="text-center">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of d.replenishmentItems; track item.stockId) {
+        <tr>
+          <td class="fw-600 text-dark">{{ item.produitNom }}</td>
+          <td class="text-muted">{{ item.siteNom }}</td>
+          <td class="text-right font-mono">{{ item.quantiteDisponible }} u.</td>
+          <td class="text-right text-muted font-mono"><span class="badge-outline">{{ item.seuilMinimum }}</span></td>
+          <td>
+            <span class="status-pill" [class]="item.status">
+              {{ item.status | uppercase }}
+            </span>
+          </td>
+          <td class="text-right bg-highlight font-mono fw-700 text-indigo">
+            {{ item.qteAReapprovisionner > 0 ? item.qteAReapprovisionner : '-' }}
+          </td>
+          <td class="text-center">
+            @if (item.status !== 'normal') {
+            <a [routerLink]="['/reapprovisionnement']" class="btn-action">Agir</a>
+            } @else {
+            <span class="text-muted">-</span>
+            }
+          </td>
+        </tr>
+        } @empty {
+        <tr>
+          <td colspan="7" class="empty-state-large">
+            <span class="material-symbols-rounded empty-icon">inventory_2</span>
+            <p>Aucun produit ne correspond à ces filtres.</p>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+} <!-- end if data -->
+</div>

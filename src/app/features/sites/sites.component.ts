@@ -46,6 +46,7 @@ export class SitesComponent implements OnInit {
   showDeleteModal = signal(false);
   siteToDelete = signal<Site | null>(null);
   deleting = signal(false);
+  deleteError = signal('');
 
   siteTypes = SITE_TYPES;
 
@@ -210,7 +211,21 @@ export class SitesComponent implements OnInit {
     await this.siteService.fetchSites();
   }
 
+  siteHasStock(site: Site): boolean {
+    const stocks = this.stockService.getStocksBySite(site.id);
+    return stocks.length > 0;
+  }
+
   deleteSite(site: Site) {
+    this.deleteError.set('');
+    if (this.siteHasStock(site)) {
+      this.deleteError.set(
+        `Impossible de supprimer le site "${site.nom}" car il contient encore des stocks. Veuillez d'abord supprimer ou transférer tous les stocks de ce site.`
+      );
+      this.siteToDelete.set(site);
+      this.showDeleteModal.set(true);
+      return;
+    }
     this.siteToDelete.set(site);
     this.showDeleteModal.set(true);
   }
@@ -218,6 +233,7 @@ export class SitesComponent implements OnInit {
   cancelDelete() {
     this.showDeleteModal.set(false);
     this.siteToDelete.set(null);
+    this.deleteError.set('');
   }
 
   async confirmDelete() {

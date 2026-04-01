@@ -1,4 +1,4 @@
-﻿<div class="pd-page">
+<div class="pd-page">
   <!-- Header -->
   <div class="pd-header">
     <div class="pd-header-text">
@@ -9,10 +9,16 @@
       <p>Gérer vos articles d'inventaire</p>
     </div>
     @if (canManageProducts()) {
-      <button class="pd-btn primary" (click)="openAddModal()">
-        <span class="material-symbols-rounded">add_box</span>
-        Ajouter un produit
-      </button>
+      <div class="pd-header-actions">
+        <button class="pd-btn outline" (click)="openCategoryModal()">
+          <span class="material-symbols-rounded">category</span>
+          Gérer Catégories
+        </button>
+        <button class="pd-btn primary" (click)="openAddModal()">
+          <span class="material-symbols-rounded">add_box</span>
+          Ajouter un produit
+        </button>
+      </div>
     }
   </div>
 
@@ -301,22 +307,145 @@
   @if (showDeleteModal()) {
     <div class="pd-overlay" (click)="cancelDelete()">
       <div class="pd-confirm-modal" (click)="$event.stopPropagation()">
-        <div class="pd-confirm-icon danger">
-          <span class="material-symbols-rounded">delete_forever</span>
-        </div>
-        <h2>Êtes-vous sûr ?</h2>
-        @if (productToDelete(); as product) {
-          <p>Voulez-vous vraiment supprimer le produit <strong>{{ product.nom }}</strong> ? Cette action est irréversible.</p>
-        } @else if (categoryToDelete(); as cat) {
-          <p>Voulez-vous vraiment supprimer la catégorie <strong>{{ cat.name }}</strong> ? Cette action est irréversible.</p>
+        @if (deleteError()) {
+          <div class="pd-confirm-icon blocked">
+            <span class="material-symbols-rounded">block</span>
+          </div>
+          <h2>Suppression impossible</h2>
+          <p class="pd-error-msg">{{ deleteError() }}</p>
+          <div class="pd-confirm-actions">
+            <button type="button" class="pd-btn cancel" (click)="cancelDelete()">Fermer</button>
+            @if (productToDelete()) {
+              <a class="pd-btn primary" routerLink="/movements">
+                <span class="material-symbols-rounded">swap_vert</span>
+                Mouvements
+              </a>
+            }
+          </div>
+        } @else {
+          <div class="pd-confirm-icon danger">
+            <span class="material-symbols-rounded">delete_forever</span>
+          </div>
+          <h2>Êtes-vous sûr ?</h2>
+          @if (productToDelete(); as product) {
+            <p>Voulez-vous vraiment supprimer le produit <strong>{{ product.nom }}</strong> ? Cette action est irréversible.</p>
+          } @else if (categoryToDelete(); as cat) {
+            <p>Voulez-vous vraiment supprimer la catégorie <strong>{{ cat.name }}</strong> ? Cette action est irréversible.</p>
+          }
+          <div class="pd-confirm-actions">
+            <button type="button" class="pd-btn cancel" (click)="cancelDelete()">Annuler</button>
+            <button type="button" class="pd-btn danger" (click)="confirmDelete()" [disabled]="deleting()">
+              @if (deleting()) { <span class="material-symbols-rounded spin">progress_activity</span> }
+              Supprimer
+            </button>
+          </div>
         }
-        <div class="pd-confirm-actions">
-          <button type="button" class="pd-btn cancel" (click)="cancelDelete()">Annuler</button>
-          <button type="button" class="pd-btn danger" (click)="confirmDelete()" [disabled]="deleting()">
-            @if (deleting()) { <span class="material-symbols-rounded spin">progress_activity</span> }
-            Supprimer
+      </div>
+    </div>
+  }
+
+  <!-- Category Management Modal -->
+  @if (showCategoryModal()) {
+    <div class="pd-overlay" (click)="closeCategoryModal()">
+      <div class="pd-modal sm" (click)="$event.stopPropagation()">
+        <div class="pd-modal-header">
+          <div class="pd-modal-title">
+            <div class="pd-modal-icon">
+              <span class="material-symbols-rounded">category</span>
+            </div>
+            <h2>
+              @if (categoryModalMode() === 'list') { Gérer les Catégories }
+              @else if (categoryModalMode() === 'add') { Ajouter une Catégorie }
+              @else { Modifier la Catégorie }
+            </h2>
+          </div>
+          <button class="pd-modal-close" (click)="closeCategoryModal()">
+            <span class="material-symbols-rounded">close</span>
           </button>
         </div>
+
+        <div class="pd-modal-body">
+          <!-- Error / Success messages -->
+          @if (categoryError()) {
+            <div class="cat-msg error">
+              <span class="material-symbols-rounded">error</span>
+              {{ categoryError() }}
+            </div>
+          }
+          @if (categorySuccess()) {
+            <div class="cat-msg success">
+              <span class="material-symbols-rounded">check_circle</span>
+              {{ categorySuccess() }}
+            </div>
+          }
+
+          @if (categoryModalMode() === 'list') {
+            <!-- Category List -->
+            <div class="cat-list">
+              @if (listCategories.length === 0) {
+                <div class="cat-empty">
+                  <span class="material-symbols-rounded">folder_off</span>
+                  <p>Aucune catégorie</p>
+                </div>
+              } @else {
+                @for (cat of listCategories; track cat.id_c) {
+                  <div class="cat-item">
+                    <div class="cat-item-info">
+                      <span class="material-symbols-rounded cat-item-icon">label</span>
+                      <div>
+                        <span class="cat-item-name">{{ cat.categorieLibelle }}</span>
+                        <span class="cat-item-count">{{ getCategoryProductCount(cat.id_c) }} produit(s)</span>
+                      </div>
+                    </div>
+                    <div class="cat-item-actions">
+                      <button class="pd-act edit" title="Modifier" (click)="startEditCategory(cat)">
+                        <span class="material-symbols-rounded">edit_square</span>
+                      </button>
+                      <button class="pd-act delete" title="Supprimer" (click)="deleteCategoryFromModal(cat)"
+                        [disabled]="categoryDeleting() === cat.id_c">
+                        @if (categoryDeleting() === cat.id_c) {
+                          <span class="material-symbols-rounded spin">progress_activity</span>
+                        } @else {
+                          <span class="material-symbols-rounded">delete_outline</span>
+                        }
+                      </button>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          } @else {
+            <!-- Add / Edit Form -->
+            <form class="cat-form" (ngSubmit)="saveCategory()">
+              <div class="pd-field">
+                <label>Nom de la catégorie <span class="req">*</span></label>
+                <div class="pd-input-wrap">
+                  <span class="material-symbols-rounded">label</span>
+                  <input type="text" placeholder="Entrez le nom" [value]="categoryFormName()" (input)="onCategoryFormInput($event)" autofocus>
+                </div>
+              </div>
+              <div class="cat-form-actions">
+                <button type="button" class="pd-btn cancel" (click)="backToList()">Retour</button>
+                <button type="submit" class="pd-btn primary" [disabled]="categorySaving() || !categoryFormName().trim()">
+                  @if (categorySaving()) {
+                    <span class="material-symbols-rounded spin">progress_activity</span>
+                  }
+                  {{ categoryModalMode() === 'add' ? 'Ajouter' : 'Modifier' }}
+                </button>
+              </div>
+            </form>
+          }
+        </div>
+
+        @if (categoryModalMode() === 'list') {
+          <div class="pd-modal-footer">
+            <button class="pd-btn cancel" (click)="closeCategoryModal()">Fermer</button>
+            <button class="pd-btn primary" (click)="startAddCategory2()">
+              <span class="material-symbols-rounded">add_circle</span>
+              Ajouter
+            </button>
+          </div>
+        }
       </div>
     </div>
   }

@@ -1,0 +1,280 @@
+<div class="so-page">
+  <!-- Header -->
+  <div class="so-header">
+    <div class="so-header-text">
+      <h1>
+        <span class="material-symbols-rounded so-header-icon">inventory_2</span>
+        Vue d'ensemble des Stocks
+      </h1>
+      <p>Consultez les niveaux de stock de tous les sites</p>
+    </div>
+  </div>
+
+  <!-- Stats cards -->
+  <div class="so-stats">
+    <div class="so-stat">
+      <span class="material-symbols-rounded so-stat-icon total">inventory</span>
+      <div>
+        <span class="so-stat-value">{{ stats().total }}</span>
+        <span class="so-stat-label">Lignes de stock</span>
+      </div>
+    </div>
+    <div class="so-stat">
+      <span class="material-symbols-rounded so-stat-icon qty">deployed_code</span>
+      <div>
+        <span class="so-stat-value">{{ stats().totalQty }}</span>
+        <span class="so-stat-label">Quantité totale</span>
+      </div>
+    </div>
+    <div class="so-stat warning">
+      <span class="material-symbols-rounded so-stat-icon warn">production_quantity_limits</span>
+      <div>
+        <span class="so-stat-value">{{ stats().warning + stats().critical }}</span>
+        <span class="so-stat-label">Stock bas</span>
+      </div>
+    </div>
+    <div class="so-stat danger">
+      <span class="material-symbols-rounded so-stat-icon danger">report_problem</span>
+      <div>
+        <span class="so-stat-value">{{ stats().rupture }}</span>
+        <span class="so-stat-label">Rupture</span>
+      </div>
+    </div>
+    <div class="so-stat overstock">
+      <span class="material-symbols-rounded so-stat-icon over">deployed_code_alert</span>
+      <div>
+        <span class="so-stat-value">{{ stats().overstock }}</span>
+        <span class="so-stat-label">Surstock</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="so-toolbar">
+    <!-- Search -->
+    <div class="so-search">
+      <span class="material-symbols-rounded">search</span>
+      <input type="text" placeholder="Rechercher produit ou site..." [value]="searchTerm()" (input)="onSearch($event)">
+    </div>
+
+    <!-- Site type pills -->
+    <div class="so-type-pills">
+      <button class="so-pill" [class.active]="selectedSiteType() === 'all'" (click)="onSiteTypeChange('all')">Tous</button>
+      @for (type of siteTypes; track type.value) {
+        <button class="so-pill" [class.active]="selectedSiteType() === type.value" (click)="onSiteTypeChange(type.value)">
+          <span class="material-symbols-rounded">{{ type.icon }}</span>
+          {{ type.label }}
+        </button>
+      }
+    </div>
+
+    <!-- Site selector -->
+    <div class="so-select-wrap">
+      <span class="material-symbols-rounded">domain</span>
+      <select [value]="selectedSiteId()" (change)="onSiteChange($event)">
+        <option value="">Tous les sites</option>
+        @for (site of filteredSites(); track site.id) {
+          <option [value]="site.id">{{ site.nom }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Status pills -->
+    <div class="so-status-pills">
+      <button class="so-pill status" [class.active]="selectedStatus() === 'all'" (click)="onStatusChange('all')">Tous</button>
+      <button class="so-pill status ok" [class.active]="selectedStatus() === 'ok'" (click)="onStatusChange('ok')">
+        <span class="dot ok"></span> Normal
+      </button>
+      <button class="so-pill status warning" [class.active]="selectedStatus() === 'warning'" (click)="onStatusChange('warning')">
+        <span class="dot warning"></span> Alerte
+      </button>
+      <button class="so-pill status critical" [class.active]="selectedStatus() === 'critical'" (click)="onStatusChange('critical')">
+        <span class="dot critical"></span> Critique
+      </button>
+      <button class="so-pill status rupture" [class.active]="selectedStatus() === 'rupture'" (click)="onStatusChange('rupture')">
+        <span class="dot rupture"></span> Rupture
+      </button>
+      <button class="so-pill status overstock" [class.active]="selectedStatus() === 'overstock'" (click)="onStatusChange('overstock')">
+        <span class="dot overstock"></span> Surstock
+      </button>
+    </div>
+
+    @if (hasActiveFilters()) {
+      <button class="so-clear-btn" (click)="clearFilters()" title="Réinitialiser les filtres">
+        <span class="material-symbols-rounded">filter_alt_off</span>
+        Réinitialiser
+      </button>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="so-loading">
+      <span class="material-symbols-rounded spin">progress_activity</span>
+      <p>Chargement des stocks…</p>
+    </div>
+  }
+
+  <!-- Table -->
+  @if (!loading()) {
+    <div class="so-table-wrap">
+      @if (filteredStocks().length > 0) {
+        <table class="so-table">
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Site</th>
+              <th class="th-right">Qté Disponible</th>
+              <th class="th-right">Seuil Alerte</th>
+              <th class="th-right">Seuil Min</th>
+              <th class="th-right">Seuil Max</th>
+              <th>Statut</th>
+              <th class="th-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (stock of filteredStocks(); track stock.id) {
+              <tr [attr.data-status]="getStockStatus(stock)">
+                <td>
+                  <div class="so-product-cell">
+                    <span class="material-symbols-rounded so-product-icon">package_2</span>
+                    <span class="so-product-name">{{ stock.produitNom || stock.produitId }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="so-site-cell">
+                    <span class="material-symbols-rounded so-site-icon">{{ getSiteTypeIcon(stock.siteId) }}</span>
+                    <div class="so-site-info">
+                      <span class="so-site-name">{{ stock.siteNom || getSiteName(stock.siteId) }}</span>
+                      <span class="so-site-type">{{ getSiteType(stock.siteId) }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-right">
+                  <span class="so-qty-badge" [attr.data-status]="getStockStatus(stock)">
+                    {{ stock.quantiteDisponible }}
+                  </span>
+                </td>
+                <td class="text-right so-muted">{{ stock.seuilAlerte }}</td>
+                <td class="text-right so-muted">{{ stock.seuilMinimum }}</td>
+                <td class="text-right so-muted">{{ stock.seuilMaximum }}</td>
+                <td>
+                  <span class="so-status-badge" [attr.data-status]="getStockStatus(stock)">
+                    {{ getStockStatusLabel(stock) }}
+                  </span>
+                </td>
+                <td>
+                  <div class="so-actions">
+                    <button class="so-act edit" title="Modifier les seuils" (click)="openEdit(stock)">
+                      <span class="material-symbols-rounded">tune</span>
+                    </button>
+                    <button class="so-act entry" title="Entrée de stock" (click)="openMovement(stock, 'entry')">
+                      <span class="material-symbols-rounded">input</span>
+                    </button>
+                    <button class="so-act exit" title="Sortie de stock" (click)="openMovement(stock, 'exit')">
+                      <span class="material-symbols-rounded">output</span>
+                    </button>
+                    <button class="so-act view" title="Voir stocks du site" (click)="goToSiteStocks(stock.siteId)">
+                      <span class="material-symbols-rounded">open_in_new</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <div class="so-empty">
+          <div class="so-empty-icon">
+            <span class="material-symbols-rounded">deployed_code</span>
+          </div>
+          <h3>Aucun stock trouvé</h3>
+          <p>Essayez d'ajuster vos filtres.</p>
+          @if (hasActiveFilters()) {
+            <button class="so-clear-btn" (click)="clearFilters()">
+              <span class="material-symbols-rounded">filter_alt_off</span>
+              Réinitialiser les filtres
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Edit Seuils Modal -->
+  @if (showEditModal()) {
+    <div class="so-overlay" (click)="closeEdit()">
+      <div class="so-modal" (click)="$event.stopPropagation()">
+        <div class="so-modal-header">
+          <div class="so-modal-title">
+            <div class="so-modal-icon">
+              <span class="material-symbols-rounded">tune</span>
+            </div>
+            <div>
+              <h2>Modifier les seuils</h2>
+              <p>{{ editingStock()?.produitNom || editingStock()?.produitId }} — {{ getSiteName(editingStock()?.siteId ?? '') }}</p>
+            </div>
+          </div>
+          <button class="so-modal-close" (click)="closeEdit()">
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        </div>
+
+        <form class="so-form" (ngSubmit)="saveEdit()">
+          <div class="so-field">
+            <label>Seuil d'Alerte</label>
+            <div class="so-input-wrap">
+              <span class="material-symbols-rounded">warning</span>
+              <input type="number" min="0" [ngModel]="editForm().seuilAlerte" name="seuilAlerte" readonly disabled>
+            </div>
+            <p class="so-field-note">Calculé automatiquement : seuil minimum + seuil sécurité</p>
+          </div>
+          <div class="so-field">
+            <label>Seuil Sécurité</label>
+            <div class="so-input-wrap">
+              <span class="material-symbols-rounded">shield</span>
+              <input type="number" min="0" [ngModel]="editForm().seuilSecurite" (ngModelChange)="updateSeuilSecurite($event)" name="seuilSecurite">
+            </div>
+          </div>
+          <div class="so-field">
+            <label>Seuil Minimum</label>
+            <div class="so-input-wrap">
+              <span class="material-symbols-rounded">trending_down</span>
+              <input type="number" min="0" [ngModel]="editForm().seuilMinimum" (ngModelChange)="updateSeuilMinimum($event)" name="seuilMinimum">
+            </div>
+          </div>
+          <div class="so-field">
+            <label>Seuil Maximum</label>
+            <div class="so-input-wrap">
+              <span class="material-symbols-rounded">trending_up</span>
+              <input type="number" min="0" [ngModel]="editForm().seuilMaximum" (ngModelChange)="editForm.set({...editForm(), seuilMaximum: $event})" name="seuilMaximum">
+            </div>
+          </div>
+
+          @if (editForm().seuilMinimum < editForm().seuilSecurite) {
+            <div style="color: #ef4444; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca; margin-bottom: 8px;">
+              <span class="material-symbols-rounded" style="font-size: 18px;">error</span>
+              Le seuil minimum doit être ≥ au seuil de sécurité.
+            </div>
+          }
+          @if (editForm().seuilMaximum > 0 && editForm().seuilMaximum < editForm().seuilAlerte) {
+            <div style="color: #ef4444; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca; margin-bottom: 8px;">
+              <span class="material-symbols-rounded" style="font-size: 18px;">error</span>
+              Le seuil maximum doit être ≥ au seuil d'alerte ({{ editForm().seuilAlerte }}).
+            </div>
+          }
+
+          <div class="so-form-actions">
+            <button type="button" class="so-btn cancel" (click)="closeEdit()">Annuler</button>
+            <button type="submit" class="so-btn primary" [disabled]="saving() || editForm().seuilMinimum < editForm().seuilSecurite || (editForm().seuilMaximum > 0 && editForm().seuilMaximum < editForm().seuilAlerte)">
+              @if (saving()) {
+                <span class="material-symbols-rounded spin">progress_activity</span>
+              }
+              {{ saving() ? 'Enregistrement...' : 'Enregistrer' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

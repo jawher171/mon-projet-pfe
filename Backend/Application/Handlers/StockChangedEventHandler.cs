@@ -23,7 +23,7 @@ namespace Application.Handlers
     ///    QuantiteDisponible ≤ SeuilAlerte  → STOCK_ALERTE    (Warning)
     ///    Else                              → close all threshold alerts
     /// C) Maximum (independent):
-    ///    QuantiteDisponible ≥ SeuilMaximum → STOCK_MAXIMUM  (Warning)
+    ///    QuantiteDisponible > SeuilMaximum → STOCK_MAXIMUM  (Warning)
     ///    Else                              → close STOCK_MAXIMUM
     /// </summary>
     public class StockChangedEventHandler : INotificationHandler<StockChangedEvent>
@@ -152,7 +152,7 @@ namespace Application.Handlers
 
         private async Task EvaluateMaximumAlert(Stock stock, int qty, string produitNom, string siteNom, CancellationToken ct)
         {
-            if (stock.SeuilMaximum > 0 && qty >= stock.SeuilMaximum)
+            if (stock.SeuilMaximum > 0 && qty > stock.SeuilMaximum)
             {
                 await _alertService.UpsertOpenAlertAsync(
                     stock.id_s,

@@ -48,6 +48,7 @@ export class SiteStocksComponent implements OnInit {
   showDeleteModal = signal(false);
   stockToDelete = signal<Stock | null>(null);
   deleting = signal(false);
+  deleteError = signal('');
 
   siteName = computed(() => this.site()?.nom ?? 'Site');
 
@@ -100,7 +101,7 @@ export class SiteStocksComponent implements OnInit {
     if (stock.seuilMinimum > 0 && qty <= stock.seuilMinimum) return 'critical';
     if (stock.seuilSecurite > 0 && qty <= stock.seuilSecurite) return 'low';
     if (stock.seuilAlerte > 0 && qty <= stock.seuilAlerte) return 'warning';
-    if (stock.seuilMaximum > 0 && qty >= stock.seuilMaximum) return 'overstock';
+    if (stock.seuilMaximum > 0 && qty > stock.seuilMaximum) return 'overstock';
     return 'ok';
   }
 
@@ -118,6 +119,12 @@ export class SiteStocksComponent implements OnInit {
 
   // ── Delete stock ────────────────────────────────
   deleteStock(stock: Stock) {
+    this.deleteError.set('');
+    if (stock.quantiteDisponible > 0) {
+      this.deleteError.set(
+        `Impossible de supprimer le stock de "${stock.produitNom || stock.produitId}" car il contient encore ${stock.quantiteDisponible} unité(s). Veuillez d'abord effectuer un mouvement de sortie pour vider le stock.`
+      );
+    }
     this.stockToDelete.set(stock);
     this.showDeleteModal.set(true);
   }
@@ -125,6 +132,7 @@ export class SiteStocksComponent implements OnInit {
   cancelDelete() {
     this.showDeleteModal.set(false);
     this.stockToDelete.set(null);
+    this.deleteError.set('');
   }
 
   async confirmDelete() {

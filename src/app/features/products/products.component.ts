@@ -56,6 +56,17 @@ export class ProductsComponent implements OnInit, OnDestroy {
   categoryToDelete = signal<{ id: string | number; name: string } | null>(null);
   deleting = signal(false);
   submitError = signal('');
+  deleteError = signal('');
+
+  // ── Category management modal ──
+  showCategoryModal = signal(false);
+  categoryModalMode = signal<'list' | 'add' | 'edit'>('list');
+  editingCategory = signal<Category | null>(null);
+  categoryFormName = signal('');
+  categoryError = signal('');
+  categorySuccess = signal('');
+  categorySaving = signal(false);
+  categoryDeleting = signal<string | number | null>(null);
 
   /** Inline add category state */
   isAddingCategory = signal(false);
@@ -172,6 +183,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
       localStorage.removeItem('scan_public_base_url');
     }
 
+  //ngrok host service
     const { origin, hostname } = window.location;
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       return 'https://uncontingent-nongeographically-wilma.ngrok-free.dev';
@@ -415,6 +427,15 @@ getproducts() {
     if (!id) return;
     const category = this.listCategories.find(c => String(c.id_c) === String(id));
     const name = category?.categorieLibelle ?? 'cette catégorie';
+    
+    this.deleteError.set('');
+    const linkedCount = this.getCategoryProductCount(id);
+    if (linkedCount > 0) {
+      this.deleteError.set(
+        `Impossible de supprimer la catégorie "${name}" car elle est liée à ${linkedCount} produit(s).`
+      );
+    }
+    
     this.categoryToDelete.set({ id, name });
     this.showDeleteModal.set(true);
   }
@@ -474,6 +495,135 @@ getproducts() {
     this.getproducts();
   }
 
+  // ══════════════════════════════════════════════
+  // Category Management Modal
+  // ══════════════════════════════════════════════
+  openCategoryModal() {
+    this.categoryModalMode.set('list');
+    this.categoryError.set('');
+    this.categorySuccess.set('');
+    this.categoryFormName.set('');
+    this.editingCategory.set(null);
+    this.showCategoryModal.set(true);
+  }
+
+  closeCategoryModal() {
+    this.showCategoryModal.set(false);
+    this.categoryModalMode.set('list');
+    this.editingCategory.set(null);
+    this.categoryFormName.set('');
+    this.categoryError.set('');
+    this.categorySuccess.set('');
+  }
+
+  startAddCategory2() {
+    this.categoryModalMode.set('add');
+    this.categoryFormName.set('');
+    this.categoryError.set('');
+    this.categorySuccess.set('');
+  }
+
+  startEditCategory(cat: Category) {
+    this.categoryModalMode.set('edit');
+    this.editingCategory.set(cat);
+    this.categoryFormName.set(cat.categorieLibelle);
+    this.categoryError.set('');
+    this.categorySuccess.set('');
+  }
+
+  backToList() {
+    this.categoryModalMode.set('list');
+    this.editingCategory.set(null);
+    this.categoryFormName.set('');
+    this.categoryError.set('');
+  }
+
+  onCategoryFormInput(event: Event) {
+    this.categoryFormName.set((event.target as HTMLInputElement).value);
+    this.categoryError.set('');
+  }
+
+  /** Count products linked to a category */
+  getCategoryProductCount(categoryId: string | number): number {
+    return this.listProducts.filter(p => String(p.id_c) === String(categoryId)).length;
+  }
+
+  private readonly CATEGORY_NAME_PATTERN = /^[A-Za-zÀ-ÿ0-9\s\-']+$/;
+
+  async saveCategory() {
+    const name = this.categoryFormName().trim();
+    this.categoryError.set('');
+    this.categorySuccess.set('');
+
+    // Validation
+    if (!name) {
+      this.categoryError.set('Le nom de la catégorie est obligatoire.');
+      return;
+    }
+    if (!this.CATEGORY_NAME_PATTERN.test(name)) {
+      this.categoryError.set('Le nom contient des caractères non autorisés.');
+      return;
+    }
+    if (/^\d+$/.test(name)) {
+      this.categoryError.set('Le nom de la catégorie ne peut pas contenir uniquement des chiffres.');
+      return;
+    }
+
+    // Unique name check
+    const existingDup = this.listCategories.find(
+      c => c.categorieLibelle.toLowerCase() === name.toLowerCase()
+        && (this.categoryModalMode() !== 'edit' || String(c.id_c) !== String(this.editingCategory()?.id_c))
+    );
+    if (existingDup) {
+      this.categoryError.set('Une catégorie avec ce nom existe déjà.');
+      return;
+    }
+
+    this.categorySaving.set(true);
+    try {
+      if (this.categoryModalMode() === 'add') {
+        await this.categoryService.addCategoryApi(name);
+        this.categorySuccess.set('Catégorie créée avec succès.');
+      } else if (this.categoryModalMode() === 'edit' && this.editingCategory()) {
+        await this.categoryService.updateCategoryApi(this.editingCategory()!.id_c, name);
+        this.categorySuccess.set('Catégorie mise à jour avec succès.');
+      }
+      this.getCategories();
+      setTimeout(() => this.backToList(), 800);
+    } catch (err) {
+      this.categoryError.set('Erreur lors de l\'enregistrement.');
+      console.error(err);
+    } finally {
+      this.categorySaving.set(false);
+    }
+  }
+
+  async deleteCategoryFromModal(cat: Category) {
+    this.categoryError.set('');
+    this.categorySuccess.set('');
+
+    // Check if category has linked products
+    const linkedCount = this.getCategoryProductCount(cat.id_c);
+    if (linkedCount > 0) {
+      this.categoryError.set(
+        `Suppression impossible — la catégorie "${cat.categorieLibelle}" est liée à ${linkedCount} produit(s). Veuillez d'abord changer la catégorie de ces produits.`
+      );
+      return;
+    }
+
+    this.categoryDeleting.set(cat.id_c);
+    try {
+      await this.categoryService.deleteCategoryApi(cat.id_c);
+      this.getCategories();
+      this.categorySuccess.set('Catégorie supprimée.');
+    } catch (err) {
+      this.categoryError.set('Erreur lors de la suppression.');
+      console.error(err);
+    } finally {
+      this.categoryDeleting.set(null);
+    }
+  }
+
   /**
    * Delete product
    * @param productId Product ID to delete
@@ -482,16 +632,26 @@ getproducts() {
     if (!this.guardManageProductsAction()) return;
     const product = this.listProducts.find(p => String(p.id_p) === String(productId))
       ?? this.products().find(p => String(p.id_p) === String(productId));
-    if (product) {
-      this.productToDelete.set(product);
-      this.showDeleteModal.set(true);
+    if (!product) return;
+
+    this.deleteError.set('');
+    // Check if product has stock with quantity > 0
+    const stocks = this.stockService.getStocksByProduct(productId);
+    const totalQty = stocks.reduce((sum, s) => sum + s.quantiteDisponible, 0);
+    if (totalQty > 0) {
+      this.deleteError.set(
+        `Impossible de supprimer le produit "${product.nom}" car il possède encore ${totalQty} unité(s) en stock. Veuillez d'abord vider le stock de ce produit via des mouvements de sortie.`
+      );
     }
+    this.productToDelete.set(product);
+    this.showDeleteModal.set(true);
   }
 
   cancelDelete() {
     this.showDeleteModal.set(false);
     this.productToDelete.set(null);
     this.categoryToDelete.set(null);
+    this.deleteError.set('');
   }
 
   async confirmDelete() {

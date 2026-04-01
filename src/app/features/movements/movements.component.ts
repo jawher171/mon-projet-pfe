@@ -166,6 +166,17 @@ export class MovementsComponent implements OnInit, OnDestroy {
   movements = computed(() => this.movementService.getFilteredMovements(this.filter())());
   summary = computed(() => this.movementService.getMovementSummary());
 
+  showAllMovements = signal(false);
+
+  displayedMovements = computed(() => {
+    const all = this.movements();
+    return this.showAllMovements() ? all : all.slice(0, 7);
+  });
+
+  toggleMovements() {
+    this.showAllMovements.update(v => !v);
+  }
+
   // Validation: computed errors based on current form state
   formErrors = computed(() => {
     if (!this.formSubmitted()) return {};
@@ -522,10 +533,15 @@ export class MovementsComponent implements OnInit, OnDestroy {
     if (this.toastTimeout) clearTimeout(this.toastTimeout);
   }
 
-  truncateId(id: string | number): string {
-    const str = String(id);
-    if (str.length <= 8) return str;
-    return str.substring(0, 8) + '…';
+  formatMovementRef(movement: MouvementStock): string {
+    const typeCode = movement.type === 'entry' ? 'ENT' : 'SOR';
+    const d = new Date(movement.dateMouvement);
+    const dateCode = d.getFullYear().toString().substring(2) + 
+                     (d.getMonth() + 1).toString().padStart(2, '0') +
+                     d.getDate().toString().padStart(2, '0');
+    const idStr = String(movement.id).replace(/[^a-zA-Z0-9]/g, '');
+    const idHash = idStr.substring(0, 4).toUpperCase();
+    return `${typeCode}-${dateCode}-${idHash}`;
   }
 
   getSiteTypeLabel(type: string): string {

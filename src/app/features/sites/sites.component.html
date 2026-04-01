@@ -300,18 +300,33 @@
 @if (showDeleteModal() && siteToDelete(); as site) {
   <div class="si-overlay" (click)="cancelDelete()">
     <div class="si-confirm-modal" (click)="$event.stopPropagation()">
-      <div class="si-confirm-icon danger">
-        <span class="material-symbols-rounded">delete_forever</span>
-      </div>
-      <h2>Êtes-vous sûr ?</h2>
-      <p>Voulez-vous vraiment supprimer le site <strong>{{ site.nom }}</strong> ? Cette action est irréversible.</p>
-      <div class="si-confirm-actions">
-        <button class="si-btn cancel" (click)="cancelDelete()">Annuler</button>
-        <button class="si-btn danger" (click)="confirmDelete()" [disabled]="deleting()">
-          @if (deleting()) { <span class="material-symbols-rounded spin">progress_activity</span> }
-          Supprimer
-        </button>
-      </div>
+      @if (deleteError()) {
+        <div class="si-confirm-icon blocked">
+          <span class="material-symbols-rounded">block</span>
+        </div>
+        <h2>Suppression impossible</h2>
+        <p class="si-error-msg">{{ deleteError() }}</p>
+        <div class="si-confirm-actions">
+          <button class="si-btn cancel" (click)="cancelDelete()">Fermer</button>
+          <a class="si-btn primary" [routerLink]="['/sites', site.id, 'stocks']">
+            <span class="material-symbols-rounded">inventory_2</span>
+            Voir les stocks
+          </a>
+        </div>
+      } @else {
+        <div class="si-confirm-icon danger">
+          <span class="material-symbols-rounded">delete_forever</span>
+        </div>
+        <h2>Êtes-vous sûr ?</h2>
+        <p>Voulez-vous vraiment supprimer le site <strong>{{ site.nom }}</strong> ? Cette action est irréversible.</p>
+        <div class="si-confirm-actions">
+          <button class="si-btn cancel" (click)="cancelDelete()">Annuler</button>
+          <button class="si-btn danger" (click)="confirmDelete()" [disabled]="deleting()">
+            @if (deleting()) { <span class="material-symbols-rounded spin">progress_activity</span> }
+            Supprimer
+          </button>
+        </div>
+      }
     </div>
   </div>
 }

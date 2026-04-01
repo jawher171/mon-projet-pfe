@@ -42,6 +42,46 @@ export class MainLayoutComponent implements OnInit {
   /** Unread alert count for notification bell */
   unreadAlertCount = computed(() => this.alertService.getUnreadAlerts()().length);
 
+  /** Active (unresolved) alerts for the banner */
+  activeAlertsBanner = computed(() => this.alertService.getActiveAlerts()());
+
+  /** Whether user has dismissed the banner in this session */
+  alertBannerDismissed = signal(false);
+
+  /** Whether there are critical severity alerts */
+  hasCriticalAlerts = computed(() =>
+    this.activeAlertsBanner().some(a => a.severity === 'critical')
+  );
+
+  /** Count of critical alerts */
+  criticalCount = computed(() =>
+    this.activeAlertsBanner().filter(a => a.severity === 'critical').length
+  );
+
+  /** Count of warning alerts */
+  warningCount = computed(() =>
+    this.activeAlertsBanner().filter(a => a.severity === 'warning').length
+  );
+
+  /** Count of info alerts */
+  infoCount = computed(() =>
+    this.activeAlertsBanner().filter(a =>
+      a.severity !== 'critical' && a.severity !== 'warning'
+    ).length
+  );
+
+  /** Top product names from active alerts (max 3) */
+  topAlertProducts = computed(() => {
+    const names = [...new Set(
+      this.activeAlertsBanner()
+        .map(a => a.produitNom)
+        .filter((n): n is string => !!n)
+    )];
+    if (names.length === 0) return 'Vérifiez vos stocks';
+    if (names.length <= 3) return names.join(', ');
+    return names.slice(0, 3).join(', ') + ` et ${names.length - 3} autre${names.length - 3 > 1 ? 's' : ''}`;
+  });
+
   /** All navigation menu items with permissions */
   private allMenuItems: MenuItem[] = [
     { icon: 'dashboard', label: 'Tableau de Bord', route: '/dashboard' },
@@ -49,6 +89,7 @@ export class MainLayoutComponent implements OnInit {
     { icon: 'swap_vert', label: 'Mouvements', route: '/movements', permission: 'manage_movements' },
     { icon: 'qr_code_2', label: 'Scanner', route: '/scanner', permission: 'scan_barcode' },
     { icon: 'domain', label: 'Sites', route: '/sites', permission: 'view_sites' },
+    { icon: 'inventory_2', label: 'Stocks', route: '/stocks', permission: 'view_sites' },
     { icon: 'campaign', label: 'Alertes', route: '/alerts', permission: 'manage_alerts' },
     { icon: 'local_shipping', label: 'Reapprovisionnement', route: '/reapprovisionnement', permission: 'view_reapprovisionnement' },
     { icon: 'admin_panel_settings', label: 'Gestion Utilisateurs', route: '/user-management', adminOnly: true, section: 'Système' },
@@ -122,6 +163,13 @@ export class MainLayoutComponent implements OnInit {
   logout() {
     this.authService.logout();
     this.router.navigate(['/auth/login']);
+  }
+
+  /**
+   * Dismiss the alert banner for the current session
+   */
+  dismissAlertBanner() {
+    this.alertBannerDismissed.set(true);
   }
 
   /**

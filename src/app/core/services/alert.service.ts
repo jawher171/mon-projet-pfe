@@ -78,7 +78,7 @@ export class AlertService {
   }
 
   getUnreadAlerts() {
-    return computed(() => this.alertsSignal().filter(a => !(a.isRead ?? false)));
+    return computed(() => this.alertsSignal().filter(a => !a.resolue && !(a.isRead ?? false)));
   }
 
   getFilteredAlerts(filter: AlertFilter) {
@@ -119,12 +119,12 @@ export class AlertService {
   getAlertStats(): AlertStats {
     const allAlerts = this.alertsSignal();
     const unresolved = allAlerts.filter(a => !a.resolue);
-    const unread = allAlerts.filter(a => !(a.isRead ?? false));
+    const unread = unresolved.filter(a => !(a.isRead ?? false));
     const byType: Record<string, number> = {};
-    ALERT_TYPES.forEach(t => { byType[t.value] = allAlerts.filter(a => a.type === t.value).length; });
-    const critical = allAlerts.filter(a => a.severity === 'critical').length;
-    const high = allAlerts.filter(a => a.severity === 'warning').length;
-    const medium = allAlerts.filter(a => a.severity === 'info').length;
+    ALERT_TYPES.forEach(t => { byType[t.value] = unresolved.filter(a => a.type === t.value).length; });
+    const critical = unresolved.filter(a => a.severity === 'critical').length;
+    const high = unresolved.filter(a => a.severity === 'warning').length;
+    const medium = unresolved.filter(a => a.severity === 'info').length;
     return { total: unresolved.length, unread: unread.length, critical, high, medium, byType };
   }
 

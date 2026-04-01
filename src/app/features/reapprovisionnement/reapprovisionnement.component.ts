@@ -48,7 +48,7 @@ export class ReapprovisionnementComponent implements OnInit {
     if (stock.seuilMinimum > 0 && qty <= stock.seuilMinimum) return 'critical';
     if (stock.seuilSecurite > 0 && qty <= stock.seuilSecurite) return 'low';
     if (stock.seuilAlerte > 0 && qty <= stock.seuilAlerte) return 'warning';
-    if (stock.seuilMaximum > 0 && qty >= stock.seuilMaximum) return 'overstock';
+    if (stock.seuilMaximum > 0 && qty > stock.seuilMaximum) return 'overstock';
     return 'ok';
   }
 
