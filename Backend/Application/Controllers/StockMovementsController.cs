@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Application.Commands;
 using Application.Dtos;
@@ -39,7 +40,22 @@ namespace Application.Controllers
                         .Include(x => x.Stock).ThenInclude(s => s.Site)
                         .Include(x => x.Utilisateur)));
 
-            return _mapper.Map<IEnumerable<StockMovementDto>>(result);
+            var dtos = _mapper.Map<IEnumerable<StockMovementDto>>(result).ToList();
+
+            // Resolve destination GUIDs to site names for display
+            foreach (var dto in dtos)
+            {
+                if (!string.IsNullOrWhiteSpace(dto.Destination) && Guid.TryParse(dto.Destination, out var destGuid))
+                {
+                    var site = await _mediator.Send(
+                        new GetGenericQuery<Site>(
+                            condition: s => s.Id_site == destGuid,
+                            includes: null));
+                    dto.Destination = site?.Nom ?? $"Site supprimé";
+                }
+            }
+
+            return dtos;
         }
 
         [HttpGet("GetStockMovement/{id}")]

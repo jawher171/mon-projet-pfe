@@ -9,10 +9,10 @@
       <p>Administrer les magasins et entrepôts</p>
     </div>
     @if (canManageSites()) {
-      <button class="si-btn-add" (click)="openAddModal()">
-        <span class="material-symbols-rounded">add_business</span>
-        Nouveau Site
-      </button>
+    <button class="si-btn-add" (click)="openAddModal()">
+      <span class="material-symbols-rounded">add_business</span>
+      Nouveau Site
+    </button>
     }
   </div>
 
@@ -45,18 +45,19 @@
   <div class="si-toolbar">
     <div class="si-search">
       <span class="material-symbols-rounded">search</span>
-      <input type="text" placeholder="Rechercher par nom, ville..." [value]="searchTerm()" (input)="onSearch($event)">
+      <input type="text" placeholder="Rechercher par nom" [value]="searchTerm()" (input)="onSearch($event)">
     </div>
     <div class="si-type-pills">
       <button class="si-pill" [class.active]="selectedType() === 'all'" (click)="onTypeChange('all')">Tous</button>
       @for (type of siteTypes; track type.value) {
-        <button class="si-pill" [class.active]="selectedType() === type.value" (click)="onTypeChange(type.value)">
-          <span class="material-symbols-rounded">{{ type.icon }}</span>
-          {{ type.label }}
-        </button>
+      <button class="si-pill" [class.active]="selectedType() === type.value" (click)="onTypeChange(type.value)">
+        <span class="material-symbols-rounded">{{ type.icon }}</span>
+        {{ type.label }}
+      </button>
       }
     </div>
-    <button class="si-view-toggle" (click)="toggleViewMode()" [attr.title]="viewMode() === 'grid' ? 'Vue liste' : 'Vue grille'">
+    <button class="si-view-toggle" (click)="toggleViewMode()"
+      [attr.title]="viewMode() === 'grid' ? 'Vue liste' : 'Vue grille'">
       <span class="material-symbols-rounded">{{ viewMode() === 'grid' ? 'view_list' : 'grid_view' }}</span>
     </button>
   </div>
@@ -64,269 +65,287 @@
   <!-- Sites grid/list -->
   <div class="si-grid" [class.list]="viewMode() === 'list'">
     @for (site of sites(); track site.id) {
-      <div class="si-card" [attr.data-type]="site.type" [class.principal]="site.estEntrepotPrincipal">
-        <div class="si-card-header">
-          <div class="si-card-icon" [attr.data-type]="site.type">
-            <span class="material-symbols-rounded">{{ getSiteTypeIcon(site.type) }}</span>
-          </div>
-          <div class="si-card-meta">
-            <h3 class="si-card-title">{{ site.nom }}</h3>
-            <span class="si-card-subtitle">{{ site.ville }}</span>
-          </div>
-          <div class="si-card-actions">
-            <a class="si-act stocks" [routerLink]="['/sites', site.id, 'stocks']" title="Stocks">
-              <span class="material-symbols-rounded">inventory_2</span>
-            </a>
-            <button class="si-act view" (click)="openViewModal(site)" title="Voir">
-              <span class="material-symbols-rounded">open_in_new</span>
-            </button>
-            @if (canManageSites()) {
-              <button class="si-act edit" (click)="openEditModal(site)" title="Modifier">
-                <span class="material-symbols-rounded">edit_square</span>
-              </button>
-              <button class="si-act delete" (click)="deleteSite(site)" title="Supprimer">
-                <span class="material-symbols-rounded">delete_sweep</span>
-              </button>
-            }
-          </div>
+    <div class="si-card" [attr.data-type]="site.type" [class.principal]="site.estEntrepotPrincipal">
+      <div class="si-card-header">
+        <div class="si-card-icon" [attr.data-type]="site.type">
+          <span class="material-symbols-rounded">{{ getSiteTypeIcon(site.type) }}</span>
         </div>
-        <div class="si-card-body">
-          <div class="si-card-badges">
-            <span class="si-type-badge" [attr.data-type]="site.type">{{ getSiteTypeLabel(site.type) }}</span>
-            @if (site.estEntrepotPrincipal) {
-              <span class="si-badge-principal">
-                <span class="material-symbols-rounded">star</span>
-                Principal
-              </span>
-            }
-          </div>
-          <div class="si-card-address">
-            <span class="material-symbols-rounded">near_me</span>
-            {{ site.adresse }}, {{ site.ville }} {{ site.codeFiscale }}
-          </div>
-          @if (site.capacite) {
-            <div class="si-capacity">
-              <div class="si-capacity-header">
-                <span class="si-capacity-label">Capacité</span>
-                <span class="si-capacity-value" [class.warn]="getCapacityPercent(site) >= 70" [class.danger]="getCapacityPercent(site) >= 90">{{ getUsedCapacity(site) }} / {{ site.capacite }} unités</span>
-              </div>
-              <div class="si-capacity-bar">
-                <div class="si-capacity-fill" [class.warn]="getCapacityPercent(site) >= 70" [class.danger]="getCapacityPercent(site) >= 90" [style.width.%]="getCapacityPercent(site)"></div>
-              </div>
-              <div class="si-capacity-footer">
-                <span class="si-capacity-pct">{{ getCapacityPercent(site) }}% utilisé</span>
-                @if (getCapacityPercent(site) >= 90) {
-                  <span class="si-capacity-alert danger">Presque plein</span>
-                } @else if (getCapacityPercent(site) >= 70) {
-                  <span class="si-capacity-alert warn">Attention</span>
-                }
-              </div>
-            </div>
+        <div class="si-card-meta">
+          <h3 class="si-card-title">{{ site.nom }}</h3>
+          <span class="si-card-subtitle">{{ site.ville }}</span>
+        </div>
+        <div class="si-card-actions">
+          <a class="si-act stocks" [routerLink]="['/sites', site.id, 'stocks']" title="Stocks">
+            <span class="material-symbols-rounded">inventory_2</span>
+          </a>
+          <button class="si-act view" (click)="openViewModal(site)" title="Voir">
+            <span class="material-symbols-rounded">open_in_new</span>
+          </button>
+          @if (canManageSites()) {
+          <button class="si-act edit" (click)="openEditModal(site)" title="Modifier">
+            <span class="material-symbols-rounded">edit_square</span>
+          </button>
+          <button class="si-act delete" (click)="deleteSite(site)" title="Supprimer">
+            <span class="material-symbols-rounded">delete_sweep</span>
+          </button>
           }
         </div>
       </div>
-    } @empty {
-      <div class="si-empty">
-        <div class="si-empty-icon">
-          <span class="material-symbols-rounded">location_off</span>
+      <div class="si-card-body">
+        <div class="si-card-badges">
+          <span class="si-type-badge" [attr.data-type]="site.type">{{ getSiteTypeLabel(site.type) }}</span>
+          @if (site.estEntrepotPrincipal) {
+          <span class="si-badge-principal">
+            <span class="material-symbols-rounded">star</span>
+            Principal
+          </span>
+          }
         </div>
-        <h3>Aucun site trouvé</h3>
-        <p>Essayez d'ajuster vos filtres ou ajoutez un nouveau site.</p>
-        @if (canManageSites()) {
-          <button class="si-btn-add sm" (click)="openAddModal()">
-            <span class="material-symbols-rounded">add_business</span>
-            Nouveau Site
-          </button>
+        <div class="si-card-address">
+          <span class="material-symbols-rounded">near_me</span>
+          {{ site.adresse }}, {{ site.ville }} {{ site.codeFiscale }}
+        </div>
+        @if (site.capacite) {
+        <div class="si-capacity">
+          <div class="si-capacity-header">
+            <span class="si-capacity-label">Capacité</span>
+            <span class="si-capacity-value" [class.warn]="getCapacityPercent(site) >= 70"
+              [class.danger]="getCapacityPercent(site) >= 90">{{ getUsedCapacity(site) }} / {{ site.capacite }}
+              unités</span>
+          </div>
+          <div class="si-capacity-bar">
+            <div class="si-capacity-fill" [class.warn]="getCapacityPercent(site) >= 70"
+              [class.danger]="getCapacityPercent(site) >= 90" [style.width.%]="getCapacityPercent(site)"></div>
+          </div>
+          <div class="si-capacity-footer">
+            <span class="si-capacity-pct">{{ getCapacityPercent(site) }}% utilisé</span>
+            @if (getCapacityPercent(site) >= 90) {
+            <span class="si-capacity-alert danger">Presque plein</span>
+            } @else if (getCapacityPercent(site) >= 70) {
+            <span class="si-capacity-alert warn">Attention</span>
+            }
+          </div>
+        </div>
         }
       </div>
+    </div>
+    } @empty {
+    <div class="si-empty">
+      <div class="si-empty-icon">
+        <span class="material-symbols-rounded">location_off</span>
+      </div>
+      <h3>Aucun site trouvé</h3>
+      <p>Essayez d'ajuster vos filtres ou ajoutez un nouveau site.</p>
+      @if (canManageSites()) {
+      <button class="si-btn-add sm" (click)="openAddModal()">
+        <span class="material-symbols-rounded">add_business</span>
+        Nouveau Site
+      </button>
+      }
+    </div>
     }
   </div>
 </div>
 
 <!-- Add/Edit/View Modal -->
 @if (showModal()) {
-  <div class="si-overlay" (click)="closeModal()">
-    <div class="si-modal" (click)="$event.stopPropagation()">
-      <div class="si-modal-header">
-        <div class="si-modal-title">
-          <div class="si-modal-icon">
-            <span class="material-symbols-rounded">
-              @if (modalMode() === 'add') { add_business }
-              @else if (modalMode() === 'edit') { edit_square }
-              @else { visibility }
-            </span>
+<div class="si-overlay" (click)="closeModal()">
+  <div class="si-modal" (click)="$event.stopPropagation()">
+    <div class="si-modal-header">
+      <div class="si-modal-title">
+        <div class="si-modal-icon">
+          <span class="material-symbols-rounded">
+            @if (modalMode() === 'add') { add_business }
+            @else if (modalMode() === 'edit') { edit_square }
+            @else { visibility }
+          </span>
+        </div>
+        <div>
+          <h2>
+            @if (modalMode() === 'add') { Nouveau Site }
+            @else if (modalMode() === 'edit') { Modifier le Site }
+            @else { Détails du Site }
+          </h2>
+          <p>
+            @if (modalMode() === 'add') { Créer un nouveau site (magasin ou entrepôt) }
+            @else if (modalMode() === 'edit') { Mettre à jour les informations du site }
+            @else { Consulter les détails du site }
+          </p>
+        </div>
+      </div>
+      <button class="si-modal-close" (click)="closeModal()">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+
+    <div class="si-modal-body">
+      @if (modalMode() === 'view' && selectedSite(); as site) {
+      <div class="si-view-grid">
+        <div class="si-view-field"><label>Nom</label><span>{{ site.nom }}</span></div>
+        <div class="si-view-field"><label>Type</label><span>{{ getSiteTypeLabel(site.type) }}</span></div>
+        @if (site.estEntrepotPrincipal) {
+        <div class="si-view-field"><label>Statut</label><span class="si-view-principal"><span
+              class="material-symbols-rounded">star</span> Entrepôt Principal</span></div>
+        }
+        <div class="si-view-field full"><label>Adresse</label><span>{{ site.adresse }}, {{ site.ville }} {{
+            site.codeFiscale }}</span></div>
+        @if (site.telephone) { <div class="si-view-field"><label>Téléphone</label><span>{{ site.telephone }}</span>
+        </div> }
+        @if (site.email) { <div class="si-view-field"><label>Email</label><span>{{ site.email }}</span></div> }
+        @if (site.responsableSite) { <div class="si-view-field"><label>Responsable</label><span>{{ site.responsableSite
+            }}</span></div> }
+        @if (site.capacite) { <div class="si-view-field"><label>Capacité</label><span>{{ site.capacite }} unités</span>
+        </div> }
+      </div>
+      } @else {
+      <div class="si-form-grid">
+        <div class="si-field">
+          <label>Nom <span class="req">*</span></label>
+          <div class="si-input-wrap" [class.error]="!!formErrors()['nom']">
+            <span class="material-symbols-rounded">domain</span>
+            <input type="text" placeholder="Nom du site" [value]="formData().nom"
+              (input)="updateFormField('nom', $any($event.target).value)">
           </div>
-          <div>
-            <h2>
-              @if (modalMode() === 'add') { Nouveau Site }
-              @else if (modalMode() === 'edit') { Modifier le Site }
-              @else { Détails du Site }
-            </h2>
-            <p>
-              @if (modalMode() === 'add') { Créer un nouveau site (magasin ou entrepôt) }
-              @else if (modalMode() === 'edit') { Mettre à jour les informations du site }
-              @else { Consulter les détails du site }
-            </p>
+          @if (formErrors()['nom']) { <span class="si-field-error">{{ formErrors()['nom'] }}</span> }
+        </div>
+        <div class="si-field">
+          <label>Type <span class="req">*</span></label>
+          <div class="si-input-wrap select">
+            <span class="material-symbols-rounded">category</span>
+            <select [value]="formData().type" (change)="updateFormField('type', $any($event.target).value)">
+              @for (type of siteTypes; track type.value) {
+              <option [value]="type.value">{{ type.label }}</option>
+              }
+            </select>
           </div>
         </div>
-        <button class="si-modal-close" (click)="closeModal()">
-          <span class="material-symbols-rounded">close</span>
-        </button>
-      </div>
-
-      <div class="si-modal-body">
-        @if (modalMode() === 'view' && selectedSite(); as site) {
-          <div class="si-view-grid">
-            <div class="si-view-field"><label>Nom</label><span>{{ site.nom }}</span></div>
-            <div class="si-view-field"><label>Type</label><span>{{ getSiteTypeLabel(site.type) }}</span></div>
-            @if (site.estEntrepotPrincipal) {
-              <div class="si-view-field"><label>Statut</label><span class="si-view-principal"><span class="material-symbols-rounded">star</span> Entrepôt Principal</span></div>
-            }
-            <div class="si-view-field full"><label>Adresse</label><span>{{ site.adresse }}, {{ site.ville }} {{ site.codeFiscale }}</span></div>
-            @if (site.telephone) { <div class="si-view-field"><label>Téléphone</label><span>{{ site.telephone }}</span></div> }
-            @if (site.email) { <div class="si-view-field"><label>Email</label><span>{{ site.email }}</span></div> }
-            @if (site.responsableSite) { <div class="si-view-field"><label>Responsable</label><span>{{ site.responsableSite }}</span></div> }
-            @if (site.capacite) { <div class="si-view-field"><label>Capacité</label><span>{{ site.capacite }} unités</span></div> }
-          </div>
-        } @else {
-          <div class="si-form-grid">
-            <div class="si-field">
-              <label>Nom <span class="req">*</span></label>
-              <div class="si-input-wrap" [class.error]="!!formErrors()['nom']">
-                <span class="material-symbols-rounded">domain</span>
-                <input type="text" placeholder="Nom du site" [value]="formData().nom" (input)="updateFormField('nom', $any($event.target).value)">
-              </div>
-              @if (formErrors()['nom']) { <span class="si-field-error">{{ formErrors()['nom'] }}</span> }
-            </div>
-            <div class="si-field">
-              <label>Type <span class="req">*</span></label>
-              <div class="si-input-wrap select">
-                <span class="material-symbols-rounded">category</span>
-                <select [value]="formData().type" (change)="updateFormField('type', $any($event.target).value)">
-                  @for (type of siteTypes; track type.value) {
-                    <option [value]="type.value">{{ type.label }}</option>
-                  }
-                </select>
-              </div>
-            </div>
-            @if (formData().type === 'warehouse') {
-              <div class="si-field full">
-                <label class="si-checkbox-label">
-                  <input type="checkbox" [checked]="formData().estEntrepotPrincipal" (change)="updateFormField('estEntrepotPrincipal', $any($event.target).checked ? 1 : 0)">
-                  <span class="si-checkbox-text">
-                    <strong>Entrepôt Principal</strong>
-                    <em>Marquer cet entrepôt comme l'entrepôt principal de l'entreprise</em>
-                  </span>
-                </label>
-              </div>
-            }
-            <div class="si-field">
-              <label>Capacité</label>
-              <div class="si-input-wrap">
-                <span class="material-symbols-rounded">inventory</span>
-                <input type="number" min="0" placeholder="Capacité en unités" [value]="formData().capacite" (input)="updateFormField('capacite', +$any($event.target).value)">
-              </div>
-            </div>
-            <div class="si-field full">
-              <label>Adresse</label>
-              <div class="si-input-wrap">
-                <span class="material-symbols-rounded">location_on</span>
-                <input type="text" placeholder="Adresse complète" [value]="formData().adresse" (input)="updateFormField('adresse', $any($event.target).value)">
-              </div>
-            </div>
-            <div class="si-field">
-              <label>Ville <span class="req">*</span></label>
-              <div class="si-input-wrap" [class.error]="!!formErrors()['ville']">
-                <span class="material-symbols-rounded">apartment</span>
-                <input type="text" placeholder="Ville" [value]="formData().ville" (input)="updateFormField('ville', $any($event.target).value)">
-              </div>
-              @if (formErrors()['ville']) { <span class="si-field-error">{{ formErrors()['ville'] }}</span> }
-            </div>
-            <div class="si-field">
-              <label>Code Postal</label>
-              <div class="si-input-wrap">
-                <span class="material-symbols-rounded">pin_drop</span>
-                <input type="text" placeholder="Code fiscale" [value]="formData().codeFiscale" (input)="updateFormField('codeFiscale', $any($event.target).value)">
-              </div>
-            </div>
-            <div class="si-field">
-              <label>Téléphone</label>
-              <div class="si-input-wrap">
-                <span class="material-symbols-rounded">phone</span>
-                <input type="tel" placeholder="+212 5XX XXX XXX" [value]="formData().telephone" (input)="updateFormField('telephone', $any($event.target).value)">
-              </div>
-            </div>
-            <div class="si-field">
-              <label>Email</label>
-              <div class="si-input-wrap">
-                <span class="material-symbols-rounded">alternate_email</span>
-                <input type="email" placeholder="email&#64;example.com" [value]="formData().email" (input)="updateFormField('email', $any($event.target).value)">
-              </div>
-            </div>
-            <div class="si-field">
-              <label>Responsable</label>
-              <div class="si-input-wrap" [class.error]="!!formErrors()['responsableSite']">
-                <span class="material-symbols-rounded">person</span>
-                <input type="text" placeholder="Nom du responsable" [value]="formData().responsableSite" (input)="updateFormField('responsableSite', $any($event.target).value)">
-              </div>
-              @if (formErrors()['responsableSite']) { <span class="si-field-error">{{ formErrors()['responsableSite'] }}</span> }
-            </div>
-          </div>
+        @if (formData().type === 'warehouse') {
+        <div class="si-field full">
+          <label class="si-checkbox-label">
+            <input type="checkbox" [checked]="formData().estEntrepotPrincipal"
+              (change)="updateFormField('estEntrepotPrincipal', $any($event.target).checked ? 1 : 0)">
+            <span class="si-checkbox-text">
+              <strong>Entrepôt Principal</strong>
+              <em>Marquer cet entrepôt comme l'entrepôt principal de l'entreprise</em>
+            </span>
+          </label>
+        </div>
         }
+        <div class="si-field">
+          <label>Capacité</label>
+          <div class="si-input-wrap">
+            <span class="material-symbols-rounded">inventory</span>
+            <input type="number" min="0" placeholder="Capacité en unités" [value]="formData().capacite"
+              (input)="updateFormField('capacite', +$any($event.target).value)">
+          </div>
+        </div>
+        <div class="si-field full">
+          <label>Adresse</label>
+          <div class="si-input-wrap">
+            <span class="material-symbols-rounded">location_on</span>
+            <input type="text" placeholder="Adresse complète" [value]="formData().adresse"
+              (input)="updateFormField('adresse', $any($event.target).value)">
+          </div>
+        </div>
+        <div class="si-field">
+          <label>Ville <span class="req">*</span></label>
+          <div class="si-input-wrap" [class.error]="!!formErrors()['ville']">
+            <span class="material-symbols-rounded">apartment</span>
+            <input type="text" placeholder="Ville" [value]="formData().ville"
+              (input)="updateFormField('ville', $any($event.target).value)">
+          </div>
+          @if (formErrors()['ville']) { <span class="si-field-error">{{ formErrors()['ville'] }}</span> }
+        </div>
+        <div class="si-field">
+          <label>Code Postal</label>
+          <div class="si-input-wrap">
+            <span class="material-symbols-rounded">pin_drop</span>
+            <input type="text" placeholder="Code fiscale" [value]="formData().codeFiscale"
+              (input)="updateFormField('codeFiscale', $any($event.target).value)">
+          </div>
+        </div>
+        <div class="si-field">
+          <label>Téléphone</label>
+          <div class="si-input-wrap">
+            <span class="material-symbols-rounded">phone</span>
+            <input type="tel" placeholder="+212 5XX XXX XXX" [value]="formData().telephone"
+              (input)="updateFormField('telephone', $any($event.target).value)">
+          </div>
+        </div>
+        <div class="si-field">
+          <label>Email</label>
+          <div class="si-input-wrap">
+            <span class="material-symbols-rounded">alternate_email</span>
+            <input type="email" placeholder="email&#64;example.com" [value]="formData().email"
+              (input)="updateFormField('email', $any($event.target).value)">
+          </div>
+        </div>
+        <div class="si-field">
+          <label>Responsable</label>
+          <div class="si-input-wrap" [class.error]="!!formErrors()['responsableSite']">
+            <span class="material-symbols-rounded">person</span>
+            <input type="text" placeholder="Nom du responsable" [value]="formData().responsableSite"
+              (input)="updateFormField('responsableSite', $any($event.target).value)">
+          </div>
+          @if (formErrors()['responsableSite']) { <span class="si-field-error">{{ formErrors()['responsableSite']
+            }}</span> }
+        </div>
       </div>
+      }
+    </div>
 
-      <div class="si-modal-footer">
-        @if (modalMode() === 'view') {
-          <button class="si-btn cancel" (click)="closeModal()">Fermer</button>
-          @if (canManageSites()) {
-            <button class="si-btn primary" (click)="openEditModal(selectedSite()!)">
-              <span class="material-symbols-rounded">edit_square</span>
-              Modifier
-            </button>
-          }
-        } @else {
-          <button class="si-btn cancel" (click)="closeModal()">Annuler</button>
-          <button class="si-btn primary" (click)="saveSite()">
-            <span class="material-symbols-rounded">check_circle</span>
-            Enregistrer
-          </button>
-        }
-      </div>
+    <div class="si-modal-footer">
+      @if (modalMode() === 'view') {
+      <button class="si-btn cancel" (click)="closeModal()">Fermer</button>
+      @if (canManageSites()) {
+      <button class="si-btn primary" (click)="openEditModal(selectedSite()!)">
+        <span class="material-symbols-rounded">edit_square</span>
+        Modifier
+      </button>
+      }
+      } @else {
+      <button class="si-btn cancel" (click)="closeModal()">Annuler</button>
+      <button class="si-btn primary" (click)="saveSite()">
+        <span class="material-symbols-rounded">check_circle</span>
+        Enregistrer
+      </button>
+      }
     </div>
   </div>
+</div>
 }
 
 <!-- Delete Confirmation Modal -->
 @if (showDeleteModal() && siteToDelete(); as site) {
-  <div class="si-overlay" (click)="cancelDelete()">
-    <div class="si-confirm-modal" (click)="$event.stopPropagation()">
-      @if (deleteError()) {
-        <div class="si-confirm-icon blocked">
-          <span class="material-symbols-rounded">block</span>
-        </div>
-        <h2>Suppression impossible</h2>
-        <p class="si-error-msg">{{ deleteError() }}</p>
-        <div class="si-confirm-actions">
-          <button class="si-btn cancel" (click)="cancelDelete()">Fermer</button>
-          <a class="si-btn primary" [routerLink]="['/sites', site.id, 'stocks']">
-            <span class="material-symbols-rounded">inventory_2</span>
-            Voir les stocks
-          </a>
-        </div>
-      } @else {
-        <div class="si-confirm-icon danger">
-          <span class="material-symbols-rounded">delete_forever</span>
-        </div>
-        <h2>Êtes-vous sûr ?</h2>
-        <p>Voulez-vous vraiment supprimer le site <strong>{{ site.nom }}</strong> ? Cette action est irréversible.</p>
-        <div class="si-confirm-actions">
-          <button class="si-btn cancel" (click)="cancelDelete()">Annuler</button>
-          <button class="si-btn danger" (click)="confirmDelete()" [disabled]="deleting()">
-            @if (deleting()) { <span class="material-symbols-rounded spin">progress_activity</span> }
-            Supprimer
-          </button>
-        </div>
-      }
+<div class="si-overlay" (click)="cancelDelete()">
+  <div class="si-confirm-modal" (click)="$event.stopPropagation()">
+    @if (deleteError()) {
+    <div class="si-confirm-icon blocked">
+      <span class="material-symbols-rounded">block</span>
     </div>
+    <h2>Suppression impossible</h2>
+    <p class="si-error-msg">{{ deleteError() }}</p>
+    <div class="si-confirm-actions">
+      <button class="si-btn cancel" (click)="cancelDelete()">Fermer</button>
+      <a class="si-btn primary" [routerLink]="['/sites', site.id, 'stocks']">
+        <span class="material-symbols-rounded">inventory_2</span>
+        Voir les stocks
+      </a>
+    </div>
+    } @else {
+    <div class="si-confirm-icon danger">
+      <span class="material-symbols-rounded">delete_forever</span>
+    </div>
+    <h2>Êtes-vous sûr ?</h2>
+    <p>Voulez-vous vraiment supprimer le site <strong>{{ site.nom }}</strong> ? Cette action est irréversible.</p>
+    <div class="si-confirm-actions">
+      <button class="si-btn cancel" (click)="cancelDelete()">Annuler</button>
+      <button class="si-btn danger" (click)="confirmDelete()" [disabled]="deleting()">
+        @if (deleting()) { <span class="material-symbols-rounded spin">progress_activity</span> }
+        Supprimer
+      </button>
+    </div>
+    }
   </div>
+</div>
 }

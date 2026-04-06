@@ -16,7 +16,7 @@ interface MovementDto {
   dateMouvement: string | Date;
   raison: string;
   quantite: number;
-  type?: 'entry' | 'exit' | string;
+  type?: 'entry' | 'exit' | 'transfer' | string;
   note?: string;
   Id_s?: string;
   Id_u?: string;
@@ -37,7 +37,7 @@ export class MovementService {
   private movementsSignal = signal<MouvementStock[]>([]);
   
   /** Custom reasons added by users */
-  private customReasonsSignal = signal<{ value: string; label: string; type: 'entry' | 'exit' }[]>([]);
+  private customReasonsSignal = signal<{ value: string; label: string; type: 'entry' | 'exit' | 'transfer' }[]>([]);
 
   /**
    * Get all movements signal
@@ -48,12 +48,15 @@ export class MovementService {
   }
 
   private dtoToMovement(dto: MovementDto): MouvementStock {
+    let type: 'entry' | 'exit' | 'transfer' = 'entry';
+    if (dto.type === 'exit') type = 'exit';
+    else if (dto.type === 'transfer') type = 'transfer';
     return {
       id: dto.id ?? dto.id_sm ?? '',
       dateMouvement: new Date(dto.dateMouvement),
       raison: dto.raison,
       quantite: Number(dto.quantite ?? 0),
-      type: dto.type === 'exit' ? 'exit' : 'entry',
+      type,
       note: dto.note,
       stockId: dto.Id_s,
       userId: dto.Id_u,
@@ -263,6 +266,7 @@ export class MovementService {
 
     const entries = movements.filter(m => (m.type ?? 'entry') === 'entry');
     const exits = movements.filter(m => m.type === 'exit');
+    const transfers = movements.filter(m => m.type === 'transfer');
 
     const productMap = new Map<string, { productName: string; entries: number; exits: number }>();
     movements.forEach(m => {
@@ -271,7 +275,7 @@ export class MovementService {
       const qty = m.quantite ?? 0;
       if (m.type === 'exit') {
         existing.exits += qty;
-      } else {
+      } else if (m.type === 'entry') {
         existing.entries += qty;
       }
       productMap.set(String(pid), existing);
@@ -284,24 +288,16 @@ export class MovementService {
         entries: data.entries,
         exits: data.exits
       }))
-  /**
-   * Get user-friendly label for movement reason
-   * @param reason Movement reason enum value
-   * @returns Label string or reason if not found
-   */
       .sort((a, b) => (b.entries + b.exits) - (a.entries + a.exits))
       .slice(0, 5);
 
     return {
-  /**
-   * Get movement reasons filtered by type
-   * @param type Movement type (entry or exit)
-   * @returns Array of reasons for the specified type
-   */
       totalEntries: entries.length,
       totalExits: exits.length,
+      totalTransfers: transfers.length,
       entriesQuantity: entries.reduce((sum, m) => sum + (m.quantite ?? 0), 0),
       exitsQuantity: exits.reduce((sum, m) => sum + (m.quantite ?? 0), 0),
+      transfersQuantity: transfers.reduce((sum, m) => sum + (m.quantite ?? 0), 0),
       netChange: entries.reduce((sum, m) => sum + (m.quantite ?? 0), 0) - exits.reduce((sum, m) => sum + (m.quantite ?? 0), 0),
       topMovingProducts
     };
@@ -315,7 +311,7 @@ export class MovementService {
     return customReason?.label || reason;
   }
 
-  getReasonsByType(type: 'entry' | 'exit') {
+  getReasonsByType(type: 'entry' | 'exit' | 'transfer') {
     const baseReasons = MOVEMENT_REASONS.filter(r => r.type === type);
     const customReasons = this.customReasonsSignal().filter(r => r.type === type);
     
@@ -328,13 +324,43 @@ export class MovementService {
    * @param type Movement type (entry or exit)
    * @returns Generated reason value
    */
-  addCustomReason(label: string, type: 'entry' | 'exit'): string {
+  addCustomReason(label: string, type: 'entry' | 'exit' | 'transfer'): string {
     const value = `custom_${type}_${Date.now()}`;
     this.customReasonsSignal.update(reasons => [
       ...reasons,
       { value, label, type }
     ]);
     return value;
+  }
+
+  /**
+   * Delete a custom reason by value
+   */
+  deleteCustomReason(value: string): void {
+    this.customReasonsSignal.update(reasons => reasons.filter(r => r.value !== value));
+  }
+
+  /**
+   * Update a custom reason's label
+   */
+  updateCustomReason(value: string, newLabel: string): void {
+    this.customReasonsSignal.update(reasons =>
+      reasons.map(r => r.value === value ? { ...r, label: newLabel } : r)
+    );
+  }
+
+  /**
+   * Check if a reason label already exists for the given type
+   */
+  isDuplicateReason(label: string, type: 'entry' | 'exit' | 'transfer', excludeValue?: string): boolean {
+    const normalizedLabel = label.trim().toLowerCase();
+    // Check base reasons
+    const baseMatch = MOVEMENT_REASONS.some(r => r.type === type && r.label.toLowerCase() === normalizedLabel);
+    if (baseMatch) return true;
+    // Check custom reasons
+    return this.customReasonsSignal().some(r =>
+      r.type === type && r.label.toLowerCase() === normalizedLabel && r.value !== excludeValue
+    );
   }
   
   /**

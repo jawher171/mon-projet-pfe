@@ -4,11 +4,14 @@
  * Serves as the wrapper for all authenticated pages.
  */
 
-import { Component, computed, signal, OnInit, HostListener } from '@angular/core';
+import { Component, computed, signal, OnInit, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { AlertService } from '../../core/services/alert.service';
+import { ProductService } from '../../core/services/product.service';
+import { Product } from '../../core/models/product.model';
 import { Permission } from '../../core/models/role.model';
 
 /** Menu item structure for navigation */
@@ -25,7 +28,7 @@ interface MenuItem {
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss']
 })
@@ -35,6 +38,13 @@ export class MainLayoutComponent implements OnInit {
   
   /** Track user menu visibility */
   showUserMenu = signal(false);
+
+  /** Global search */
+  searchQuery = signal('');
+  searchResults = signal<Product[]>([]);
+  showSearchDropdown = signal(false);
+  isSearching = signal(false);
+  private searchTimeout: any = null;
   
   /** Current authenticated user */
   currentUser = computed(() => this.authService.currentUser());
@@ -128,11 +138,13 @@ export class MainLayoutComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private alertService: AlertService,
+    private productService: ProductService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.alertService.fetchAlerts();
+    this.productService.fetchProducts();
   }
 
   /**
@@ -154,6 +166,61 @@ export class MainLayoutComponent implements OnInit {
     const target = event.target as HTMLElement;
     if (this.showUserMenu() && !target.closest('.relative')) {
       this.showUserMenu.set(false);
+    }
+    if (this.showSearchDropdown() && !target.closest('.search-container')) {
+      this.showSearchDropdown.set(false);
+    }
+  }
+
+  /** Debounced search triggered on keyup */
+  onSearchInput(query: string) {
+    this.searchQuery.set(query);
+    if (this.searchTimeout) clearTimeout(this.searchTimeout);
+
+    if (!query.trim()) {
+      this.searchResults.set([]);
+      this.showSearchDropdown.set(false);
+      this.isSearching.set(false);
+      return;
+    }
+
+    this.isSearching.set(true);
+    this.showSearchDropdown.set(true);
+
+    this.searchTimeout = setTimeout(async () => {
+      const all = this.productService.getProducts()();
+      const q = query.toLowerCase();
+      const filtered = all.filter(p =>
+        p.nom.toLowerCase().includes(q) ||
+        (p.codeBarre?.toLowerCase().includes(q) ?? false) ||
+        (p.categorieLibelle?.toLowerCase().includes(q) ?? false) ||
+        (p.description?.toLowerCase().includes(q) ?? false)
+      );
+      this.searchResults.set(filtered);
+      this.isSearching.set(false);
+    }, 250);
+  }
+
+  /** Navigate to products page with the search pre-filled */
+  selectSearchResult(product: Product) {
+    this.showSearchDropdown.set(false);
+    this.searchQuery.set('');
+    this.searchResults.set([]);
+    this.router.navigate(['/products'], { queryParams: { search: product.nom } });
+  }
+
+  /** View all search results on the products page */
+  viewAllResults() {
+    const q = this.searchQuery();
+    this.showSearchDropdown.set(false);
+    this.searchQuery.set('');
+    this.searchResults.set([]);
+    this.router.navigate(['/products'], { queryParams: { search: q } });
+  }
+
+  onSearchFocus() {
+    if (this.searchQuery().trim() && this.searchResults().length > 0) {
+      this.showSearchDropdown.set(true);
     }
   }
 

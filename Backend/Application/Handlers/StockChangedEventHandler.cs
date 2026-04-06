@@ -67,6 +67,15 @@ namespace Application.Handlers
                         $"Quantité ajoutée: {Math.Abs(notification.DeltaQuantity)}. Nouveau stock: {qty}.",
                         cancellationToken);
                 }
+                else if (notification.MovementType.Equals("transfer", StringComparison.OrdinalIgnoreCase))
+                {
+                    await _alertService.CreateInfoAlertAsync(
+                        stock.id_s,
+                        nameof(AlertType.TRANSFER_VALIDATED),
+                        $"Transfert entre magasins validé pour {produitNom} au site {siteNom}. " +
+                        $"Quantité transférée: {Math.Abs(notification.DeltaQuantity)}. Nouveau stock: {qty}.",
+                        cancellationToken);
+                }
                 else
                 {
                     await _alertService.CreateInfoAlertAsync(

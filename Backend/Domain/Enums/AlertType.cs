@@ -5,6 +5,7 @@ namespace Domain.Enums
     {
         ENTRY_VALIDATED,
         EXIT_VALIDATED,
+        TRANSFER_VALIDATED,
         MIN_STOCK,
         OUT_OF_STOCK,
         STOCK_MAXIMUM,

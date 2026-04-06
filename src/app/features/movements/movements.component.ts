@@ -31,7 +31,7 @@ import { environment } from '../../../environments/environment';
 export class MovementsComponent implements OnInit, OnDestroy {
   // Filter signals
   searchTerm = signal('');
-  selectedType = signal<'all' | 'entry' | 'exit'>('all');
+  selectedType = signal<'all' | 'entry' | 'exit' | 'transfer'>('all');
   selectedSite = signal('');
   selectedReason = signal<MovementReason | ''>('');
   selectedDate = signal('');
@@ -42,7 +42,23 @@ export class MovementsComponent implements OnInit, OnDestroy {
   showModal = signal(false);
   modalMode = signal<'add' | 'view'>('add');
   selectedMovement = signal<MouvementStock | null>(null);
-  movementType = signal<'entry' | 'exit'>('entry');
+  movementType = signal<'entry' | 'exit' | 'transfer'>('entry');
+
+  // Transfer modal
+  showTransferModal = signal(false);
+  transferFormSubmitted = signal(false);
+  transferSaving = signal(false);
+  transferProductSearch = signal('');
+  showTransferProductDropdown = signal(false);
+  transferSelectedProduct = signal<Product | null>(null);
+  transferFormData = signal({
+    sourceSiteId: '',
+    destSiteId: '',
+    productId: '',
+    productName: '',
+    quantity: 0,
+    notes: ''
+  });
   
   // Form data
   formData = signal({
@@ -60,8 +76,11 @@ export class MovementsComponent implements OnInit, OnDestroy {
   
   // Custom reason modal
   showAddReasonModal = signal(false);
-  reasonType = signal<'entry' | 'exit'>('entry');
+  reasonType = signal<'entry' | 'exit' | 'transfer'>('entry');
   newCustomReason = signal('');
+  editingReasonValue = signal<string | null>(null);
+  editingReasonLabel = signal('');
+  reasonError = signal('');
 
   // Form UX states
   isSaving = signal(false);
@@ -97,6 +116,67 @@ export class MovementsComponent implements OnInit, OnDestroy {
     const productIdsInStock = new Set(siteStocks.map(s => String(s.produitId)));
     return products.filter(p => productIdsInStock.has(String(p.id_p)));
   });
+
+  /** Store sites only (no warehouses) for transfer */
+  transferStoreSites = computed(() => {
+    return this.sites().filter(s => s.type === 'store');
+  });
+
+  /** Destination stores for transfer (exclude source) */
+  transferDestSites = computed(() => {
+    const sourceId = this.transferFormData().sourceSiteId;
+    return this.transferStoreSites().filter(s => String(s.id) !== String(sourceId));
+  });
+
+  /** Products available at the transfer source store */
+  transferAvailableProducts = computed(() => {
+    const sourceId = this.transferFormData().sourceSiteId;
+    if (!sourceId) return [];
+    const siteStocks = this.stockService.getStocksBySite(sourceId).filter(s => s.quantiteDisponible > 0);
+    const productIdsInStock = new Set(siteStocks.map(s => String(s.produitId)));
+    return this.allProducts().filter(p => productIdsInStock.has(String(p.id_p)));
+  });
+
+  /** Filtered transfer products based on search */
+  filteredTransferProducts = computed(() => {
+    const search = this.transferProductSearch().toLowerCase();
+    const products = this.transferAvailableProducts();
+    if (!search) return products;
+    return products.filter(p =>
+      p.nom.toLowerCase().includes(search) ||
+      (p.codeBarre?.toLowerCase().includes(search) ?? false) ||
+      (p.categorieLibelle?.toLowerCase().includes(search) ?? false)
+    );
+  });
+
+  /** Available stock for transfer product at source */
+  transferAvailableStock = computed(() => {
+    const product = this.transferSelectedProduct();
+    const sourceId = this.transferFormData().sourceSiteId;
+    if (!product || !sourceId) return null;
+    const stock = this.stockService.getStockForProductSite(String(product.id_p), sourceId);
+    return stock?.quantiteDisponible ?? 0;
+  });
+
+  /** Transfer form validation errors */
+  transferFormErrors = computed(() => {
+    if (!this.transferFormSubmitted()) return {};
+    const form = this.transferFormData();
+    const errors: Record<string, string> = {};
+    if (!form.sourceSiteId) errors['source'] = 'Veuillez sélectionner un magasin source';
+    if (!form.destSiteId) errors['dest'] = 'Veuillez sélectionner un magasin destination';
+    if (form.sourceSiteId && form.destSiteId && form.sourceSiteId === form.destSiteId) {
+      errors['dest'] = 'Le magasin source et destination doivent être différents';
+    }
+    if (!this.transferSelectedProduct()) errors['product'] = 'Veuillez sélectionner un produit';
+    if (!form.quantity || form.quantity <= 0) errors['quantity'] = 'La quantité doit être supérieure à 0';
+    if (this.transferAvailableStock() !== null && form.quantity > this.transferAvailableStock()!) {
+      errors['quantity'] = `Stock insuffisant sur le magasin source (disponible: ${this.transferAvailableStock()})`;
+    }
+    return errors;
+  });
+
+  isTransferFormValid = computed(() => Object.keys(this.transferFormErrors()).length === 0);
 
   filteredProducts = computed(() => {
     const search = this.productSearch().toLowerCase();
@@ -202,7 +282,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
   isFormValid = computed(() => Object.keys(this.formErrors()).length === 0);
 
   constructor(
-    private movementService: MovementService,
+    public movementService: MovementService,
     private siteService: SiteService,
     private productService: ProductService,
     private stockService: StockService,
@@ -347,6 +427,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
     const target = event.target as HTMLElement;
     if (!target.closest('.product-search-group')) {
       this.showProductDropdown.set(false);
+      this.showTransferProductDropdown.set(false);
     }
   }
 
@@ -355,7 +436,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
     this.searchTerm.set(input.value);
   }
 
-  onTypeChange(type: 'all' | 'entry' | 'exit') {
+  onTypeChange(type: 'all' | 'entry' | 'exit' | 'transfer') {
     this.selectedType.set(type);
   }
 
@@ -403,6 +484,193 @@ export class MovementsComponent implements OnInit, OnDestroy {
     this.isSaving.set(false);
   }
 
+  // ── Transfer Modal Methods ──
+
+  openTransferModal() {
+    this.resetTransferForm();
+    this.showTransferModal.set(true);
+  }
+
+  closeTransferModal() {
+    this.showTransferModal.set(false);
+    this.resetTransferForm();
+  }
+
+  resetTransferForm() {
+    this.transferFormData.set({
+      sourceSiteId: '',
+      destSiteId: '',
+      productId: '',
+      productName: '',
+      quantity: 0,
+      notes: ''
+    });
+    this.transferSelectedProduct.set(null);
+    this.transferProductSearch.set('');
+    this.showTransferProductDropdown.set(false);
+    this.transferFormSubmitted.set(false);
+    this.transferSaving.set(false);
+  }
+
+  /** Open QR scan modal for transfer product barcode scanning */
+  async openTransferProductScan() {
+    const sessionId = this.scanSessionService.generateSessionId();
+    const baseUrl = this.resolveScanBaseUrl();
+    this.scanUrl.set(`${baseUrl}/scan?sessionId=${sessionId}&purpose=TRANSFER_PRODUCT`);
+    this.showQrScanModal.set(true);
+
+    this.scanSub?.unsubscribe();
+    this.scanSub = this.scanSessionService.scan$.subscribe(async (event) => {
+      if (event.purpose === 'TRANSFER_PRODUCT') {
+        const product = await this.productService.getProductByBarcode(event.code);
+        if (product) {
+          this.selectTransferProduct(product);
+          this.showQrScanModal.set(false);
+          this.scanConnected.set(false);
+          void this.scanSessionService.stop();
+          setTimeout(() => {
+            const qtyInput = document.getElementById('transfer-quantity') as HTMLInputElement;
+            qtyInput?.focus();
+          }, 100);
+        } else {
+          this.displayToast('Produit non trouvé pour le code-barres: ' + event.code, 'error');
+        }
+      }
+    });
+
+    try {
+      await this.scanSessionService.joinSession(sessionId);
+      this.scanConnected.set(true);
+    } catch (err) {
+      console.error('[Transfer] SignalR connection failed', err);
+    }
+  }
+
+  updateTransferField(field: string, value: string | number) {
+    this.transferFormData.update(data => {
+      const updated = { ...data, [field]: value };
+      // When source changes, clear product (may not be in stock at new source)
+      if (field === 'sourceSiteId') {
+        this.clearTransferProduct();
+        // Also clear dest if it matches source
+        if (String(data.destSiteId) === String(value)) {
+          updated.destSiteId = '';
+        }
+      }
+      return updated;
+    });
+  }
+
+  onTransferProductSearch(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.transferProductSearch.set(input.value);
+    this.showTransferProductDropdown.set(true);
+    if (this.transferSelectedProduct() && input.value !== this.transferSelectedProduct()!.nom) {
+      this.transferSelectedProduct.set(null);
+      this.updateTransferField('productId', '');
+      this.updateTransferField('productName', '');
+    }
+  }
+
+  selectTransferProduct(product: Product) {
+    this.transferSelectedProduct.set(product);
+    this.transferProductSearch.set(product.nom);
+    this.showTransferProductDropdown.set(false);
+    this.updateTransferField('productId', String(product.id_p));
+    this.updateTransferField('productName', product.nom);
+  }
+
+  clearTransferProduct() {
+    this.transferSelectedProduct.set(null);
+    this.transferProductSearch.set('');
+    this.transferFormData.update(d => ({ ...d, productId: '', productName: '' }));
+  }
+
+  async saveTransfer() {
+    this.transferFormSubmitted.set(true);
+
+    if (!this.isTransferFormValid()) return;
+    if (this.transferSaving()) return;
+
+    this.transferSaving.set(true);
+
+    try {
+      const form = this.transferFormData();
+      const sourceSite = this.sites().find(s => String(s.id) === String(form.sourceSiteId));
+      const destSite = this.sites().find(s => String(s.id) === String(form.destSiteId));
+      const product = this.transferSelectedProduct()!;
+      const currentUser = this.authService.currentUser();
+
+      await this.movementService.addMovement({
+        dateMouvement: new Date(),
+        raison: 'transfer_magasin',
+        quantite: form.quantity,
+        note: form.notes || undefined,
+        produitNom: product.nom,
+        siteNom: sourceSite?.nom || '',
+        productId: String(product.id_p),
+        siteId: form.sourceSiteId,
+        userId: currentUser?.id ? String(currentUser.id) : undefined,
+        type: 'transfer',
+        utilisateurNom: currentUser ? `${currentUser.prenom} ${currentUser.nom}` : 'Utilisateur courant',
+        destination: form.destSiteId
+      });
+
+      this.closeTransferModal();
+      await this.movementService.fetchMovements();
+      await this.stockService.fetchStocks();
+
+      // Check source stock thresholds after transfer and create alerts
+      const sourceStock = this.stockService.getStockForProductSite(String(product.id_p), form.sourceSiteId);
+      if (sourceStock) {
+        const qty = sourceStock.quantiteDisponible;
+        const stockId = String(sourceStock.id);
+        if (qty <= 0) {
+          await this.alertService.createAlertApi({
+            type: 'OUT_OF_STOCK',
+            message: `Rupture de stock: "${product.nom}" au magasin "${sourceSite?.nom}" suite à un transfert`,
+            dateCreation: new Date(),
+            resolue: false,
+            severity: 'critical',
+            stockId,
+            produitNom: product.nom,
+            siteNom: sourceSite?.nom
+          });
+        } else if (sourceStock.seuilMinimum && qty <= sourceStock.seuilMinimum) {
+          await this.alertService.createAlertApi({
+            type: 'MIN_STOCK',
+            message: `Stock minimum atteint: "${product.nom}" au magasin "${sourceSite?.nom}" (${qty} unités) suite à un transfert`,
+            dateCreation: new Date(),
+            resolue: false,
+            severity: 'warning',
+            stockId,
+            produitNom: product.nom,
+            siteNom: sourceSite?.nom
+          });
+        } else if (sourceStock.seuilAlerte && qty <= sourceStock.seuilAlerte) {
+          await this.alertService.createAlertApi({
+            type: 'STOCK_ALERTE',
+            message: `Seuil d'alerte atteint: "${product.nom}" au magasin "${sourceSite?.nom}" (${qty} unités) suite à un transfert`,
+            dateCreation: new Date(),
+            resolue: false,
+            severity: 'warning',
+            stockId,
+            produitNom: product.nom,
+            siteNom: sourceSite?.nom
+          });
+        }
+      }
+
+      await this.alertService.fetchAlerts();
+
+      this.displayToast('Transfert entre magasins effectué avec succès', 'success');
+    } catch (err: any) {
+      this.transferSaving.set(false);
+      const backendMessage = err?.error?.message;
+      this.displayToast(backendMessage || 'Erreur lors du transfert', 'error');
+    }
+  }
+
   onProductSearch(event: Event) {
     const input = event.target as HTMLInputElement;
     this.productSearch.set(input.value);
@@ -446,23 +714,72 @@ export class MovementsComponent implements OnInit, OnDestroy {
     });
   }
   
-  openAddReasonModal(type?: 'entry' | 'exit') {
-    this.reasonType.set(type || this.movementType());
+  openAddReasonModal(type?: 'entry' | 'exit' | 'transfer') {
+    this.reasonType.set(type || 'entry');
     this.newCustomReason.set('');
+    this.editingReasonValue.set(null);
+    this.editingReasonLabel.set('');
+    this.reasonError.set('');
     this.showAddReasonModal.set(true);
   }
   
   closeAddReasonModal() {
     this.showAddReasonModal.set(false);
     this.newCustomReason.set('');
+    this.editingReasonValue.set(null);
+    this.editingReasonLabel.set('');
+    this.reasonError.set('');
   }
   
   saveCustomReason() {
     const reason = this.newCustomReason().trim();
     if (!reason) return;
+
+    // Check for duplicates
+    if (this.movementService.isDuplicateReason(reason, this.reasonType())) {
+      this.reasonError.set('Cette raison existe déjà pour ce type de mouvement.');
+      return;
+    }
     
     this.movementService.addCustomReason(reason, this.reasonType());
-    this.closeAddReasonModal();
+    this.newCustomReason.set('');
+    this.reasonError.set('');
+    this.displayToast('Raison ajoutée avec succès', 'success');
+  }
+
+  startEditReason(value: string, label: string) {
+    this.editingReasonValue.set(value);
+    this.editingReasonLabel.set(label);
+    this.reasonError.set('');
+  }
+
+  cancelEditReason() {
+    this.editingReasonValue.set(null);
+    this.editingReasonLabel.set('');
+    this.reasonError.set('');
+  }
+
+  saveEditReason() {
+    const value = this.editingReasonValue();
+    const newLabel = this.editingReasonLabel().trim();
+    if (!value || !newLabel) return;
+
+    // Check for duplicates (exclude current)
+    if (this.movementService.isDuplicateReason(newLabel, this.reasonType(), value)) {
+      this.reasonError.set('Cette raison existe déjà pour ce type de mouvement.');
+      return;
+    }
+
+    this.movementService.updateCustomReason(value, newLabel);
+    this.editingReasonValue.set(null);
+    this.editingReasonLabel.set('');
+    this.reasonError.set('');
+    this.displayToast('Raison modifiée avec succès', 'success');
+  }
+
+  deleteCustomReason(value: string) {
+    this.movementService.deleteCustomReason(value);
+    this.displayToast('Raison supprimée', 'success');
   }
 
   async saveMovement() {
@@ -534,7 +851,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
   }
 
   formatMovementRef(movement: MouvementStock): string {
-    const typeCode = movement.type === 'entry' ? 'ENT' : 'SOR';
+    const typeCode = movement.type === 'entry' ? 'ENT' : movement.type === 'transfer' ? 'TRF' : 'SOR';
     const d = new Date(movement.dateMouvement);
     const dateCode = d.getFullYear().toString().substring(2) + 
                      (d.getMonth() + 1).toString().padStart(2, '0') +
@@ -550,7 +867,21 @@ export class MovementsComponent implements OnInit, OnDestroy {
 
   getSiteName(siteId: string | undefined): string {
     if (!siteId) return '-';
-    return this.sites().find(s => String(s.id) === String(siteId))?.nom ?? siteId;
+    const needle = String(siteId).toLowerCase();
+    const allSites = this.sites();
+    // Try to match by site ID
+    const byId = allSites.find(s => String(s.id).toLowerCase() === needle);
+    if (byId) return byId.nom;
+    // Try to match by site name (for values already stored as names)
+    const byName = allSites.find(s => s.nom.toLowerCase() === needle);
+    if (byName) return byName.nom;
+    // Check if value looks like a GUID (deleted site) vs a plain name
+    const guidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (guidPattern.test(siteId)) {
+      return 'Site supprimé';
+    }
+    // It's a plain name stored directly — return as-is
+    return siteId;
   }
 
   getSiteType(siteId: string | undefined): string {
@@ -563,7 +894,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
     return this.movementService.getReasonLabel(reason);
   }
 
-  getReasonsByType(type: 'entry' | 'exit') {
+  getReasonsByType(type: 'entry' | 'exit' | 'transfer') {
     return this.movementService.getReasonsByType(type);
   }
 

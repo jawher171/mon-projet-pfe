@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Domain.Models
 {
-    /// <summary>Stock movement (entry/exit). Type: "entry" or "exit". Linked to Stock and User.</summary>
+    /// <summary>Stock movement (entry/exit/transfer). Type: "entry", "exit", or "transfer". Linked to Stock and User.</summary>
     public class StockMovement
     {
         public Guid id_sm { get; set; }

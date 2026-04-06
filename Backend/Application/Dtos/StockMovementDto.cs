@@ -2,7 +2,7 @@ using System;
 
 namespace Application.Dtos
 {
-    /// <summary>DTO for StockMovement API requests/responses. Type: entry | exit.</summary>
+    /// <summary>DTO for StockMovement API requests/responses. Type: entry | exit | transfer.</summary>
     public class StockMovementDto
     {
         public Guid id_sm { get; set; }

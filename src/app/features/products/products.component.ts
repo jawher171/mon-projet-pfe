@@ -7,7 +7,7 @@
 import { Component, OnInit, OnDestroy, signal, computed, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
 import { CategoryService } from '../../core/services/category.service';
 import { SiteService } from '../../core/services/site.service';
@@ -124,6 +124,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute,
     scanSessionService: ScanSessionService
   ) {
     this.scanSessionService = scanSessionService;
@@ -138,7 +139,13 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.getproducts();
     void this.siteService.fetchSites();
     void this.stockService.fetchStocks();
-    console.log('ProductsComponent initialized',this.listProducts.length);
+
+    // Pre-fill search from global search bar query param
+    this.route.queryParams.subscribe(params => {
+      if (params['search']) {
+        this.searchTerm.set(params['search']);
+      }
+    });
    }
 
   ngOnDestroy(): void {

@@ -49,6 +49,7 @@ export const ALERT_TYPES: { value: string; label: string; icon: string }[] = [
   { value: 'STOCK_MAXIMUM', label: 'Stock Maximum', icon: 'deployed_code_alert' },
   { value: 'ENTRY_VALIDATED', label: 'Entrée Validée', icon: 'input' },
   { value: 'EXIT_VALIDATED', label: 'Sortie Validée', icon: 'output' },
+  { value: 'TRANSFER_VALIDATED', label: 'Transfert Validé', icon: 'sync_alt' },
 ];
 
 export const SEVERITY_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: string }> = {

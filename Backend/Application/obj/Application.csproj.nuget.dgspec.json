@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Application\\Application.csproj": {}
+    "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Application\\Application.csproj": {}
   },
   "projects": {
-    "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Application\\Application.csproj": {
+    "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Application\\Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Application\\Application.csproj",
+        "projectUniqueName": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Application\\Application.csproj",
         "projectName": "Application",
-        "projectPath": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Application\\Application.csproj",
+        "projectPath": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Application\\Application.csproj",
         "packagesPath": "C:\\Users\\jawher\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Application\\obj\\",
+        "outputPath": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Application\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -32,11 +32,11 @@
           "netcoreapp3.1": {
             "targetAlias": "netcoreapp3.1",
             "projectReferences": {
-              "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Data\\Data.csproj": {
-                "projectPath": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Data\\Data.csproj"
+              "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Data\\Data.csproj": {
+                "projectPath": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Data\\Data.csproj"
               },
-              "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj": {
-                "projectPath": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj"
+              "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj": {
+                "projectPath": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj"
               }
             }
           }
@@ -51,7 +51,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "10.0.100"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
         "netcoreapp3.1": {
@@ -119,18 +119,18 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Data\\Data.csproj": {
+    "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Data\\Data.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Data\\Data.csproj",
+        "projectUniqueName": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Data\\Data.csproj",
         "projectName": "Data",
-        "projectPath": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Data\\Data.csproj",
+        "projectPath": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Data\\Data.csproj",
         "packagesPath": "C:\\Users\\jawher\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Data\\obj\\",
+        "outputPath": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Data\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -151,8 +151,8 @@
           "netcoreapp3.1": {
             "targetAlias": "netcoreapp3.1",
             "projectReferences": {
-              "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj": {
-                "projectPath": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj"
+              "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj": {
+                "projectPath": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj"
               }
             }
           }
@@ -167,7 +167,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "10.0.100"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
         "netcoreapp3.1": {
@@ -208,18 +208,18 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj": {
+    "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj",
+        "projectUniqueName": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj",
         "projectName": "Domain",
-        "projectPath": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj",
+        "projectPath": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj",
         "packagesPath": "C:\\Users\\jawher\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\jawher\\Desktop\\INVENTAIRE\\mon-projet-pfe\\Backend\\Domain\\obj\\",
+        "outputPath": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -252,7 +252,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "10.0.100"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
         "netcoreapp3.1": {
@@ -289,7 +289,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201\\RuntimeIdentifierGraph.json"
         }
       }
     }
