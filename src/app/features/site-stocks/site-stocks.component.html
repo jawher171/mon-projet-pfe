@@ -68,22 +68,28 @@
                 </td>
                 <td>
                   <div class="ss-actions">
-                    <button class="ss-act edit" title="Modifier les seuils" (click)="openEdit(stock)">
-                      <span class="material-symbols-rounded">tune</span>
-                      Seuils
-                    </button>
-                    <button class="ss-act entry" title="Entrée de stock" (click)="openMovement(stock, 'entry')">
-                      <span class="material-symbols-rounded">input</span>
-                      Entrée
-                    </button>
-                    <button class="ss-act exit" title="Sortie de stock" (click)="openMovement(stock, 'exit')">
-                      <span class="material-symbols-rounded">output</span>
-                      Sortie
-                    </button>
-                    <button class="ss-act delete" title="Supprimer le stock" (click)="deleteStock(stock)">
-                      <span class="material-symbols-rounded">delete</span>
-                      Supprimer
-                    </button>
+                    @if (canManageStocks()) {
+                      <button class="ss-act edit" title="Modifier les seuils" (click)="openEdit(stock)">
+                        <span class="material-symbols-rounded">tune</span>
+                        Seuils
+                      </button>
+                    }
+                    @if (canManageMovements()) {
+                      <button class="ss-act entry" title="Entrée de stock" (click)="openMovement(stock, 'entry')">
+                        <span class="material-symbols-rounded">input</span>
+                        Entrée
+                      </button>
+                      <button class="ss-act exit" title="Sortie de stock" (click)="openMovement(stock, 'exit')">
+                        <span class="material-symbols-rounded">output</span>
+                        Sortie
+                      </button>
+                    }
+                    @if (canManageStocks()) {
+                      <button class="ss-act delete" title="Supprimer le stock" (click)="deleteStock(stock)">
+                        <span class="material-symbols-rounded">delete</span>
+                        Supprimer
+                      </button>
+                    }
                   </div>
                 </td>
               </tr>

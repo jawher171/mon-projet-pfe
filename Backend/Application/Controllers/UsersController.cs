@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Dtos;
+using Application.Security;
 using AutoMapper;
 using Domain.Commands;
 using Domain.Models;
@@ -16,7 +17,7 @@ namespace Application.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "admin")]
+    [PermissionAuthorize("manage_users")]
     public class UsersController : ControllerBase
     {
         private readonly IMediator _mediator;

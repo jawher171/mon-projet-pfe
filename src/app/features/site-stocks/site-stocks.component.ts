@@ -8,6 +8,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 import { StockService } from '../../core/services/stock.service';
 import { SiteService } from '../../core/services/site.service';
 import { AlertService } from '../../core/services/alert.service';
@@ -24,6 +25,7 @@ import { Site } from '../../core/models/site.model';
 export class SiteStocksComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private authService = inject(AuthService);
   private stockService = inject(StockService);
   private siteService = inject(SiteService);
   private alertService = inject(AlertService);
@@ -51,6 +53,8 @@ export class SiteStocksComponent implements OnInit {
   deleteError = signal('');
 
   siteName = computed(() => this.site()?.nom ?? 'Site');
+  canManageStocks = computed(() => this.authService.hasPermission('manage_stocks'));
+  canManageMovements = computed(() => this.authService.hasPermission('manage_movements'));
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('siteId') ?? '';
@@ -83,6 +87,8 @@ export class SiteStocksComponent implements OnInit {
   }
 
   openMovement(stock: Stock, mode: 'entry' | 'exit') {
+    if (!this.canManageMovements()) return;
+
     this.router.navigate(['/movements'], {
       queryParams: {
         stockId: stock.id,
@@ -119,6 +125,8 @@ export class SiteStocksComponent implements OnInit {
 
   // ── Delete stock ────────────────────────────────
   deleteStock(stock: Stock) {
+    if (!this.canManageStocks()) return;
+
     this.deleteError.set('');
     if (stock.quantiteDisponible > 0) {
       this.deleteError.set(
@@ -136,6 +144,8 @@ export class SiteStocksComponent implements OnInit {
   }
 
   async confirmDelete() {
+    if (!this.canManageStocks()) return;
+
     const stock = this.stockToDelete();
     if (!stock) return;
     this.deleting.set(true);
@@ -153,6 +163,8 @@ export class SiteStocksComponent implements OnInit {
 
   // ── Edit seuils ─────────────────────────────────
   openEdit(stock: Stock) {
+    if (!this.canManageStocks()) return;
+
     this.editingStock.set(stock);
     const seuilAlerte = (stock.seuilMinimum ?? 0) + (stock.seuilSecurite ?? 0);
     this.editForm.set({
@@ -197,6 +209,8 @@ export class SiteStocksComponent implements OnInit {
   }
 
   async saveEdit() {
+    if (!this.canManageStocks()) return;
+
     const stock = this.editingStock();
     if (!stock) return;
     this.saving.set(true);

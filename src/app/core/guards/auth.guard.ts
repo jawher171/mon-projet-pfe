@@ -7,7 +7,6 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { UserRole, Permission } from '../models/role.model';
-import { AuthorizationService } from '../services/auth-authorization.service';
 
 /**
  * Guard to check if user is authenticated
@@ -38,7 +37,7 @@ export const adminGuard: CanActivateFn = () => {
   if (!authService.isAuthenticated()) {
     router.navigate(['/auth/login']);
   } else {
-    router.navigate(['/']);
+    router.navigate([authService.getDefaultAuthorizedRoute()]);
   }
   return false;
 };
@@ -59,7 +58,7 @@ export const stockManagerGuard: CanActivateFn = () => {
   if (!authService.isAuthenticated()) {
     router.navigate(['/auth/login']);
   } else {
-    router.navigate(['/']);
+    router.navigate([authService.getDefaultAuthorizedRoute()]);
   }
   return false;
 };
@@ -80,19 +79,19 @@ export const roleGuard = (allowedRoles: UserRole[]): CanActivateFn => {
     if (!authService.isAuthenticated()) {
       router.navigate(['/auth/login']);
     } else {
-      router.navigate(['/']);
+      router.navigate([authService.getDefaultAuthorizedRoute()]);
     }
     return false;
   };
 };
 
 /**
- * Guard to check if user has a specific permission (uses API permissions or static mapping)
+ * Guard to check if user has a specific permission.
+ * In backend mode, permission checks come from dynamic API role permissions.
  */
 export const permissionGuard = (requiredPermission: Permission): CanActivateFn => {
   return () => {
     const authService = inject(AuthService);
-    const authorizationService = inject(AuthorizationService);
     const router = inject(Router);
     const currentUser = authService.currentUser();
 
@@ -104,8 +103,36 @@ export const permissionGuard = (requiredPermission: Permission): CanActivateFn =
     if (!authService.isAuthenticated()) {
       router.navigate(['/auth/login']);
     } else {
-      router.navigate(['/']);
+      router.navigate([authService.getDefaultAuthorizedRoute()]);
     }
     return false;
   };
+};
+
+/**
+ * Guard for scanner standalone routes:
+ * - allow unauthenticated access only for phone relay sessions (sessionId + purpose)
+ * - otherwise require authenticated user with scan_barcode permission
+ */
+export const scannerAccessGuard: CanActivateFn = (route) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  const sessionId = route.queryParamMap.get('sessionId')?.trim() ?? '';
+  const purpose = route.queryParamMap.get('purpose')?.trim() ?? '';
+  if (sessionId && purpose) {
+    return true;
+  }
+
+  if (authService.isAuthenticated() && authService.hasPermission('scan_barcode')) {
+    return true;
+  }
+
+  if (!authService.isAuthenticated()) {
+    router.navigate(['/auth/login']);
+  } else {
+    router.navigate([authService.getDefaultAuthorizedRoute()]);
+  }
+
+  return false;
 };

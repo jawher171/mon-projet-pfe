@@ -15,7 +15,7 @@ $accent: #764ba2;
 .ss-page {
   max-width: 1400px;
   margin: 0 auto;
-  animation: fade-up 0.4s ease-out forwards;
+  animation: fade-up 0.4s ease-out;
 }
 
 /* ═══════════════ HEADER ═══════════════ */
@@ -266,7 +266,7 @@ $accent: #764ba2;
 .ss-overlay {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 1000;
   background: rgba(0,0,0,0.45);
   backdrop-filter: blur(6px);
   display: flex;

@@ -6,6 +6,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 import { StockService } from '../../core/services/stock.service';
 import { SiteService } from '../../core/services/site.service';
 import { AlertService } from '../../core/services/alert.service';
@@ -23,6 +24,7 @@ type StockStatus = 'all' | 'ok' | 'warning' | 'critical' | 'rupture' | 'overstoc
 })
 export class StocksOverviewComponent implements OnInit {
   private router = inject(Router);
+  private authService = inject(AuthService);
   private stockService = inject(StockService);
   private siteService = inject(SiteService);
   private alertService = inject(AlertService);
@@ -47,6 +49,9 @@ export class StocksOverviewComponent implements OnInit {
     if (type === 'all') return this.sites();
     return this.sites().filter(s => s.type === type);
   });
+
+  canManageStocks = computed(() => this.authService.hasPermission('manage_stocks'));
+  canManageMovements = computed(() => this.authService.hasPermission('manage_movements'));
 
   // Filtered stocks
   filteredStocks = computed(() => {
@@ -194,6 +199,8 @@ export class StocksOverviewComponent implements OnInit {
 
   // Navigation
   openMovement(stock: Stock, mode: 'entry' | 'exit') {
+    if (!this.canManageMovements()) return;
+
     this.router.navigate(['/movements'], {
       queryParams: {
         stockId: stock.id,
@@ -211,6 +218,8 @@ export class StocksOverviewComponent implements OnInit {
 
   // Edit thresholds modal
   openEdit(stock: Stock) {
+    if (!this.canManageStocks()) return;
+
     this.editingStock.set(stock);
     this.editForm.set({
       seuilAlerte: (stock.seuilMinimum ?? 0) + (stock.seuilSecurite ?? 0),
@@ -241,6 +250,8 @@ export class StocksOverviewComponent implements OnInit {
   }
 
   async saveEdit() {
+    if (!this.canManageStocks()) return;
+
     const stock = this.editingStock();
     if (!stock) return;
     this.saving.set(true);

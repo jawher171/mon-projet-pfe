@@ -17,7 +17,7 @@
   @if (currentUser(); as user) {
     <div class="pr-card">
       <div class="pr-avatar">
-        {{ user.prenom?.charAt(0) || '?' }}{{ user.nom?.charAt(0) || '?' }}
+        {{ user.prenom.charAt(0) || '?' }}{{ user.nom.charAt(0) || '?' }}
       </div>
 
       @if (!isEditing) {

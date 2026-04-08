@@ -28,6 +28,12 @@ interface MovementDto {
   destination?: string;
 }
 
+interface MovementReasonDto {
+  value: string;
+  label: string;
+  type: 'entry' | 'exit' | 'transfer' | string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -45,6 +51,30 @@ export class MovementService {
    */
   getMovements() {
     return this.movementsSignal;
+  }
+
+  private normalizeReasonType(type: string | undefined): 'entry' | 'exit' | 'transfer' {
+    if (type === 'exit') return 'exit';
+    if (type === 'transfer') return 'transfer';
+    return 'entry';
+  }
+
+  private async fetchCustomReasonsFromBackend(): Promise<void> {
+    if (!USE_BACKEND) return;
+
+    const reasons = await firstValueFrom(
+      this.http.get<MovementReasonDto[]>(`${API_BASE_URL}/api/StockMovements/GetMovementReasons`)
+    );
+
+    const normalized = (reasons ?? [])
+      .filter(r => !!r?.value && !!r?.label)
+      .map(r => ({
+        value: r.value,
+        label: r.label,
+        type: this.normalizeReasonType(r.type)
+      }));
+
+    this.customReasonsSignal.set(normalized);
   }
 
   private dtoToMovement(dto: MovementDto): MouvementStock {
@@ -74,7 +104,13 @@ export class MovementService {
       return this.movementsSignal();
     }
 
-    const dtos = await firstValueFrom(this.http.get<MovementDto[]>(`${API_BASE_URL}/api/StockMovements/GetStockMovements`));
+    const [dtos] = await Promise.all([
+      firstValueFrom(this.http.get<MovementDto[]>(`${API_BASE_URL}/api/StockMovements/GetStockMovements`)),
+      this.fetchCustomReasonsFromBackend().catch(() => {
+        this.customReasonsSignal.set([]);
+      })
+    ]);
+
     const mapped = (dtos ?? []).map(d => this.dtoToMovement(d));
     this.movementsSignal.set(mapped);
     return mapped;
@@ -324,28 +360,80 @@ export class MovementService {
    * @param type Movement type (entry or exit)
    * @returns Generated reason value
    */
-  addCustomReason(label: string, type: 'entry' | 'exit' | 'transfer'): string {
+  async addCustomReason(label: string, type: 'entry' | 'exit' | 'transfer'): Promise<string> {
+    if (USE_BACKEND) {
+      const created = await firstValueFrom(
+        this.http.post<MovementReasonDto>(`${API_BASE_URL}/api/StockMovements/AddMovementReason`, {
+          label,
+          type
+        })
+      );
+
+      const normalized = {
+        value: created.value,
+        label: created.label,
+        type: this.normalizeReasonType(created.type)
+      };
+
+      this.customReasonsSignal.update(reasons => {
+        const idx = reasons.findIndex(r => r.value === normalized.value);
+        if (idx === -1) return [...reasons, normalized];
+        const copy = [...reasons];
+        copy[idx] = normalized;
+        return copy;
+      });
+
+      return normalized.value;
+    }
+
     const value = `custom_${type}_${Date.now()}`;
-    this.customReasonsSignal.update(reasons => [
-      ...reasons,
-      { value, label, type }
-    ]);
+    this.customReasonsSignal.update(reasons => [...reasons, { value, label, type }]);
     return value;
   }
 
   /**
    * Delete a custom reason by value
    */
-  deleteCustomReason(value: string): void {
+  async deleteCustomReason(value: string): Promise<void> {
+    if (USE_BACKEND) {
+      await firstValueFrom(
+        this.http.delete(`${API_BASE_URL}/api/StockMovements/DeleteMovementReason/${encodeURIComponent(value)}`)
+      );
+    }
+
     this.customReasonsSignal.update(reasons => reasons.filter(r => r.value !== value));
   }
 
   /**
    * Update a custom reason's label
    */
-  updateCustomReason(value: string, newLabel: string): void {
+  async updateCustomReason(value: string, newLabel: string): Promise<void> {
+    if (USE_BACKEND) {
+      const existing = this.customReasonsSignal().find(r => r.value === value);
+      if (!existing) return;
+
+      const updated = await firstValueFrom(
+        this.http.put<MovementReasonDto>(`${API_BASE_URL}/api/StockMovements/UpdateMovementReason/${encodeURIComponent(value)}`, {
+          value,
+          label: newLabel,
+          type: existing.type
+        })
+      );
+
+      const normalized = {
+        value: updated.value,
+        label: updated.label,
+        type: this.normalizeReasonType(updated.type)
+      };
+
+      this.customReasonsSignal.update(reasons =>
+        reasons.map(r => (r.value === value ? normalized : r))
+      );
+      return;
+    }
+
     this.customReasonsSignal.update(reasons =>
-      reasons.map(r => r.value === value ? { ...r, label: newLabel } : r)
+      reasons.map(r => (r.value === value ? { ...r, label: newLabel } : r))
     );
   }
 

@@ -15,7 +15,7 @@ import { RolesService } from './roles.service';
 export class AuthorizationService {
   private rolesService = inject(RolesService);
 
-  /** Reactive roles - from RolesService (backend) or local ROLES default */
+  /** Reactive roles from RolesService (backend API when enabled, local roles only in offline mode). */
   rolesSignal = this.rolesService.roles;
 
   /** List of all system members */

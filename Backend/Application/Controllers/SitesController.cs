@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Application.Dtos;
+using Application.Security;
 using AutoMapper;
 using Domain.Commands;
 using Domain.Models;
@@ -27,6 +28,7 @@ namespace Application.Controllers
         }
 
         [HttpGet("GetSites")]
+        [PermissionAuthorize("view_sites")]
         public async Task<IEnumerable<SiteDto>> GetSites()
         {
             var result = await _mediator.Send(
@@ -36,6 +38,7 @@ namespace Application.Controllers
         }
 
         [HttpGet("GetSite/{id}")]
+        [PermissionAuthorize("view_sites")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var entity = await _mediator.Send(
@@ -46,7 +49,7 @@ namespace Application.Controllers
         }
 
         [HttpPost("AddSite")]
-        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        [PermissionAuthorize("manage_sites")]
         public async Task<IActionResult> Add([FromBody] SiteDto dto)
         {
             var site = _mapper.Map<Site>(dto);
@@ -56,7 +59,7 @@ namespace Application.Controllers
         }
 
         [HttpPut("UpdateSite")]
-        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        [PermissionAuthorize("manage_sites")]
         public async Task<IActionResult> Update([FromBody] SiteDto dto)
         {
             if (dto.Id_site == Guid.Empty)
@@ -75,7 +78,7 @@ namespace Application.Controllers
         }
 
         [HttpDelete("DeleteSite/{id}")]
-        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        [PermissionAuthorize("manage_sites")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var deleted = await _mediator.Send(new RemoveGenericCommand<Site>(id));

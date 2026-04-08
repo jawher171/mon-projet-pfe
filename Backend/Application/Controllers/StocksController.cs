@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Dtos;
 using Application.Events;
+using Application.Security;
 using AutoMapper;
 using Domain.Commands;
 using Domain.Models;
@@ -29,6 +30,7 @@ namespace Application.Controllers
         }
 
         [HttpGet("GetStocks")]
+        [PermissionAuthorize("view_stocks")]
         public async Task<IEnumerable<StockDto>> GetNotDeleted()
         {
             var result = await _mediator.Send(
@@ -40,6 +42,7 @@ namespace Application.Controllers
         }
 
         [HttpGet("GetStock/{id}")]
+        [PermissionAuthorize("view_stocks")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var entity = await _mediator.Send(
@@ -52,6 +55,7 @@ namespace Application.Controllers
         }
 
         [HttpGet("GetStocksBySite/{siteId}")]
+        [PermissionAuthorize("view_stocks")]
         public async Task<IEnumerable<StockDto>> GetBySite(Guid siteId)
         {
             var result = await _mediator.Send(
@@ -63,7 +67,7 @@ namespace Application.Controllers
         }
 
         [HttpPost("AddStock")]
-        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        [PermissionAuthorize("manage_stocks")]
         public async Task<IActionResult> Add([FromBody] StockDto dto)
         {
             var stock = _mapper.Map<Stock>(dto);
@@ -84,7 +88,7 @@ namespace Application.Controllers
         }
 
         [HttpPut("UpdateStock")]
-        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        [PermissionAuthorize("manage_stocks")]
         public async Task<IActionResult> Update([FromBody] StockDto dto)
         {
             if (dto.id_s == Guid.Empty)
@@ -131,7 +135,7 @@ namespace Application.Controllers
         }
 
         [HttpDelete("DeleteStock/{id}")]
-        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        [PermissionAuthorize("manage_stocks")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var deleted = await _mediator.Send(new RemoveGenericCommand<Stock>(id));

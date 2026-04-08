@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "uaibsnGQ0Mk=",
+  "dgSpecHash": "Oo9aDVa+RRA=",
   "success": true,
-  "projectFilePath": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Infra\\Infra.csproj",
+  "projectFilePath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Infra\\Infra.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\jawher\\.nuget\\packages\\mediatr\\9.0.0\\mediatr.9.0.0.nupkg.sha512",
     "C:\\Users\\jawher\\.nuget\\packages\\microsoft.aspnetcore.jsonpatch\\3.1.1\\microsoft.aspnetcore.jsonpatch.3.1.1.nupkg.sha512",

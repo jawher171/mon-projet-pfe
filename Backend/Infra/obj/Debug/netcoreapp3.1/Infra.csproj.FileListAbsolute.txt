@@ -75,3 +75,8 @@ C:\Users\jawher\mon-projet-pfe\Backend\Infra\obj\Debug\netcoreapp3.1\Infra.sourc
 C:\Users\jawher\mon-projet-pfe\Backend\Infra\obj\Debug\netcoreapp3.1\Infra.csproj.Up2Date
 C:\Users\jawher\mon-projet-pfe\Backend\Infra\obj\Debug\netcoreapp3.1\Infra.dll
 C:\Users\jawher\mon-projet-pfe\Backend\Infra\obj\Debug\netcoreapp3.1\Infra.pdb
+C:\Users\jawher\Documents\inventaire\pfe-inventaire\Backend\Infra\bin\Debug\netcoreapp3.1\Data.dll
+C:\Users\jawher\Documents\inventaire\pfe-inventaire\Backend\Infra\bin\Debug\netcoreapp3.1\Domain.dll
+C:\Users\jawher\Documents\inventaire\pfe-inventaire\Backend\Infra\bin\Debug\netcoreapp3.1\Domain.pdb
+C:\Users\jawher\Documents\inventaire\pfe-inventaire\Backend\Infra\bin\Debug\netcoreapp3.1\Data.pdb
+C:\Users\jawher\Documents\inventaire\pfe-inventaire\Backend\Infra\obj\Debug\netcoreapp3.1\Infra.csproj.Up2Date

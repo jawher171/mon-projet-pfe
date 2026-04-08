@@ -111,18 +111,23 @@
             @if (alert.produitNom) {
               <span class="al-meta-item"><span class="material-symbols-rounded">package_2</span>{{ alert.produitNom }}</span>
             }
+            @if (alert.utilisateurNom) {
+              <span class="al-meta-item"><span class="material-symbols-rounded">person</span>{{ alert.utilisateurNom }}</span>
+            }
             <span class="al-meta-item"><span class="material-symbols-rounded">schedule</span>{{ getTimeAgo(alert.dateCreation) }}</span>
           </div>
         </div>
         <div class="al-card-actions" (click)="$event.stopPropagation()">
-          @if (!alert.resolue) {
+          @if (!alert.resolue && canManageAlerts()) {
             <button class="al-act resolve" (click)="openAlertModal(alert)" title="Résoudre">
               <span class="material-symbols-rounded">task_alt</span>
             </button>
           }
-          <button class="al-act delete" (click)="deleteAlert(alert)" title="Supprimer">
-            <span class="material-symbols-rounded">delete_outline</span>
-          </button>
+          @if (canManageAlerts()) {
+            <button class="al-act delete" (click)="deleteAlert(alert)" title="Supprimer">
+              <span class="material-symbols-rounded">delete_outline</span>
+            </button>
+          }
         </div>
       </div>
     } @empty {
@@ -181,6 +186,12 @@
               <span>{{ alert.siteNom }}</span>
             </div>
           }
+          @if (alert.utilisateurNom) {
+            <div>
+              <label>Utilisateur</label>
+              <span>{{ alert.utilisateurNom }}</span>
+            </div>
+          }
         </div>
         @if (alert.resolue) {
           <div class="al-resolved-box">
@@ -190,13 +201,13 @@
         } @else {
           <div class="al-modal-section">
             <h4>Résoudre cette alerte</h4>
-            <textarea class="al-textarea" placeholder="Notes de résolution (optionnel)..." rows="3" [value]="resolveNotes()" (input)="resolveNotes.set($any($event.target).value)"></textarea>
+            <p>Cliquez sur "Marquer comme résolu" pour fermer cette alerte.</p>
           </div>
         }
       </div>
       <div class="al-modal-footer">
         <button class="al-btn cancel" (click)="closeModal()">Fermer</button>
-        @if (!alert.resolue) {
+        @if (!alert.resolue && canManageAlerts()) {
           <button class="al-btn success" (click)="resolveAlert()">
             <span class="material-symbols-rounded">task_alt</span>
             Marquer comme résolu

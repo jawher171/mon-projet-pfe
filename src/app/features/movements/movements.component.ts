@@ -245,6 +245,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
 
   movements = computed(() => this.movementService.getFilteredMovements(this.filter())());
   summary = computed(() => this.movementService.getMovementSummary());
+  canManageMovements = computed(() => this.authService.hasPermission('manage_movements'));
 
   showAllMovements = signal(false);
 
@@ -303,10 +304,11 @@ export class MovementsComponent implements OnInit, OnDestroy {
 
   /** Open QR scan modal for product barcode scanning */
   async openProductScan() {
+    const mobileUi = this.isMobileUi();
     const sessionId = this.scanSessionService.generateSessionId();
     const baseUrl = this.resolveScanBaseUrl();
-    this.scanUrl.set(`${baseUrl}/scan?sessionId=${sessionId}&purpose=MOVEMENT_PRODUCT`);
-    this.showQrScanModal.set(true);
+    this.scanUrl.set(`${baseUrl}/scan-relay?sessionId=${sessionId}&purpose=MOVEMENT_PRODUCT&scanOnly=1`);
+    this.showQrScanModal.set(!mobileUi);
 
     this.scanSub?.unsubscribe();
     this.scanSub = this.scanSessionService.scan$.subscribe(async (event) => {
@@ -332,6 +334,13 @@ export class MovementsComponent implements OnInit, OnDestroy {
     try {
       await this.scanSessionService.joinSession(sessionId);
       this.scanConnected.set(true);
+
+      if (mobileUi) {
+        const opened = this.openMobileScannerTab(this.scanUrl());
+        if (!opened) {
+          this.displayToast('Impossible d\'ouvrir le scanner. Autorisez les popups puis réessayez.', 'error');
+        }
+      }
     } catch (err) {
       console.error('[Movements] SignalR connection failed', err);
       // QR modal is already shown — user can still scan
@@ -385,6 +394,19 @@ export class MovementsComponent implements OnInit, OnDestroy {
     ]);
 
     const params = this.route.snapshot.queryParams;
+    const barcode = String(params['barcode'] ?? '').trim();
+
+    if (params['mode'] === 'transfer') {
+      this.openTransferModal();
+      if (barcode) {
+        const transferProduct = await this.productService.getProductByBarcode(barcode);
+        if (transferProduct) {
+          this.selectTransferProduct(transferProduct);
+        }
+      }
+      return;
+    }
+
     if (params['mode'] && (params['mode'] === 'entry' || params['mode'] === 'exit')) {
       const mode = params['mode'] as 'entry' | 'exit';
       this.movementType.set(mode);
@@ -416,6 +438,11 @@ export class MovementsComponent implements OnInit, OnDestroy {
         } else if (productName) {
           this.productSearch.set(productName);
         }
+      } else if (barcode) {
+        const scannedProduct = await this.productService.getProductByBarcode(barcode);
+        if (scannedProduct) {
+          this.selectProduct(scannedProduct);
+        }
       }
 
       this.showModal.set(true);
@@ -446,6 +473,8 @@ export class MovementsComponent implements OnInit, OnDestroy {
   }
   
   openAddModal(type: 'entry' | 'exit') {
+    if (!this.canManageMovements()) return;
+
     this.modalMode.set('add');
     this.movementType.set(type);
     this.resetForm();
@@ -487,6 +516,8 @@ export class MovementsComponent implements OnInit, OnDestroy {
   // ── Transfer Modal Methods ──
 
   openTransferModal() {
+    if (!this.canManageMovements()) return;
+
     this.resetTransferForm();
     this.showTransferModal.set(true);
   }
@@ -514,10 +545,11 @@ export class MovementsComponent implements OnInit, OnDestroy {
 
   /** Open QR scan modal for transfer product barcode scanning */
   async openTransferProductScan() {
+    const mobileUi = this.isMobileUi();
     const sessionId = this.scanSessionService.generateSessionId();
     const baseUrl = this.resolveScanBaseUrl();
-    this.scanUrl.set(`${baseUrl}/scan?sessionId=${sessionId}&purpose=TRANSFER_PRODUCT`);
-    this.showQrScanModal.set(true);
+    this.scanUrl.set(`${baseUrl}/scan-relay?sessionId=${sessionId}&purpose=TRANSFER_PRODUCT&scanOnly=1`);
+    this.showQrScanModal.set(!mobileUi);
 
     this.scanSub?.unsubscribe();
     this.scanSub = this.scanSessionService.scan$.subscribe(async (event) => {
@@ -541,9 +573,30 @@ export class MovementsComponent implements OnInit, OnDestroy {
     try {
       await this.scanSessionService.joinSession(sessionId);
       this.scanConnected.set(true);
+
+      if (mobileUi) {
+        const opened = this.openMobileScannerTab(this.scanUrl());
+        if (!opened) {
+          this.displayToast('Impossible d\'ouvrir le scanner. Autorisez les popups puis réessayez.', 'error');
+        }
+      }
     } catch (err) {
       console.error('[Transfer] SignalR connection failed', err);
     }
+  }
+
+  private isMobileUi(): boolean {
+    const viewportMobile = window.matchMedia('(max-width: 1024px)').matches;
+    const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+    const touchCapable = (navigator.maxTouchPoints ?? 0) > 0;
+    const ua = navigator.userAgent || '';
+    const uaMobile = /Android|iPhone|iPad|iPod|IEMobile|Opera Mini|Mobile/i.test(ua);
+    return viewportMobile || uaMobile || coarsePointer || touchCapable;
+  }
+
+  private openMobileScannerTab(scanUrl: string): boolean {
+    const opened = window.open(scanUrl, '_blank', 'noopener,noreferrer');
+    return !!opened;
   }
 
   updateTransferField(field: string, value: string | number) {
@@ -587,6 +640,8 @@ export class MovementsComponent implements OnInit, OnDestroy {
   }
 
   async saveTransfer() {
+    if (!this.canManageMovements()) return;
+
     this.transferFormSubmitted.set(true);
 
     if (!this.isTransferFormValid()) return;
@@ -715,6 +770,8 @@ export class MovementsComponent implements OnInit, OnDestroy {
   }
   
   openAddReasonModal(type?: 'entry' | 'exit' | 'transfer') {
+    if (!this.canManageMovements()) return;
+
     this.reasonType.set(type || 'entry');
     this.newCustomReason.set('');
     this.editingReasonValue.set(null);
@@ -731,7 +788,9 @@ export class MovementsComponent implements OnInit, OnDestroy {
     this.reasonError.set('');
   }
   
-  saveCustomReason() {
+  async saveCustomReason() {
+    if (!this.canManageMovements()) return;
+
     const reason = this.newCustomReason().trim();
     if (!reason) return;
 
@@ -741,10 +800,15 @@ export class MovementsComponent implements OnInit, OnDestroy {
       return;
     }
     
-    this.movementService.addCustomReason(reason, this.reasonType());
-    this.newCustomReason.set('');
-    this.reasonError.set('');
-    this.displayToast('Raison ajoutée avec succès', 'success');
+    try {
+      await this.movementService.addCustomReason(reason, this.reasonType());
+      this.newCustomReason.set('');
+      this.reasonError.set('');
+      this.displayToast('Raison ajoutée avec succès', 'success');
+    } catch (err: any) {
+      const backendMessage = err?.error?.message;
+      this.reasonError.set(backendMessage || 'Erreur lors de l\'ajout de la raison.');
+    }
   }
 
   startEditReason(value: string, label: string) {
@@ -759,7 +823,9 @@ export class MovementsComponent implements OnInit, OnDestroy {
     this.reasonError.set('');
   }
 
-  saveEditReason() {
+  async saveEditReason() {
+    if (!this.canManageMovements()) return;
+
     const value = this.editingReasonValue();
     const newLabel = this.editingReasonLabel().trim();
     if (!value || !newLabel) return;
@@ -770,19 +836,33 @@ export class MovementsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.movementService.updateCustomReason(value, newLabel);
-    this.editingReasonValue.set(null);
-    this.editingReasonLabel.set('');
-    this.reasonError.set('');
-    this.displayToast('Raison modifiée avec succès', 'success');
+    try {
+      await this.movementService.updateCustomReason(value, newLabel);
+      this.editingReasonValue.set(null);
+      this.editingReasonLabel.set('');
+      this.reasonError.set('');
+      this.displayToast('Raison modifiée avec succès', 'success');
+    } catch (err: any) {
+      const backendMessage = err?.error?.message;
+      this.reasonError.set(backendMessage || 'Erreur lors de la modification de la raison.');
+    }
   }
 
-  deleteCustomReason(value: string) {
-    this.movementService.deleteCustomReason(value);
-    this.displayToast('Raison supprimée', 'success');
+  async deleteCustomReason(value: string) {
+    if (!this.canManageMovements()) return;
+
+    try {
+      await this.movementService.deleteCustomReason(value);
+      this.displayToast('Raison supprimée', 'success');
+    } catch (err: any) {
+      const backendMessage = err?.error?.message;
+      this.reasonError.set(backendMessage || 'Erreur lors de la suppression de la raison.');
+    }
   }
 
   async saveMovement() {
+    if (!this.canManageMovements()) return;
+
     this.formSubmitted.set(true);
 
     if (!this.isFormValid()) return;

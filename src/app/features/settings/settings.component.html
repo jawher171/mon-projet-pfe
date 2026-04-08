@@ -83,7 +83,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (group of permissionGroups; track group.label) {
+          @for (group of permissionGroups(); track group.label) {
             @for (perm of group.permissions; track perm.key; let first = $first; let last = $last) {
               <tr [class.st-group-first]="first" [class.st-group-last]="last">
                 @if (first) {

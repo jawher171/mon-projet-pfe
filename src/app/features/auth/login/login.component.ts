@@ -78,7 +78,7 @@ export class LoginComponent {
     try {
       const success = await this.authService.login(email, password);
       if (success) {
-        this.router.navigate(['/dashboard']);
+        this.router.navigate([this.authService.getDefaultAuthorizedRoute()]);
       } else {
         this.errorMessage.set('E-mail ou mot de passe incorrect.');
       }

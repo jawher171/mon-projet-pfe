@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { User } from '../models/user.model';
 import { UserRole, Permission } from '../models/role.model';
 import { AuthorizationService } from './auth-authorization.service';
+import { RolesService } from './roles.service';
 import { API_BASE_URL, USE_BACKEND } from '../../app.config';
 
 interface LoginResponse {
@@ -39,9 +40,16 @@ export class AuthService {
   private readonly USER_KEY = 'current_user';
   private readonly http = inject(HttpClient);
   private authorizationService = inject(AuthorizationService);
+  private rolesService = inject(RolesService);
 
   currentUser = signal<User | null>(this.loadUser());
   isAuthenticated = signal<boolean>(this.hasToken());
+
+  constructor() {
+    if (USE_BACKEND && this.hasToken()) {
+      void this.rolesService.fetchRoles();
+    }
+  }
 
   private loadUser(): User | null {
     const userStr = localStorage.getItem(this.USER_KEY);
@@ -72,13 +80,14 @@ export class AuthService {
         role: res.user.role as UserRole,
         status: res.user.status as 'active' | 'inactive',
         lastLogin: res.user.lastLogin ? new Date(res.user.lastLogin) : undefined,
-        permissions: res.user.permissions
+        permissions: res.user.permissions ?? []
       };
 
       localStorage.setItem(this.TOKEN_KEY, res.token);
       localStorage.setItem(this.USER_KEY, JSON.stringify(user));
       this.currentUser.set(user);
       this.isAuthenticated.set(true);
+      await this.rolesService.fetchRoles();
       return true;
     } catch {
       return false;
@@ -130,8 +139,58 @@ export class AuthService {
   hasPermission(permission: Permission): boolean {
     const user = this.currentUser();
     if (!user) return false;
+
+    if (USE_BACKEND) {
+      const rolePermissions = this.authorizationService.rolesSignal()[user.role]?.permissions;
+      if (Array.isArray(rolePermissions)) {
+        return rolePermissions.some(p => p?.toLowerCase() === permission.toLowerCase());
+      }
+
+      const rawPermissions = Array.isArray(user.permissions) ? user.permissions : [];
+      return rawPermissions
+        .filter((p): p is string => typeof p === 'string')
+        .some(p => p.trim().toLowerCase() === permission.toLowerCase());
+    }
+
+    // Backward compatibility while migrating from site-based to stock-based permissions.
+    if (permission === 'view_stocks') {
+      if (user.permissions?.includes('view_stocks') || user.permissions?.includes('view_sites')) return true;
+      if (this.authorizationService.hasPermission(user.role, 'view_stocks')) return true;
+      return this.authorizationService.hasPermission(user.role, 'view_sites');
+    }
+
+    if (permission === 'manage_stocks') {
+      if (user.permissions?.includes('manage_stocks') || user.permissions?.includes('manage_sites')) return true;
+      if (this.authorizationService.hasPermission(user.role, 'manage_stocks')) return true;
+      return this.authorizationService.hasPermission(user.role, 'manage_sites');
+    }
+
     if (user.permissions?.includes(permission)) return true;
     return this.authorizationService.hasPermission(user.role, permission);
+  }
+
+  /** Returns the first route the current user can access to avoid redirect loops. */
+  getDefaultAuthorizedRoute(): string {
+    if (!this.isAuthenticated()) return '/auth/login';
+
+    const routePermissions: Array<{ route: string; permission: Permission }> = [
+      { route: '/dashboard', permission: 'view_dashboard' },
+      { route: '/products', permission: 'view_products' },
+      { route: '/movements', permission: 'view_movements' },
+      { route: '/sites', permission: 'view_sites' },
+      { route: '/stocks', permission: 'view_stocks' },
+      { route: '/alerts', permission: 'view_alerts' },
+      { route: '/reapprovisionnement', permission: 'view_reapprovisionnement' },
+      { route: '/scanner', permission: 'scan_barcode' }
+    ];
+
+    for (const candidate of routePermissions) {
+      if (this.hasPermission(candidate.permission)) {
+        return candidate.route;
+      }
+    }
+
+    return '/profile';
   }
 
   /** Update stored current user (e.g. after profile edit) */

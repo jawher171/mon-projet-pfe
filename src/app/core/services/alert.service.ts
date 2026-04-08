@@ -21,6 +21,7 @@ interface AlertDto {
   id_s?: string;
   produitNom?: string;
   siteNom?: string;
+  utilisateurNom?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -58,7 +59,8 @@ export class AlertService {
       stockId: dto.id_s,
       isRead: readIds.has(String(id)),
       produitNom: dto.produitNom,
-      siteNom: dto.siteNom
+      siteNom: dto.siteNom,
+      utilisateurNom: dto.utilisateurNom
     };
   }
 

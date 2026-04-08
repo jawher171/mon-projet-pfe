@@ -2,6 +2,8 @@
    Stocks Overview — mirrors site-stocks & sites styles
    ============================================================ */
 
+@use 'sass:color';
+
 $primary: #667eea;
 $primary-dark: #5a67d8;
 $accent: #764ba2;
@@ -21,7 +23,7 @@ $overstock-color: #8b5cf6;
   padding: 24px 28px 40px;
   max-width: 1400px;
   margin: 0 auto;
-  animation: fade-in 0.4s ease-out forwards;
+  animation: fade-in 0.4s ease-out;
 }
 
 // ─── Header ──────────────────────────────────────
@@ -369,7 +371,7 @@ $overstock-color: #8b5cf6;
   font-weight: 600;
 
   &[data-status="ok"]       { background: rgba($success, 0.1); color: $success; }
-  &[data-status="warning"]  { background: rgba($warning, 0.1); color: darken($warning, 10%); }
+  &[data-status="warning"]  { background: rgba($warning, 0.1); color: color.adjust($warning, $lightness: -10%); }
   &[data-status="critical"] { background: rgba(#f97316, 0.1); color: #ea580c; }
   &[data-status="rupture"]  { background: rgba($danger, 0.1); color: $danger; }
   &[data-status="overstock"]{ background: rgba($overstock-color, 0.1); color: $overstock-color; }
@@ -400,7 +402,7 @@ $overstock-color: #8b5cf6;
     &:hover { background: rgba($primary, 0.18); } }
   &.entry  { background: rgba($success, 0.08); color: $success;
     &:hover { background: rgba($success, 0.18); } }
-  &.exit   { background: rgba($warning, 0.08); color: darken($warning, 10%);
+  &.exit   { background: rgba($warning, 0.08); color: color.adjust($warning, $lightness: -10%);
     &:hover { background: rgba($warning, 0.18); } }
   &.view   { background: rgba($info, 0.08); color: $info;
     &:hover { background: rgba($info, 0.18); } }

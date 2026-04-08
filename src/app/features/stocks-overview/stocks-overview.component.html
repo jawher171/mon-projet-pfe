@@ -165,15 +165,19 @@
                 </td>
                 <td>
                   <div class="so-actions">
-                    <button class="so-act edit" title="Modifier les seuils" (click)="openEdit(stock)">
-                      <span class="material-symbols-rounded">tune</span>
-                    </button>
-                    <button class="so-act entry" title="Entrée de stock" (click)="openMovement(stock, 'entry')">
-                      <span class="material-symbols-rounded">input</span>
-                    </button>
-                    <button class="so-act exit" title="Sortie de stock" (click)="openMovement(stock, 'exit')">
-                      <span class="material-symbols-rounded">output</span>
-                    </button>
+                    @if (canManageStocks()) {
+                      <button class="so-act edit" title="Modifier les seuils" (click)="openEdit(stock)">
+                        <span class="material-symbols-rounded">tune</span>
+                      </button>
+                    }
+                    @if (canManageMovements()) {
+                      <button class="so-act entry" title="Entrée de stock" (click)="openMovement(stock, 'entry')">
+                        <span class="material-symbols-rounded">input</span>
+                      </button>
+                      <button class="so-act exit" title="Sortie de stock" (click)="openMovement(stock, 'exit')">
+                        <span class="material-symbols-rounded">output</span>
+                      </button>
+                    }
                     <button class="so-act view" title="Voir stocks du site" (click)="goToSiteStocks(stock.siteId)">
                       <span class="material-symbols-rounded">open_in_new</span>
                     </button>

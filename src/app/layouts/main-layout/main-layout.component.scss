@@ -4,6 +4,14 @@
   border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+.mobile-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: rgba(2, 6, 23, 0.5);
+  backdrop-filter: blur(2px);
+}
+
 /* ── Icon defaults — outlined, thin ── */
 nav .sidebar-icon-box .material-symbols-rounded {
   font-variation-settings:
@@ -317,8 +325,8 @@ main.scrollbar-thin {
 
 /* Page transition */
 @keyframes page-fade-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .page-transition {
   animation: page-fade-in 0.25s ease-out;
@@ -333,19 +341,52 @@ main.scrollbar-thin {
   animation: menu-slide-in 0.15s ease-out;
 }
 
-/* Responsive sidebar */
 @media (max-width: 768px) {
-  aside {
+  .sidebar {
     position: fixed;
     left: 0;
     top: 0;
+    width: 260px;
     height: 100vh;
     transform: translateX(-100%);
-    transition: transform 0.3s ease;
+    transition: transform 0.25s ease;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.45);
 
-    &.w-\[264px\] {
+    &.mobile-open {
       transform: translateX(0);
     }
+  }
+
+  header {
+    padding: 0.625rem 0.75rem;
+    gap: 0.625rem;
+  }
+
+  .search-container {
+    max-width: none;
+  }
+
+  .search-dropdown {
+    left: -0.5rem;
+    right: -0.5rem;
+  }
+
+  main {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  header {
+    flex-wrap: wrap;
+  }
+
+  header > div:first-child {
+    width: 100%;
+  }
+
+  .search-container {
+    min-width: 0;
   }
 }
 

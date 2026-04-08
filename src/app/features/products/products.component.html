@@ -10,13 +10,13 @@
     </div>
     @if (canManageProducts()) {
       <div class="pd-header-actions">
-        <button class="pd-btn outline" (click)="openCategoryModal()">
-          <span class="material-symbols-rounded">category</span>
-          Gérer Catégories
-        </button>
-        <button class="pd-btn primary" (click)="openAddModal()">
+        <button class="pd-btn primary add-product" (click)="openAddModal()">
           <span class="material-symbols-rounded">add_box</span>
           Ajouter un produit
+        </button>
+        <button class="pd-btn outline manage-categories" (click)="openCategoryModal()">
+          <span class="material-symbols-rounded">category</span>
+          Gérer Catégories
         </button>
       </div>
     }

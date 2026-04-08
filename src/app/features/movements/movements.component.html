@@ -8,6 +8,7 @@
       </h1>
       <p>Gérer les entrées et sorties de stock</p>
     </div>
+    @if (canManageMovements()) {
     <div class="mv-header-actions">
       <button class="mv-btn entry" (click)="openAddModal('entry')">
         <span class="material-symbols-rounded">input</span>
@@ -26,6 +27,7 @@
         Gérer Raisons
       </button>
     </div>
+    }
   </div>
 
   <!-- Summary Cards -->
@@ -113,6 +115,7 @@
           <th>Raison</th>
           <th>Site</th>
           <th>Destination</th>
+          <th>Utilisateur</th>
           <th>Date</th>
           <th class="th-actions">Actions</th>
         </tr>
@@ -148,6 +151,7 @@
             <span class="mv-cell-muted">-</span>
             }
           </td>
+          <td><span class="mv-cell-text">{{ movement.utilisateurNom || '-' }}</span></td>
           <td>
             <div class="mv-date-cell">
               <span class="mv-date-ago">{{ getTimeAgo(movement.dateMouvement) }}</span>
@@ -162,7 +166,7 @@
         </tr>
         } @empty {
         <tr>
-          <td colspan="9">
+          <td colspan="10">
             <div class="mv-empty">
               <div class="mv-empty-icon">
                 <span class="material-symbols-rounded">deployed_code</span>

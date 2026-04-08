@@ -1,7 +1,14 @@
 <div class="flex h-screen overflow-hidden bg-background">
+  @if (isMobileViewport() && isMobileSidebarOpen()) {
+    <div class="mobile-sidebar-backdrop" (click)="closeMobileSidebar()"></div>
+  }
+
   <!-- Sidebar -->
-  <aside class="sidebar flex flex-col text-white transition-all duration-300 ease-[cubic-bezier(.4,0,.2,1)] relative z-50"
-    [class]="isSidebarCollapsed() ? 'w-[72px]' : 'w-[260px]'">
+  <aside
+    class="sidebar flex flex-col text-white transition-all duration-300 ease-in-out relative z-50"
+    [class.w-[72px]]="!isMobileViewport() && isSidebarCollapsed()"
+    [class.w-[260px]]="!isMobileViewport() && !isSidebarCollapsed()"
+    [class.mobile-open]="isMobileViewport() && isMobileSidebarOpen()">
 
     <!-- Brand -->
     <div class="flex items-center px-5 min-h-[64px] shrink-0"
@@ -77,7 +84,7 @@
     <!-- Header -->
     <header class="flex items-center justify-between gap-4 px-6 py-2.5 bg-card border-b border-border shadow-sm z-40">
       <div class="flex items-center gap-3 flex-1">
-        <button class="md:hidden p-2 rounded-lg hover:bg-accent text-muted-foreground" (click)="toggleSidebar()">
+        <button class="sidebar-toggle-btn md:hidden p-2 rounded-lg hover:bg-accent text-muted-foreground" (click)="toggleSidebar()">
           <span class="material-symbols-rounded text-xl">menu</span>
         </button>
             <!-- search main layouts -->
@@ -137,7 +144,7 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <img src="Poulina.png" alt="Poulina" class="h-[70px] w-auto max-w-[280px] object-contain"/>
+        <img src="Poulina.png" alt="Poulina" class="hidden sm:block h-[56px] md:h-[70px] w-auto max-w-[180px] md:max-w-[280px] object-contain"/>
 
         <div class="w-px h-8 bg-border"></div>
 
@@ -216,7 +223,7 @@
     }
 
     <!-- Page Content -->
-    <main class="flex-1 overflow-y-auto p-6 scrollbar-thin">
+    <main class="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 scrollbar-thin">
       <div class="page-transition">
         <router-outlet></router-outlet>
       </div>

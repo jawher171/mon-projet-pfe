@@ -6,7 +6,7 @@
  */
 
 import { Routes } from '@angular/router';
-import { adminGuard, stockManagerGuard, permissionGuard, authGuard } from './core/guards/auth.guard';
+import { permissionGuard, authGuard, scannerAccessGuard } from './core/guards/auth.guard';
 
 /**
  * Route definitions for the application:
@@ -31,7 +31,15 @@ export const routes: Routes = [
   // Phone scan route - accessible without auth for phone barcode scanning via QR code
   {
     path: 'scan',
-    loadComponent: () => import('./features/scanner/scanner.component').then(m => m.ScannerComponent)
+    loadComponent: () => import('./features/scanner/scanner.component').then(m => m.ScannerComponent),
+    canActivate: [scannerAccessGuard]
+  },
+
+  // Phone relay-only scan route for Product/Movement QR flows
+  {
+    path: 'scan-relay',
+    loadComponent: () => import('./features/scanner/scanner.component').then(m => m.ScannerComponent),
+    canActivate: [scannerAccessGuard]
   },
 
   // Protected routes wrapped in main layout
@@ -43,7 +51,8 @@ export const routes: Routes = [
       // Dashboard - main overview page (all authenticated users)
       {
         path: 'dashboard',
-        loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
+        loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
+        canActivate: [permissionGuard('view_dashboard')]
       },
       
       // Products - manage inventory products (all users except basic operators)
@@ -57,7 +66,7 @@ export const routes: Routes = [
       {
         path: 'movements',
         loadComponent: () => import('./features/movements/movements.component').then(m => m.MovementsComponent),
-        canActivate: [permissionGuard('manage_movements')]
+        canActivate: [permissionGuard('view_movements')]
       },
       
       // Sites - manage warehouse/site locations (admin and stock managers)
@@ -71,21 +80,21 @@ export const routes: Routes = [
       {
         path: 'sites/:siteId/stocks',
         loadComponent: () => import('./features/site-stocks/site-stocks.component').then(m => m.SiteStocksComponent),
-        canActivate: [permissionGuard('view_sites')]
+        canActivate: [permissionGuard('view_stocks')]
       },
 
       // Stocks Overview - all stocks across all sites
       {
         path: 'stocks',
         loadComponent: () => import('./features/stocks-overview/stocks-overview.component').then(m => m.StocksOverviewComponent),
-        canActivate: [permissionGuard('view_sites')]
+        canActivate: [permissionGuard('view_stocks')]
       },
       
       // Alerts - view system alerts and notifications (admin and stock managers)
       {
         path: 'alerts',
         loadComponent: () => import('./features/alerts/alerts.component').then(m => m.AlertsComponent),
-        canActivate: [permissionGuard('manage_alerts')]
+        canActivate: [permissionGuard('view_alerts')]
       },
 
       // Replenishment suggestions based on stock thresholds
@@ -106,7 +115,7 @@ export const routes: Routes = [
       {
         path: 'members',
         loadComponent: () => import('./features/members/members.component').then(m => m.MembersComponent),
-        canActivate: [adminGuard]
+        canActivate: [permissionGuard('manage_users')]
       },
 
       // Profile - user profile page (all authenticated users)
@@ -119,14 +128,14 @@ export const routes: Routes = [
       {
         path: 'user-management',
         loadComponent: () => import('./features/user-management/user-management.component').then(m => m.UserManagementComponent),
-        canActivate: [adminGuard]
+        canActivate: [permissionGuard('manage_users')]
       },
 
       // Settings - admin only
       {
         path: 'settings',
         loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent),
-        canActivate: [adminGuard]
+        canActivate: [permissionGuard('manage_roles')]
       }
     ]
   },

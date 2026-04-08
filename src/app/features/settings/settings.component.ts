@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Permission, Role } from '../../core/models/role.model';
 import { AuthorizationService } from '../../core/services/auth-authorization.service';
-import { RolesService } from '../../core/services/roles.service';
+import { PermissionCatalogItem, RolesService } from '../../core/services/roles.service';
 
 interface PermissionGroup {
   label: string;
@@ -24,73 +24,89 @@ export class SettingsComponent implements OnInit {
 
   /** Roles derived from the reactive signal */
   roles = computed(() => Object.values(this.authorizationService.rolesSignal()));
+  private initialPermissionsSnapshot = signal<Record<string, Permission[]>>({});
+
+  private readonly moduleConfig: Record<string, { label: string; icon: string }> = {
+    dashboard: { label: 'Tableau de Bord', icon: 'space_dashboard' },
+    products: { label: 'Produits', icon: 'inventory_2' },
+    movements: { label: 'Mouvements', icon: 'sync_alt' },
+    sites: { label: 'Sites', icon: 'apartment' },
+    stocks: { label: 'Stocks', icon: 'inventory_2' },
+    alerts: { label: 'Alertes', icon: 'notifications_active' },
+    scanner: { label: 'Scanner', icon: 'qr_code_scanner' },
+    reports: { label: 'Rapports', icon: 'bar_chart' },
+    reapprovisionnement: { label: 'Réapprovisionnement', icon: 'local_shipping' },
+    users: { label: 'Utilisateurs', icon: 'manage_accounts' },
+    misc: { label: 'Autres', icon: 'extension' }
+  };
+
+  private readonly moduleOrder: Record<string, number> = {
+    dashboard: 1,
+    products: 2,
+    movements: 3,
+    sites: 4,
+    stocks: 5,
+    alerts: 6,
+    scanner: 7,
+    reports: 8,
+    reapprovisionnement: 9,
+    users: 10,
+    misc: 99
+  };
+
+  private readonly actionLabelMap: Record<string, string> = {
+    view: 'Voir',
+    manage: 'Gérer',
+    scan: 'Utiliser'
+  };
+
+  private readonly moduleLabelMap: Record<string, string> = {
+    dashboard: 'Tableau de Bord',
+    products: 'Produits',
+    movements: 'Mouvements',
+    sites: 'Sites',
+    stocks: 'Stocks',
+    alerts: 'Alertes',
+    scanner: 'Scanner',
+    reports: 'Rapports',
+    reapprovisionnement: 'Réapprovisionnement',
+    users: 'Utilisateurs',
+    roles: 'Rôles'
+  };
+
+  private readonly dynamicCatalog = computed(() => this.rolesService.permissionCatalog());
 
   /** Permissions grouped by module */
-  permissionGroups: PermissionGroup[] = [
-    {
-      label: 'Tableau de Bord',
-      icon: 'space_dashboard',
-      permissions: [
-        { key: 'view_dashboard', label: 'Voir' }
-      ]
-    },
-    {
-      label: 'Produits',
-      icon: 'inventory_2',
-      permissions: [
-        { key: 'view_products', label: 'Voir' },
-        { key: 'manage_products', label: 'Gérer' }
-      ]
-    },
-    {
-      label: 'Mouvements',
-      icon: 'sync_alt',
-      permissions: [
-        { key: 'view_movements', label: 'Voir' },
-        { key: 'manage_movements', label: 'Gérer' }
-      ]
-    },
-    {
-      label: 'Sites',
-      icon: 'apartment',
-      permissions: [
-        { key: 'view_sites', label: 'Voir' },
-        { key: 'manage_sites', label: 'Gérer' }
-      ]
-    },
-    {
-      label: 'Alertes',
-      icon: 'notifications_active',
-      permissions: [
-        { key: 'view_alerts', label: 'Voir' },
-        { key: 'manage_alerts', label: 'Gérer' }
-      ]
-    },
-    {
-      label: 'Scanner',
-      icon: 'qr_code_scanner',
-      permissions: [
-        { key: 'scan_barcode', label: 'Utiliser' }
-      ]
-    },
-    {
-      label: 'Réapprovisionnement',
-      icon: 'local_shipping',
-      permissions: [
-        { key: 'view_reapprovisionnement', label: 'Voir' },
-        { key: 'manage_reapprovisionnement', label: 'Gérer' }
-      ]
-    },
-    {
-      label: 'Utilisateurs',
-      icon: 'manage_accounts',
-      permissions: [
-        { key: 'manage_users', label: 'Gérer les Utilisateurs' },
-        { key: 'manage_roles', label: 'Gérer les Rôles' }
-      ]
-    },
-   
-  ];
+  permissionGroups = computed<PermissionGroup[]>(() => {
+    const catalog = this.dynamicCatalog();
+    if (!catalog.length) return [];
+
+    const grouped = new Map<string, PermissionGroup>();
+
+    for (const item of catalog) {
+      const parsed = this.parsePermission(item);
+      const config = this.moduleConfig[parsed.moduleKey] ?? this.moduleConfig['misc'];
+      const current = grouped.get(parsed.moduleKey) ?? {
+        label: config.label,
+        icon: config.icon,
+        permissions: []
+      };
+
+      current.permissions.push({
+        key: item.code,
+        label: parsed.label
+      });
+
+      grouped.set(parsed.moduleKey, current);
+    }
+
+    return Array.from(grouped.entries())
+      .sort((a, b) => (this.moduleOrder[a[0]] ?? 999) - (this.moduleOrder[b[0]] ?? 999))
+      .map(([, group]) => ({
+        ...group,
+        permissions: [...group.permissions].sort((a, b) => a.key.localeCompare(b.key))
+      }));
+  });
 
   /** Track save feedback */
   saved = signal(false);
@@ -110,8 +126,17 @@ export class SettingsComponent implements OnInit {
   /** Built-in roles that cannot be deleted */
   readonly protectedRoles = ['admin', 'gestionnaire_de_stock', 'operateur'];
 
-  ngOnInit(): void {
-    void this.rolesService.fetchRoles();
+  async ngOnInit(): Promise<void> {
+    await Promise.all([
+      this.rolesService.fetchRoles(),
+      this.rolesService.fetchPermissionCatalog()
+    ]);
+
+    const snapshot: Record<string, Permission[]> = {};
+    for (const role of this.roles()) {
+      snapshot[role.nom.toLowerCase()] = [...role.permissions];
+    }
+    this.initialPermissionsSnapshot.set(snapshot);
   }
 
   /** Check if a role has a specific permission */
@@ -149,23 +174,12 @@ export class SettingsComponent implements OnInit {
 
   /** Reset to default permissions */
   async resetPermissions(): Promise<void> {
-    if (!confirm('Reinitialiser toutes les permissions aux valeurs par defaut ?')) return;
+    if (!confirm('Revenir aux permissions chargées au démarrage de cette page ?')) return;
 
-    const defaults: Record<string, Permission[]> = {
-      admin: [
-        'view_dashboard', 'manage_movements', 'view_movements',
-        'manage_alerts', 'view_alerts', 'manage_products', 'view_products',
-        'manage_sites', 'view_sites', 'scan_barcode', 'basic_entry_exit',
-        'manage_users', 'manage_roles', 'view_reports', 'view_reapprovisionnement', 'manage_reapprovisionnement'
-      ],
-      gestionnaire_de_stock: [
-        'view_dashboard', 'manage_movements', 'view_movements',
-        'manage_alerts', 'view_alerts', 'view_products', 'view_sites', 'view_reports', 'view_reapprovisionnement', 'manage_reapprovisionnement'
-      ],
-      operateur: [
-        'view_products', 'scan_barcode', 'basic_entry_exit', 'view_reapprovisionnement'
-      ]
-    };
+    const defaults = this.initialPermissionsSnapshot();
+    if (!Object.keys(defaults).length) {
+      return;
+    }
 
     try {
       for (const [roleName, permissions] of Object.entries(defaults)) {
@@ -197,7 +211,70 @@ export class SettingsComponent implements OnInit {
 
   /** Total available permissions */
   get totalPermissions(): number {
-    return this.permissionGroups.reduce((sum, g) => sum + g.permissions.length, 0);
+    return this.permissionGroups().reduce((sum, g) => sum + g.permissions.length, 0);
+  }
+
+  private parsePermission(item: PermissionCatalogItem): { moduleKey: string; label: string } {
+    const code = (item.code ?? '').trim().toLowerCase();
+    const description = (item.description ?? '').trim();
+    const preferredDescription = this.getPreferredDescription(code, description);
+
+    if (!code) {
+      return { moduleKey: 'misc', label: description || 'Permission' };
+    }
+
+    if (code === 'scan_barcode' || code.startsWith('scan_')) {
+      return { moduleKey: 'scanner', label: preferredDescription || 'Utiliser' };
+    }
+
+    const [action, ...rest] = code.split('_');
+    const suffix = rest.join('_');
+
+    if ((action === 'view' || action === 'manage') && suffix) {
+      const moduleKey = this.normalizeModuleKey(suffix);
+      const actionLabel = this.actionLabelMap[action] ?? this.capitalize(action);
+      const moduleLabel = this.moduleLabelMap[suffix] ?? this.capitalize(suffix.replace(/_/g, ' '));
+      return {
+        moduleKey,
+        label: preferredDescription || `${actionLabel} ${moduleLabel}`
+      };
+    }
+
+    const moduleKey = this.normalizeModuleKey(code);
+    return {
+      moduleKey,
+      label: preferredDescription || this.capitalize(code.replace(/_/g, ' '))
+    };
+  }
+
+  private getPreferredDescription(code: string, description: string): string {
+    if (!description) return '';
+
+    const normalizedDescription = description.trim().toLowerCase();
+
+    // Ignore machine-like descriptions so labels are rendered as readable French actions.
+    if (
+      normalizedDescription === code ||
+      normalizedDescription.startsWith('view_') ||
+      normalizedDescription.startsWith('manage_') ||
+      normalizedDescription.startsWith('scan_')
+    ) {
+      return '';
+    }
+
+    return description;
+  }
+
+  private normalizeModuleKey(raw: string): string {
+    const key = raw.toLowerCase();
+    if (key.includes('scanner') || key.includes('barcode')) return 'scanner';
+    if (key.includes('user') || key.includes('role')) return 'users';
+    if (this.moduleConfig[key]) return key;
+    return 'misc';
+  }
+
+  private capitalize(value: string): string {
+    return value.charAt(0).toUpperCase() + value.slice(1);
   }
 
   // ── Role CRUD ──────────────────────────────────

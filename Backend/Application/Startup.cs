@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Application.Hubs;
 using Application.Queries;
+using Application.Security;
 using Application.Services;
 using Data.Context;
 using Application.Commands;
@@ -19,6 +20,7 @@ using Domain.Models;
 using Domain.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -152,6 +154,10 @@ namespace Application
                         ClockSkew = TimeSpan.Zero
                     };
                 });
+
+            services.AddAuthorization();
+            services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
+            services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
         }
         /// <summary>Configure pipeline: exception page, HTTPS, CORS, auth, Swagger, endpoints.</summary>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

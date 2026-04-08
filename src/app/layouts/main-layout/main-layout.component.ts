@@ -4,7 +4,7 @@
  * Serves as the wrapper for all authenticated pages.
  */
 
-import { Component, computed, signal, OnInit, HostListener, OnDestroy } from '@angular/core';
+import { Component, computed, signal, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -35,6 +35,12 @@ interface MenuItem {
 export class MainLayoutComponent implements OnInit {
   /** Track sidebar collapsed state */
   isSidebarCollapsed = signal(false);
+
+  /** Mobile-only sidebar drawer state */
+  isMobileSidebarOpen = signal(false);
+
+  /** Responsive breakpoint state */
+  isMobileViewport = signal(false);
   
   /** Track user menu visibility */
   showUserMenu = signal(false);
@@ -94,16 +100,16 @@ export class MainLayoutComponent implements OnInit {
 
   /** All navigation menu items with permissions */
   private allMenuItems: MenuItem[] = [
-    { icon: 'dashboard', label: 'Tableau de Bord', route: '/dashboard' },
+    { icon: 'dashboard', label: 'Tableau de Bord', route: '/dashboard', permission: 'view_dashboard' },
     { icon: 'package_2', label: 'Produits', route: '/products', permission: 'view_products' },
-    { icon: 'swap_vert', label: 'Mouvements', route: '/movements', permission: 'manage_movements' },
+    { icon: 'swap_vert', label: 'Mouvements', route: '/movements', permission: 'view_movements' },
     { icon: 'qr_code_2', label: 'Scanner', route: '/scanner', permission: 'scan_barcode' },
     { icon: 'domain', label: 'Sites', route: '/sites', permission: 'view_sites' },
-    { icon: 'inventory_2', label: 'Stocks', route: '/stocks', permission: 'view_sites' },
-    { icon: 'campaign', label: 'Alertes', route: '/alerts', permission: 'manage_alerts' },
+    { icon: 'inventory_2', label: 'Stocks', route: '/stocks', permission: 'view_stocks' },
+    { icon: 'campaign', label: 'Alertes', route: '/alerts', permission: 'view_alerts' },
     { icon: 'local_shipping', label: 'Reapprovisionnement', route: '/reapprovisionnement', permission: 'view_reapprovisionnement' },
-    { icon: 'admin_panel_settings', label: 'Gestion Utilisateurs', route: '/user-management', adminOnly: true, section: 'Système' },
-    { icon: 'settings', label: 'Paramètres', route: '/settings' },
+    { icon: 'admin_panel_settings', label: 'Gestion Utilisateurs', route: '/user-management', permission: 'manage_users', section: 'Système' },
+    { icon: 'settings', label: 'Paramètres', route: '/settings', permission: 'manage_roles' },
   ];
 
   /** Filtered menu items based on user permissions */
@@ -112,9 +118,6 @@ export class MainLayoutComponent implements OnInit {
     if (!user) return [];
 
     return this.allMenuItems.filter(item => {
-      // Dashboard is always visible
-      if (item.route === '/dashboard') return true;
-      
       // Check admin-only items
       if (item.adminOnly) {
         return user.role === 'admin';
@@ -143,6 +146,7 @@ export class MainLayoutComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.updateViewportState();
     this.alertService.fetchAlerts();
     this.productService.fetchProducts();
   }
@@ -151,7 +155,16 @@ export class MainLayoutComponent implements OnInit {
    * Toggle sidebar collapsed/expanded state
    */
   toggleSidebar() {
+    if (this.isMobileViewport()) {
+      this.isMobileSidebarOpen.update(value => !value);
+      return;
+    }
     this.isSidebarCollapsed.update(value => !value);
+  }
+
+  closeMobileSidebar() {
+    if (!this.isMobileViewport()) return;
+    this.isMobileSidebarOpen.set(false);
   }
 
   /**
@@ -170,6 +183,20 @@ export class MainLayoutComponent implements OnInit {
     if (this.showSearchDropdown() && !target.closest('.search-container')) {
       this.showSearchDropdown.set(false);
     }
+
+    if (
+      this.isMobileViewport() &&
+      this.isMobileSidebarOpen() &&
+      !target.closest('.sidebar') &&
+      !target.closest('.sidebar-toggle-btn')
+    ) {
+      this.closeMobileSidebar();
+    }
+  }
+
+  @HostListener('window:resize')
+  onWindowResize() {
+    this.updateViewportState();
   }
 
   /** Debounced search triggered on keyup */
@@ -246,6 +273,15 @@ export class MainLayoutComponent implements OnInit {
   navigateTo(route: string) {
     this.router.navigate([route]);
     this.showUserMenu.set(false);
+    this.closeMobileSidebar();
+  }
+
+  private updateViewportState() {
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    this.isMobileViewport.set(isMobile);
+    if (!isMobile) {
+      this.isMobileSidebarOpen.set(false);
+    }
   }
 
   /** Display name for the current user */

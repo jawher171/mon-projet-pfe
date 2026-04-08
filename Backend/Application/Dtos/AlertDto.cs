@@ -19,5 +19,7 @@ namespace Application.Dtos
         public string? ProduitNom { get; set; }
         /// <summary>Site name from Stock → Site navigation (enrichment).</summary>
         public string? SiteNom { get; set; }
+        /// <summary>User full name responsible for the alert context (derived from movement history).</summary>
+        public string? UtilisateurNom { get; set; }
     }
 }

@@ -132,6 +132,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
   listCategories: Category[] = [];
   listProducts: Product[] = [];
   productsList = signal<Product[]>([]);
+  private lastOpenAddToken = '';
 
   ngOnInit(): void {
     this.initForm();
@@ -145,6 +146,19 @@ export class ProductsComponent implements OnInit, OnDestroy {
       if (params['search']) {
         this.searchTerm.set(params['search']);
       }
+
+      const shouldOpenAdd = String(params['add'] ?? '') === '1';
+      const barcode = String(params['barcode'] ?? '').trim();
+      const token = `${shouldOpenAdd}|${barcode}`;
+
+      if (shouldOpenAdd && token !== this.lastOpenAddToken) {
+        this.lastOpenAddToken = token;
+        this.openAddModal();
+        if (barcode) {
+          this.productForm.patchValue({ codeBarre: barcode });
+          this.productForm.get('codeBarre')?.markAsDirty();
+        }
+      }
     });
    }
 
@@ -155,11 +169,12 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   /** Open QR modal to scan barcode from phone */
   async openBarcodeScan() {
+    const mobileUi = this.isMobileUi();
     const sessionId = this.scanSessionService.generateSessionId();
     this.scanSessionId.set(sessionId);
     const baseUrl = this.resolveScanBaseUrl();
-    this.scanUrl.set(`${baseUrl}/scan?sessionId=${sessionId}&purpose=PRODUCT_BARCODE`);
-    this.showQrScanModal.set(true);
+    this.scanUrl.set(`${baseUrl}/scan-relay?sessionId=${sessionId}&purpose=PRODUCT_BARCODE&scanOnly=1`);
+    this.showQrScanModal.set(!mobileUi);
 
     // Listen for scan events
     this.scanSub?.unsubscribe();
@@ -175,6 +190,14 @@ export class ProductsComponent implements OnInit, OnDestroy {
     try {
       await this.scanSessionService.joinSession(sessionId);
       this.scanConnected.set(true);
+
+      // On phone, open scanner directly instead of showing a QR code.
+      if (mobileUi) {
+        const opened = this.openMobileScannerTab(this.scanUrl());
+        if (!opened) {
+          this.submitError.set('Impossible d\'ouvrir l\'écran scanner. Autorisez les popups puis réessayez.');
+        }
+      }
     } catch (err) {
       console.error('[Products] SignalR connection failed', err);
     }
@@ -190,7 +213,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
       localStorage.removeItem('scan_public_base_url');
     }
 
-  //ngrok host service
+    // ngrok host service
     const { origin, hostname } = window.location;
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       return 'https://uncontingent-nongeographically-wilma.ngrok-free.dev';
@@ -213,6 +236,20 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.scanConnected.set(false);
     this.scanSub?.unsubscribe();
     void this.scanSessionService.stop();
+  }
+
+  private isMobileUi(): boolean {
+    const viewportMobile = window.matchMedia('(max-width: 1024px)').matches;
+    const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+    const touchCapable = (navigator.maxTouchPoints ?? 0) > 0;
+    const ua = navigator.userAgent || '';
+    const uaMobile = /Android|iPhone|iPad|iPod|IEMobile|Opera Mini|Mobile/i.test(ua);
+    return viewportMobile || uaMobile || coarsePointer || touchCapable;
+  }
+
+  private openMobileScannerTab(scanUrl: string): boolean {
+    const opened = window.open(scanUrl, '_blank', 'noopener,noreferrer');
+    return !!opened;
   }
 
 getCategories() {

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Application.Dtos;
 using AutoMapper;
 using Domain.Models;
@@ -52,7 +53,12 @@ namespace Application.Mapping
             CreateMap<StockMovement, StockMovementDto>()
                 .ForMember(d => d.ProduitNom, o => o.MapFrom(s => s.Stock != null && s.Stock.Produit != null ? s.Stock.Produit.Nom : null))
                 .ForMember(d => d.SiteNom, o => o.MapFrom(s => s.Stock != null && s.Stock.Site != null ? s.Stock.Site.Nom : null))
-                .ForMember(d => d.UtilisateurNom, o => o.MapFrom(s => s.Utilisateur != null ? s.Utilisateur.Nom : null))
+                .ForMember(d => d.UtilisateurNom, o => o.MapFrom(s =>
+                    s.Utilisateur == null
+                        ? null
+                        : string.Join(" ", new[] { s.Utilisateur.Prenom, s.Utilisateur.Nom }
+                            .Where(x => !string.IsNullOrWhiteSpace(x))
+                            .Select(x => x.Trim()))))
                 .ForMember(d => d.ProductId, o => o.MapFrom(s => s.Stock != null ? s.Stock.id_p : (Guid?)null))
                 .ForMember(d => d.SiteId, o => o.MapFrom(s => s.Stock != null ? s.Stock.Id_site : (Guid?)null));
             CreateMap<StockMovementDto, StockMovement>()

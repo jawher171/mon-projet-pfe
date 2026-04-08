@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AlertService } from '../../core/services/alert.service';
 import { SiteService } from '../../core/services/site.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Alert, AlertFilter, AlertType, AlertSeverity, ALERT_TYPES, SEVERITY_CONFIG } from '../../core/models/alert.model';
 
 @Component({
@@ -44,9 +45,6 @@ export class AlertsComponent implements OnInit {
   
   /** Currently selected alert */
   selectedAlert = signal<Alert | null>(null);
-  
-  /** Resolution notes for closing alert */
-  resolveNotes = signal('');
 
   // Delete confirmation modal
   showDeleteConfirmModal = signal(false);
@@ -61,6 +59,7 @@ export class AlertsComponent implements OnInit {
 
   /** Available sites */
   sites = computed(() => this.siteService.getActiveSites()());
+  canManageAlerts = computed(() => this.authService.hasPermission('manage_alerts'));
 
   /** Unique product names from all alerts */
   productNames = computed(() => {
@@ -88,7 +87,8 @@ export class AlertsComponent implements OnInit {
 
   constructor(
     private alertService: AlertService,
-    private siteService: SiteService
+    private siteService: SiteService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -135,7 +135,6 @@ export class AlertsComponent implements OnInit {
 
   openAlertModal(alert: Alert) {
     this.selectedAlert.set(alert);
-    this.resolveNotes.set('');
     this.showModal.set(true);
     this.alertService.markAsRead(alert.id);
   }
@@ -143,10 +142,11 @@ export class AlertsComponent implements OnInit {
   closeModal() {
     this.showModal.set(false);
     this.selectedAlert.set(null);
-    this.resolveNotes.set('');
   }
 
   async resolveAlert() {
+    if (!this.canManageAlerts()) return;
+
     const alert = this.selectedAlert();
     if (alert) {
       await this.alertService.resolveAlertApi(alert.id);
@@ -155,6 +155,8 @@ export class AlertsComponent implements OnInit {
   }
 
   deleteAlert(alert: Alert) {
+    if (!this.canManageAlerts()) return;
+
     this.alertToDelete.set(alert);
     this.showDeleteConfirmModal.set(true);
   }
@@ -165,6 +167,8 @@ export class AlertsComponent implements OnInit {
   }
 
   async confirmDeleteAlert() {
+    if (!this.canManageAlerts()) return;
+
     const alert = this.alertToDelete();
     if (!alert) return;
     this.deleting.set(true);

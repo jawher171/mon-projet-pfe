@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Dtos;
 using Application.Queries;
+using Application.Security;
 using AutoMapper;
 using Domain.Commands;
 using Domain.Models;
@@ -29,6 +30,7 @@ namespace Application.Controllers
         }
 
         [HttpGet("GetProducts")]
+        [PermissionAuthorize("view_products")]
         public async Task<IEnumerable<ProductDto>> GetNotDeleted()
         {
             var result = await _mediator.Send(
@@ -40,6 +42,7 @@ namespace Application.Controllers
         }
 
         [HttpGet("GetProduct/{id}")]
+        [PermissionAuthorize("view_products")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var entity = await _mediator.Send(
@@ -52,7 +55,7 @@ namespace Application.Controllers
         }
 
         [HttpPost("AddProduct")]
-        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        [PermissionAuthorize("manage_products")]
         public async Task<IActionResult> Add([FromBody] ProductDto dto)
         {
             var product = _mapper.Map<Product>(dto);
@@ -62,7 +65,7 @@ namespace Application.Controllers
         }
 
         [HttpPut("UpdateProduct")]
-        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        [PermissionAuthorize("manage_products")]
         public async Task<IActionResult> Update([FromBody] ProductDto dto)
         {
             if (dto.id_p == Guid.Empty)
@@ -81,7 +84,7 @@ namespace Application.Controllers
         }
 
         [HttpDelete("DeleteProduct/{id}")]
-        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        [PermissionAuthorize("manage_products")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var deleted = await _mediator.Send(new RemoveGenericCommand<Product>(id));
@@ -90,6 +93,7 @@ namespace Application.Controllers
         }
 
         [HttpGet("by-barcode/{code}")]
+        [PermissionAuthorize("view_products", "scan_barcode")]
         public async Task<IActionResult> GetByBarcode(string code)
         {
             var product = await _mediator.Send(new GetProductByBarcodeQuery(code));

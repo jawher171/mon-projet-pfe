@@ -17,6 +17,7 @@ export interface Alert {
   isRead?: boolean;
   produitNom?: string;
   siteNom?: string;
+  utilisateurNom?: string;
 }
 
 export interface AlertFilter {

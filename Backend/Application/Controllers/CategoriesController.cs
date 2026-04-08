@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Application.Dtos;
+using Application.Security;
 using AutoMapper;
 using Domain.Commands;
 using Domain.Models;
@@ -27,6 +28,7 @@ namespace Application.Controllers
         }
 
         [HttpGet("GetCategories")]
+        [PermissionAuthorize("view_products")]
         public async Task<IEnumerable<CategoryDto>> GetCategories()
         {
             var result = await _mediator.Send(
@@ -36,6 +38,7 @@ namespace Application.Controllers
         }
 
         [HttpGet("GetCategory/{id}")]
+        [PermissionAuthorize("view_products")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var entity = await _mediator.Send(
@@ -46,7 +49,7 @@ namespace Application.Controllers
         }
 
         [HttpPost("AddCategory")]
-        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        [PermissionAuthorize("manage_products")]
         public async Task<IActionResult> Add([FromBody] CategoryDto dto)
         {
             var category = _mapper.Map<Category>(dto);
@@ -56,7 +59,7 @@ namespace Application.Controllers
         }
 
         [HttpPut("UpdateCategory")]
-        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        [PermissionAuthorize("manage_products")]
         public async Task<IActionResult> Update([FromBody] CategoryDto dto)
         {
             var category = _mapper.Map<Category>(dto);
@@ -65,7 +68,7 @@ namespace Application.Controllers
         }
 
         [HttpDelete("DeleteCategory/{id}")]
-        [Authorize(Roles = "admin,gestionnaire_de_stock")]
+        [PermissionAuthorize("manage_products")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var deleted = await _mediator.Send(new RemoveGenericCommand<Category>(id));

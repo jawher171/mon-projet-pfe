@@ -14,13 +14,24 @@ interface RoleDto {
   permissions: string[];
 }
 
+export interface PermissionCatalogItem {
+  code: string;
+  description?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class RolesService {
   private readonly http = inject(HttpClient);
-  private readonly rolesSignal = signal<Record<string, RoleWithLabel>>(JSON.parse(JSON.stringify(ROLES)) as Record<string, RoleWithLabel>);
+  private readonly rolesSignal = signal<Record<string, RoleWithLabel>>(
+    USE_BACKEND
+      ? {}
+      : (JSON.parse(JSON.stringify(ROLES)) as Record<string, RoleWithLabel>)
+  );
+  private readonly permissionCatalogSignal = signal<PermissionCatalogItem[]>([]);
   private readonly loadingSignal = signal(false);
 
   roles = this.rolesSignal.asReadonly();
+  permissionCatalog = this.permissionCatalogSignal.asReadonly();
   loading = this.loadingSignal.asReadonly();
 
   /** Fetch roles - from backend when USE_BACKEND, else use local */
@@ -33,28 +44,61 @@ export class RolesService {
     try {
       const dtos = await firstValueFrom(this.http.get<RoleDto[]>(`${API_BASE_URL}/api/Roles`));
       console.log('[RolesService] GET /api/Roles response:', dtos);
-      if (dtos?.length) {
-        const merged: Record<string, RoleWithLabel> = {};
-        for (const dto of dtos) {
-          const key = dto.nom?.toLowerCase() || '';
-          const local = ROLES[key as keyof typeof ROLES];
-          merged[key] = {
-            idRole: local?.idRole ?? 0,
-            nom: dto.nom,
-            description: dto.description,
-            permissions: (dto.permissions ?? []) as Permission[],
-            label: local?.label ?? dto.nom,
-            color: local?.color,
-            icon: local?.icon
-          };
-        }
-        this.rolesSignal.set(merged);
+      const merged: Record<string, RoleWithLabel> = {};
+      for (const dto of dtos ?? []) {
+        const key = dto.nom?.toLowerCase() || '';
+        if (!key) continue;
+        const local = ROLES[key as keyof typeof ROLES];
+        merged[key] = {
+          idRole: local?.idRole ?? 0,
+          nom: dto.nom,
+          description: dto.description,
+          permissions: (dto.permissions ?? []) as Permission[],
+          label: local?.label ?? dto.nom,
+          color: local?.color,
+          icon: local?.icon
+        };
       }
+
+      this.rolesSignal.set(merged);
     } catch (err) {
       console.error('[RolesService] fetchRoles FAILED:', err);
-      // Keep local defaults on error
+      // In backend mode, never fall back to static role permissions.
+      this.rolesSignal.set({});
     } finally {
       this.loadingSignal.set(false);
+    }
+  }
+
+  /** Fetch permission catalog dynamically from backend (or derive from local roles in offline mode). */
+  async fetchPermissionCatalog(): Promise<void> {
+    if (!USE_BACKEND) {
+      const derived = Array.from(
+        new Set(Object.values(ROLES).flatMap(r => r.permissions))
+      )
+        .sort((a, b) => a.localeCompare(b))
+        .map(code => ({ code, description: code }));
+      this.permissionCatalogSignal.set(derived);
+      return;
+    }
+
+    try {
+      const items = await firstValueFrom(
+        this.http.get<PermissionCatalogItem[]>(`${API_BASE_URL}/api/Roles/permissions`)
+      );
+
+      const normalized = (items ?? [])
+        .filter(x => !!x?.code)
+        .map(x => ({
+          code: x.code.trim(),
+          description: x.description?.trim() || x.code.trim()
+        }))
+        .sort((a, b) => a.code.localeCompare(b.code));
+
+      this.permissionCatalogSignal.set(normalized);
+    } catch (err) {
+      console.error('[RolesService] fetchPermissionCatalog FAILED:', err);
+      // Keep previous catalog on failure.
     }
   }
 
