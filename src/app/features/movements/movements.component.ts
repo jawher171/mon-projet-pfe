@@ -33,6 +33,8 @@ export class MovementsComponent implements OnInit, OnDestroy {
   searchTerm = signal('');
   selectedType = signal<'all' | 'entry' | 'exit' | 'transfer'>('all');
   selectedSite = signal('');
+  selectedCategory = signal('');
+  selectedProductFilter = signal('');
   selectedReason = signal<MovementReason | ''>('');
   selectedDate = signal('');
   onDateChange(event: Event) {
@@ -101,6 +103,42 @@ export class MovementsComponent implements OnInit, OnDestroy {
   showProductDropdown = signal(false);
   selectedProduct = signal<Product | null>(null);
   allProducts = computed(() => this.productService.getProducts()());
+
+  movementCategories = computed(() => {
+    const seen = new Set<string>();
+    const categories: Array<{ id: string; label: string }> = [];
+
+    for (const product of this.allProducts()) {
+      const id = String(product.id_c ?? '').trim();
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      categories.push({
+        id,
+        label: product.categorieLibelle?.trim() || `Categorie ${id}`
+      });
+    }
+
+    return categories.sort((a, b) => a.label.localeCompare(b.label));
+  });
+
+  private productCategoryByProductId = computed(() => {
+    const map = new Map<string, string>();
+    for (const product of this.allProducts()) {
+      map.set(String(product.id_p), String(product.id_c));
+    }
+    return map;
+  });
+
+  filteredMovementProducts = computed(() => {
+    const categoryId = this.selectedCategory();
+    const products = this.allProducts();
+
+    if (!categoryId) {
+      return products;
+    }
+
+    return products.filter(p => String(p.id_c) === categoryId);
+  });
 
   /** For exit: only products that have stock at the selected site */
   availableProducts = computed(() => {
@@ -237,6 +275,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
       search: this.searchTerm(),
       type: this.selectedType() === 'all' ? undefined : this.selectedType(),
       siteId: this.selectedSite() || undefined,
+      productId: this.selectedProductFilter() || undefined,
       raison: this.selectedReason() || undefined,
       startDate,
       endDate
@@ -244,13 +283,23 @@ export class MovementsComponent implements OnInit, OnDestroy {
   });
 
   movements = computed(() => this.movementService.getFilteredMovements(this.filter())());
+  filteredMovements = computed(() => {
+    const selectedCategory = this.selectedCategory();
+    if (!selectedCategory) return this.movements();
+
+    const categoryByProduct = this.productCategoryByProductId();
+    return this.movements().filter(m => {
+      if (m.productId == null) return false;
+      return categoryByProduct.get(String(m.productId)) === selectedCategory;
+    });
+  });
   summary = computed(() => this.movementService.getMovementSummary());
   canManageMovements = computed(() => this.authService.hasPermission('manage_movements'));
 
   showAllMovements = signal(false);
 
   displayedMovements = computed(() => {
-    const all = this.movements();
+    const all = this.filteredMovements();
     return this.showAllMovements() ? all : all.slice(0, 7);
   });
 
@@ -470,6 +519,25 @@ export class MovementsComponent implements OnInit, OnDestroy {
   onSiteChange(event: Event) {
     const select = event.target as HTMLSelectElement;
     this.selectedSite.set(select.value);
+  }
+
+  onCategoryFilterChange(event: Event) {
+    const categoryId = (event.target as HTMLSelectElement).value;
+    this.selectedCategory.set(categoryId);
+
+    const selectedProductId = this.selectedProductFilter();
+    if (!selectedProductId) return;
+
+    const categoryByProduct = this.productCategoryByProductId();
+    const selectedProductCategory = categoryByProduct.get(selectedProductId) ?? '';
+    if (selectedProductCategory !== categoryId) {
+      this.selectedProductFilter.set('');
+    }
+  }
+
+  onProductFilterChange(event: Event) {
+    const productId = (event.target as HTMLSelectElement).value;
+    this.selectedProductFilter.set(productId);
   }
   
   openAddModal(type: 'entry' | 'exit') {

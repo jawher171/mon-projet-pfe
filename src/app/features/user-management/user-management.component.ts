@@ -42,6 +42,7 @@ export class UserManagementComponent implements OnInit {
   showDeleteModal = signal(false);
   userToDelete = signal<User | null>(null);
   deleting = signal(false);
+  deleteErrorMessage = signal('');
 
   // Toggle status confirmation modal
   showToggleModal = signal(false);
@@ -208,11 +209,13 @@ export class UserManagementComponent implements OnInit {
   }
 
   deleteUser(user: User) {
+    this.deleteErrorMessage.set('');
     this.userToDelete.set(user);
     this.showDeleteModal.set(true);
   }
 
   cancelDelete() {
+    this.deleteErrorMessage.set('');
     this.showDeleteModal.set(false);
     this.userToDelete.set(null);
   }
@@ -223,11 +226,13 @@ export class UserManagementComponent implements OnInit {
     this.deleting.set(true);
     try {
       await this.userService.deleteUser(String(user.id));
+      this.cancelDelete();
     } catch (e) {
-      this.errorMessage.set(e instanceof Error ? e.message : 'Impossible de supprimer.');
+      const msg = e instanceof Error ? e.message : 'Impossible de supprimer.';
+      this.deleteErrorMessage.set(msg);
+      this.errorMessage.set(msg);
     } finally {
       this.deleting.set(false);
-      this.cancelDelete();
     }
   }
 

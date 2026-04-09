@@ -196,6 +196,11 @@ namespace Application.Controllers
             Guid userId,
             IReadOnlyDictionary<Guid, List<StockMovement>> movementsByStock)
         {
+            // Stock state alerts are system-level and must remain visible to all users
+            // that already have permission to view alerts.
+            if (IsSystemStockAlertType(alert.Type))
+                return true;
+
             var ownerMovement = GetAlertOwnerMovement(alert, movementsByStock);
             return ownerMovement?.Id_u == userId;
         }
@@ -239,6 +244,19 @@ namespace Application.Controllers
         {
             var normalized = roleName?.Trim().ToLowerInvariant();
             return normalized == "admin" || normalized == "gestionnaire_de_stock";
+        }
+
+        private static bool IsSystemStockAlertType(string? type)
+        {
+            var normalized = type?.Trim();
+            return normalized == nameof(Domain.Enums.AlertType.OUT_OF_STOCK)
+                || normalized == nameof(Domain.Enums.AlertType.MIN_STOCK)
+                || normalized == nameof(Domain.Enums.AlertType.SITE_CAPACITY_NEAR_MAXIMUM)
+                || normalized == nameof(Domain.Enums.AlertType.SITE_CAPACITY_MAXIMUM)
+                || normalized == nameof(Domain.Enums.AlertType.STOCK_SECURITE)
+                || normalized == nameof(Domain.Enums.AlertType.STOCK_ALERTE)
+                || normalized == nameof(Domain.Enums.AlertType.STOCK_NEAR_MAXIMUM)
+                || normalized == nameof(Domain.Enums.AlertType.STOCK_MAXIMUM);
         }
     }
 }

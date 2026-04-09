@@ -339,7 +339,7 @@
     Type : Application Web Full-Stack<br>
     Frontend : Angular 21 &bull; Backend : ASP.NET Core<br>
     Base de données : SQL Server<br><br>
-    <strong>Date :</strong> Mars 2026
+    <strong>Date :</strong> Avril 2026
   </div>
 </div>
 
@@ -364,6 +364,7 @@
       <li>Interface Utilisateur (UI/UX)</li>
       <li>Déploiement & Configuration</li>
       <li>Résumé des Statistiques du Projet</li>
+      <li>Mises à Jour Récentes et Améliorations</li>
     </ol>
   </div>
 
@@ -396,14 +397,53 @@
 
   <!-- 2.1 Dashboard -->
   <h2><span class="icon">📊</span> 2.1 Tableau de Bord (Dashboard)</h2>
-  <p>Le tableau de bord est la <strong>page d'accueil</strong> de l'application. Il offre une vue synthétique de l'état de l'inventaire en un coup d'œil :</p>
+  <p>
+    Le Dashboard est la page <strong>Aperçu Réapprovisionnement</strong> de l'application.
+    Il agrège les données produits/stocks/mouvements/alertes et se met à jour automatiquement toutes les 30 secondes,
+    avec un bouton de rafraîchissement manuel et un accès rapide vers <code>/movements</code>.
+  </p>
+
+  <h3>Filtres Disponibles</h3>
+  <table>
+    <thead>
+      <tr><th>Filtre</th><th>Valeurs</th><th>Effet</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Type de site</td><td>Tous confondus, Entrepôts, Magasins</td><td>Restreint la portée d'analyse à un type d'emplacement</td></tr>
+      <tr><td>Emplacement</td><td>Tous les sites ou site spécifique</td><td>Filtre les KPI, graphes et tableaux au site sélectionné</td></tr>
+      <tr><td>Catégorie</td><td>Toutes les catégories ou catégorie ciblée</td><td>Filtre les produits et stocks associés</td></tr>
+      <tr><td>Produit</td><td>Tous les produits ou produit ciblé</td><td>Zoom sur un produit précis</td></tr>
+      <tr><td>Période d'analyse</td><td>Aujourd'hui, 7 jours, 30 jours, ce mois, tout l'historique</td><td>Filtre les mouvements et alertes par intervalle temporel</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Cartes KPI réellement affichées</h3>
+  <table>
+    <thead>
+      <tr><th>KPI</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Valorisation du Stock</td><td>Somme monétaire calculée à partir du stock disponible et du prix produit</td></tr>
+      <tr><td>Unités en Stock</td><td>Quantité totale en stock selon les filtres actifs</td></tr>
+      <tr><td>Produits Gérés</td><td>Nombre de produits pris en compte dans le filtre courant</td></tr>
+      <tr><td>Mouvements (E/S)</td><td>Compteurs d'entrées et de sorties (période sélectionnée)</td></tr>
+      <tr><td>Alertes Critiques</td><td>Nombre d'alertes critiques non résolues</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Visualisations et analyses</h3>
   <ul>
-    <li><strong>Cartes de statistiques</strong> : Nombre total de produits, valeur du stock, nombre de mouvements récents, nombre d'alertes actives — chacune avec un indicateur de tendance (hausse/baisse).</li>
-    <li><strong>Top 5 des alertes actives</strong> : Affichage instantané des alertes les plus critiques (rupture de stock, stock bas, surstock) avec code couleur par sévérité (critique, haute, moyenne, basse, info).</li>
-    <li><strong>Résumé des mouvements</strong> : Synthèse des entrées et sorties de stock récentes.</li>
-    <li><strong>Statistiques des sites</strong> : Vue d'ensemble de tous les entrepôts et magasins avec leur état actuel.</li>
-    <li><strong>Produits à stock bas</strong> : Liste des produits dont le stock est sous le seuil critique, avec statut "Critique", "Attention", ou "À commander".</li>
-    <li><strong>Activités récentes</strong> : Fil d'activité en temps réel montrant les dernières opérations effectuées.</li>
+    <li><strong>Tendance des Flux Comparatifs (Line)</strong> : entrées vs sorties sur les 10 derniers jours.</li>
+    <li><strong>Santé de l'Inventaire (Doughnut)</strong> : rupture, critique, alerte, surstock, normal.</li>
+    <li><strong>Stock Total par Produit (Bar)</strong> : Top 15 produits par volume de stock.</li>
+  </ul>
+
+  <h3>Panneaux opérationnels du Dashboard</h3>
+  <ul>
+    <li><strong>Derniers Mouvements</strong> : liste des 10 derniers mouvements, affichage condensé (4) puis extension via « Voir plus ».</li>
+    <li><strong>État Global des Stocks</strong> : tableau produit/site avec stock actuel, seuil minimum, statut, quantité recommandée.</li>
+    <li><strong>Action « Agir »</strong> : redirection vers <code>/reapprovisionnement</code> pour les lignes non normales.</li>
+    <li><strong>Synchronisation</strong> : timestamp d'actualisation affiché dans l'en-tête du Dashboard.</li>
   </ul>
 
   <!-- 2.2 Products -->
@@ -505,23 +545,86 @@
   </ul>
 
   <!-- 2.6 Scanner -->
-  <h2><span class="icon">📱</span> 2.6 Scanner de Codes-Barres</h2>
-  <p>L'application intègre un <strong>scanner de codes-barres multi-mode</strong> qui permet de gérer les stocks rapidement :</p>
+  <h2><span class="icon">📱</span> 2.6 Scanner de Codes-Barres (Multi-Plateforme)</h2>
+  <p>
+    Le scanner de l'application fonctionne dans <strong>deux contextes complémentaires</strong> :
+    un mode complet de consultation/gestion sur <code>/scanner</code> et un mode relais téléphone→PC sur <code>/scan-relay</code>.
+    L'implémentation utilise <strong>ZXing</strong> pour la caméra et <strong>SignalR</strong> pour la transmission temps réel.
+  </p>
 
-  <h3>Trois modes de scan :</h3>
+  <h3>Routes Scanner et Accès</h3>
+  <table>
+    <thead>
+      <tr><th>Route</th><th>Usage</th><th>Accès</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>/scanner</code></td><td>Page scanner principale (caméra, saisie, historique, détails produit, stock par site)</td><td><code>permissionGuard('scan_barcode')</code></td></tr>
+      <tr><td><code>/scan</code></td><td>Session mobile avec paramètres <code>sessionId</code> + <code>purpose</code></td><td><code>scannerAccessGuard</code> (autorisé sans login si session active)</td></tr>
+      <tr><td><code>/scan-relay</code></td><td>Mode relais dédié aux formulaires Produits/Mouvements/Transfert</td><td><code>scannerAccessGuard</code> (query params requis en mode non authentifié)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Modes de Scan réellement implémentés</h3>
+  <table>
+    <thead>
+      <tr><th>Mode</th><th>Technologie</th><th>Comportement dans l'application</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Caméra locale</strong></td><td><code>@zxing/browser</code> (BrowserMultiFormatReader)</td><td>Lecture continue depuis webcam PC ou téléphone, traitement anti-doublon (fenêtre 1.5s)</td></tr>
+      <tr><td><strong>Saisie manuelle</strong></td><td>Input + Enter</td><td>Fallback immédiat si caméra indisponible/refusée, même pipeline de validation/lookup</td></tr>
+      <tr><td><strong>Relais téléphone→PC</strong></td><td>SignalR Hub + QR code</td><td>Le PC crée une session, le téléphone envoie le code, le PC auto-remplit le formulaire cible</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Flux Relais Téléphone → PC (Produits et Mouvements)</h3>
   <ul>
-    <li><strong>Caméra intégrée</strong> : Utilisation de la bibliothèque ZXing pour scanner via la webcam ou la caméra du périphérique. Détection automatique et en continu.</li>
-    <li><strong>Saisie manuelle</strong> : Entrée manuelle du code-barres au clavier avec validation par touche Entrée.</li>
-    <li><strong>Scan téléphone distant</strong> : L'app génère un QR code que l'utilisateur scanne avec son téléphone. Le téléphone ouvre une page dédiée (<code>/scan</code>) qui capture le code-barres via la caméra du téléphone et envoie le résultat en temps réel au PC via <strong>SignalR</strong>.</li>
+    <li>Le PC génère un <code>sessionId</code> et une URL QR de type <code>/scan-relay?sessionId=...&purpose=...&scanOnly=1</code>.</li>
+    <li>Le service <code>ScanSessionService</code> joint le groupe SignalR <code>scan-{sessionId}</code> via <code>JoinSession</code>.</li>
+    <li>Le téléphone scanne et envoie le code avec <code>SendScan(sessionId, purpose, code)</code>.</li>
+    <li>Le PC reçoit <code>ScanDetected</code> et applique une action selon le <code>purpose</code> :</li>
+    <li><strong>PRODUCT_BARCODE</strong> : remplit automatiquement le champ <code>codeBarre</code> du formulaire produit.</li>
+    <li><strong>MOVEMENT_PRODUCT</strong> : recherche produit par code-barres puis sélectionne le produit dans le formulaire de mouvement.</li>
+    <li><strong>TRANSFER_PRODUCT</strong> : sélectionne le produit du formulaire de transfert.</li>
+    <li>En UI mobile, l'application ouvre directement un onglet scanner (pas de modal QR), avec gestion des blocages popup.</li>
   </ul>
 
-  <h3>Actions rapides après scan :</h3>
+  <h3>Capacités de la page <code>/scanner</code></h3>
   <ul>
-    <li><strong>Mode Consultation</strong> : Afficher les informations du produit (nom, description, prix, catégorie, image).</li>
-    <li><strong>Mode Entrée rapide</strong> : Enregistrer une entrée de stock immédiatement après le scan (choix du site, quantité, raison).</li>
-    <li><strong>Mode Sortie rapide</strong> : Enregistrer une sortie de stock immédiatement.</li>
-    <li><strong>Historique de scan</strong> : Les 20 derniers scans sont conservés avec statut (trouvé / non trouvé).</li>
+    <li><strong>Lookup produit</strong> via API <code>GET /api/Products/by-barcode/{code}</code>.</li>
+    <li><strong>Extraction intelligente</strong> : accepte un code brut ou une URL contenant <code>barcode/codeBarre/code/ean/upc</code>.</li>
+    <li><strong>Affichage détaillé</strong> : produit scanné + <strong>stock par site</strong> (quantité, seuil, badge stock faible/OK).</li>
+    <li><strong>Actions rapides locales</strong> : entrée/sortie avec site, raison et quantité depuis le composant scanner.</li>
+    <li><strong>Historique visible</strong> avec utilisateur, date complète et temps relatif.</li>
   </ul>
+
+  <h3>Historique et Traçabilité</h3>
+  <ul>
+    <li><strong>Local</strong> : conservation de 20 scans dans <code>localStorage</code> (<code>scanner_scan_history_v1</code>).</li>
+    <li><strong>Backend</strong> : persistance via <code>/api/StockMovements/AddScanHistory</code> et lecture via <code>/api/StockMovements/GetScanHistory</code>.</li>
+    <li><strong>Visibilité</strong> : utilisateur standard = ses scans; <code>admin</code> et <code>gestionnaire_de_stock</code> = scans globaux.</li>
+    <li><strong>Nettoyage</strong> : <code>/api/StockMovements/ClearScanHistory</code> (paramètre <code>all=true</code> réservé aux profils autorisés).</li>
+  </ul>
+
+  <h3>Actions Post-Scan sur téléphone (mode relay-only)</h3>
+  <ul>
+    <li><strong>Ajouter produit sur téléphone</strong> : en contexte <code>PRODUCT_BARCODE</code>, le bouton dédié ouvre l'écran Produits en mode ajout avec code-barres pré-rempli.</li>
+    <li><strong>PRODUCT_BARCODE</strong> : redirection vers <code>/products?add=1&barcode=...</code>.</li>
+    <li><strong>MOVEMENT_PRODUCT</strong> : redirection vers <code>/movements?mode=entry|exit&barcode=...</code>.</li>
+    <li><strong>TRANSFER_PRODUCT</strong> : redirection vers <code>/movements?mode=transfer&barcode=...</code>.</li>
+  </ul>
+
+  <h3>Composants et services impliqués</h3>
+  <table>
+    <thead>
+      <tr><th>Élément</th><th>Rôle</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>ScannerComponent</code></td><td>Caméra, saisie manuelle, lookup produit, détails stock, historique et actions rapides</td></tr>
+      <tr><td><code>ScanSessionService</code></td><td>Connexion SignalR, join session, émission/réception des scans</td></tr>
+      <tr><td><code>QrScanModalComponent</code></td><td>Génération et affichage du QR code de session</td></tr>
+      <tr><td><code>InventoryHub</code> (.NET)</td><td>Gestion des groupes de session et diffusion <code>ScanDetected</code></td></tr>
+    </tbody>
+  </table>
 
   <!-- 2.7 Réappro -->
   <h2><span class="icon">📋</span> 2.7 Suggestions de Réapprovisionnement</h2>
@@ -551,7 +654,7 @@
   <h3>Gestion des rôles et permissions :</h3>
   <ul>
     <li><strong>Consulter les rôles</strong> : Admin, Gestionnaire de Stock, Opérateur — chacun avec sa couleur et ses permissions.</li>
-    <li><strong>Matrice de permissions</strong> : 16 permissions organisées en catégories (consultation, gestion, opérations).</li>
+    <li><strong>Matrice de permissions</strong> : 17 permissions organisées en catégories (consultation, gestion, opérations), pilotées dynamiquement par le backend.</li>
     <li><strong>Attribution dynamique</strong> : Les permissions sont vérifiées côté frontend (guards Angular) et côté backend (claims JWT).</li>
   </ul>
 
@@ -611,7 +714,7 @@
       <li>✅ Alerter automatiquement quand un stock est bas, en rupture ou en surstock</li>
       <li>✅ Scanner des codes-barres via caméra, téléphone distant, ou saisie manuelle</li>
       <li>✅ Proposer des réapprovisionnements intelligents basés sur les seuils</li>
-      <li>✅ Gérer les utilisateurs avec 3 niveaux de rôles et 16 permissions</li>
+      <li>✅ Gérer les utilisateurs avec 3 niveaux de rôles et 17 permissions</li>
       <li>✅ Fournir un tableau de bord avec toutes les métriques clés</li>
       <li>✅ Communiquer en temps réel entre PC et téléphone via SignalR</li>
     </ul>
@@ -687,7 +790,7 @@
   <!-- ==================== 4. MODULES ==================== -->
   <div class="page-break"></div>
   <h1>5. Modules Fonctionnels (Frontend)</h1>
-  <p>L'application est organisée en <strong>13 modules fonctionnels</strong>, chacun chargé dynamiquement (lazy loading) :</p>
+  <p>L'application est organisée en <strong>14 modules fonctionnels</strong> (13 protégés + 1 public), chargés dynamiquement (lazy loading) :</p>
 
   <table>
     <thead>
@@ -696,17 +799,18 @@
     <tbody>
       <tr><td>1</td><td><strong>Dashboard</strong></td><td><code>/dashboard</code></td><td>Tableau de bord avec statistiques, activités récentes, top produits</td><td>Authentifié</td></tr>
       <tr><td>2</td><td><strong>Products</strong></td><td><code>/products</code></td><td>Gestion des produits (CRUD, filtrage, vues grille/liste, images)</td><td>view_products</td></tr>
-      <tr><td>3</td><td><strong>Movements</strong></td><td><code>/movements</code></td><td>Suivi des mouvements de stock (entrée/sortie) avec historique</td><td>manage_movements</td></tr>
+      <tr><td>3</td><td><strong>Movements</strong></td><td><code>/movements</code></td><td>Suivi des mouvements de stock (entrée/sortie) avec historique</td><td>view_movements</td></tr>
       <tr><td>4</td><td><strong>Sites</strong></td><td><code>/sites</code></td><td>Gestion des sites/entrepôts (localisation, capacités, responsables)</td><td>view_sites</td></tr>
-      <tr><td>5</td><td><strong>Site Stocks</strong></td><td><code>/sites/:id/stocks</code></td><td>Stocks détaillés d'un site spécifique</td><td>view_sites</td></tr>
-      <tr><td>6</td><td><strong>Alerts</strong></td><td><code>/alerts</code></td><td>Alertes système (rupture, seuil bas, surstock), résolution</td><td>manage_alerts</td></tr>
-      <tr><td>7</td><td><strong>Réappro.</strong></td><td><code>/reapprovisionnement</code></td><td>Suggestions de réapprovisionnement basées sur les seuils</td><td>view_reappro.</td></tr>
-      <tr><td>8</td><td><strong>Scanner</strong></td><td><code>/scanner</code></td><td>Scan de codes-barres/QR via caméra avec ZXing</td><td>scan_barcode</td></tr>
-      <tr><td>9</td><td><strong>Members</strong></td><td><code>/members</code></td><td>Gestion des membres de l'équipe (rôles, statuts)</td><td>Admin only</td></tr>
-      <tr><td>10</td><td><strong>User Mgmt</strong></td><td><code>/user-management</code></td><td>Administration avancée des utilisateurs</td><td>Admin only</td></tr>
-      <tr><td>11</td><td><strong>Profile</strong></td><td><code>/profile</code></td><td>Page profil utilisateur connecté</td><td>Authentifié</td></tr>
-      <tr><td>12</td><td><strong>Settings</strong></td><td><code>/settings</code></td><td>Paramètres système</td><td>Admin only</td></tr>
-      <tr><td>13</td><td><strong>Auth/Login</strong></td><td><code>/auth/login</code></td><td>Formulaire de connexion</td><td>Public</td></tr>
+      <tr><td>5</td><td><strong>Site Stocks</strong></td><td><code>/sites/:siteId/stocks</code></td><td>Stocks détaillés d'un site spécifique</td><td>view_stocks</td></tr>
+      <tr><td>6</td><td><strong>Stocks Overview</strong></td><td><code>/stocks</code></td><td>Vue globale des stocks (tous sites)</td><td>view_stocks</td></tr>
+      <tr><td>7</td><td><strong>Alerts</strong></td><td><code>/alerts</code></td><td>Alertes système (rupture, seuil bas, surstock), résolution</td><td>view_alerts</td></tr>
+      <tr><td>8</td><td><strong>Réappro.</strong></td><td><code>/reapprovisionnement</code></td><td>Suggestions de réapprovisionnement basées sur les seuils</td><td>view_reapprovisionnement</td></tr>
+      <tr><td>9</td><td><strong>Scanner</strong></td><td><code>/scanner</code>, <code>/scan</code>, <code>/scan-relay</code></td><td>Scan ZXing + relais téléphone↔PC par session</td><td>scan_barcode / scannerAccessGuard</td></tr>
+      <tr><td>10</td><td><strong>Members</strong></td><td><code>/members</code></td><td>Gestion des membres de l'équipe (rôles, statuts)</td><td>manage_users</td></tr>
+      <tr><td>11</td><td><strong>User Mgmt</strong></td><td><code>/user-management</code></td><td>Administration avancée des utilisateurs</td><td>manage_users</td></tr>
+      <tr><td>12</td><td><strong>Settings</strong></td><td><code>/settings</code></td><td>Paramètres système et permissions</td><td>manage_roles</td></tr>
+      <tr><td>13</td><td><strong>Profile</strong></td><td><code>/profile</code></td><td>Page profil utilisateur connecté</td><td>Authentifié</td></tr>
+      <tr><td>14</td><td><strong>Auth/Login</strong></td><td><code>/auth/login</code></td><td>Formulaire de connexion</td><td>Public</td></tr>
     </tbody>
   </table>
 
@@ -832,7 +936,7 @@ Stock ──1:N──▶ Alert
   <div class="flow">
     <div class="flow-step">Identifiants</div>
     <div class="flow-arrow">→</div>
-    <div class="flow-step">API /auth/login</div>
+    <div class="flow-step">API /api/Authentification/login</div>
     <div class="flow-arrow">→</div>
     <div class="flow-step">Validation</div>
     <div class="flow-arrow">→</div>
@@ -871,18 +975,20 @@ Stock ──1:N──▶ Alert
   </table>
 
   <h3>Protection des Routes (Frontend)</h3>
-  <p>Les guards Angular protègent les routes :</p>
+  <p>Les guards Angular protègent les routes et gèrent aussi l'accès scanner relay :</p>
   <ul>
     <li><code>authGuard</code> — Vérifie l'authentification</li>
     <li><code>adminGuard</code> — Restreint aux administrateurs</li>
     <li><code>stockManagerGuard</code> — Restreint aux gestionnaires de stock</li>
     <li><code>permissionGuard('permission')</code> — Vérifie une permission spécifique</li>
+    <li><code>scannerAccessGuard</code> — Autorise les sessions scanner QR sans login (query params sessionId/purpose)</li>
+    <li><code>roleGuard([...])</code> — Vérifie une liste de rôles autorisés</li>
   </ul>
 
   <!-- ==================== 8. PERMISSIONS ==================== -->
   <div class="page-break"></div>
   <h1>9. Matrice des Permissions</h1>
-  <p>Le système définit <strong>16 permissions</strong> réparties en 3 catégories :</p>
+  <p>Le système définit <strong>17 permissions canoniques</strong> réparties en 3 catégories. Le catalogue est piloté par le backend (<code>/api/Roles/permissions</code>) et appliqué dynamiquement côté frontend + backend.</p>
 
   <table>
     <thead>
@@ -900,6 +1006,7 @@ Stock ──1:N──▶ Alert
       <tr><td><code>view_products</code></td><td>Voir les produits</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-yes">✓</span></td></tr>
       <tr><td><code>view_movements</code></td><td>Voir les mouvements</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-no">✗</span></td></tr>
       <tr><td><code>view_sites</code></td><td>Voir les sites</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-no">✗</span></td></tr>
+      <tr><td><code>view_stocks</code></td><td>Voir les stocks</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-no">✗</span></td></tr>
       <tr><td><code>view_alerts</code></td><td>Voir les alertes</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-no">✗</span></td></tr>
       <tr><td><code>view_reports</code></td><td>Voir les rapports</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-no">✗</span></td></tr>
       <tr><td><code>view_reapprovisionnement</code></td><td>Voir le réappro.</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-yes">✓</span></td></tr>
@@ -907,13 +1014,13 @@ Stock ──1:N──▶ Alert
       <tr><td><code>manage_products</code></td><td>Gérer les produits</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-no">✗</span></td><td><span class="badge badge-no">✗</span></td></tr>
       <tr><td><code>manage_movements</code></td><td>Gérer les mouvements</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-no">✗</span></td></tr>
       <tr><td><code>manage_sites</code></td><td>Gérer les sites</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-no">✗</span></td><td><span class="badge badge-no">✗</span></td></tr>
+      <tr><td><code>manage_stocks</code></td><td>Gérer les stocks</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-no">✗</span></td></tr>
       <tr><td><code>manage_alerts</code></td><td>Gérer les alertes</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-no">✗</span></td></tr>
       <tr><td><code>manage_users</code></td><td>Gérer les utilisateurs</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-no">✗</span></td><td><span class="badge badge-no">✗</span></td></tr>
       <tr><td><code>manage_roles</code></td><td>Gérer les rôles</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-no">✗</span></td><td><span class="badge badge-no">✗</span></td></tr>
       <tr><td><code>manage_reapprovisionnement</code></td><td>Gérer le réappro.</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-no">✗</span></td></tr>
       <tr><td colspan="5" style="background:#e0e7ff;font-weight:700;color:var(--primary);">🔧 Permissions Opérationnelles</td></tr>
       <tr><td><code>scan_barcode</code></td><td>Scanner les codes-barres</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-no">✗</span></td><td><span class="badge badge-yes">✓</span></td></tr>
-      <tr><td><code>basic_entry_exit</code></td><td>Entrée/sortie basique</td><td><span class="badge badge-yes">✓</span></td><td><span class="badge badge-no">✗</span></td><td><span class="badge badge-yes">✓</span></td></tr>
     </tbody>
   </table>
 
@@ -929,6 +1036,7 @@ Stock ──1:N──▶ Alert
     <tbody>
       <tr><td><strong>AuthService</strong></td><td>auth.service.ts</td><td>Authentification, gestion JWT, session utilisateur</td></tr>
       <tr><td><strong>AuthorizationService</strong></td><td>auth-authorization.service.ts</td><td>Vérification permissions, contrôle d'accès RBAC</td></tr>
+      <tr><td><strong>DashboardService</strong></td><td>dashboard.service.ts</td><td>Agrégation des KPIs et données dashboard</td></tr>
       <tr><td><strong>ProductService</strong></td><td>product.service.ts</td><td>CRUD produits, filtrage, recherche</td></tr>
       <tr><td><strong>MovementService</strong></td><td>movement.service.ts</td><td>Gestion mouvements de stock (entrée/sortie)</td></tr>
       <tr><td><strong>SiteService</strong></td><td>site.service.ts</td><td>CRUD sites/entrepôts</td></tr>
@@ -987,13 +1095,13 @@ Stock ──1:N──▶ Alert
       <tr><th>Contrôleur</th><th>Base URL</th><th>Opérations</th></tr>
     </thead>
     <tbody>
-      <tr><td><strong>Authentification</strong></td><td>/api/auth</td><td>Login, Register, Token refresh</td></tr>
+      <tr><td><strong>AuthentificationController</strong></td><td>/api/Authentification</td><td>Login JWT</td></tr>
       <tr><td><strong>ProductsController</strong></td><td>/api/products</td><td>CRUD produits, recherche par code-barre</td></tr>
       <tr><td><strong>CategoriesController</strong></td><td>/api/categories</td><td>CRUD catégories</td></tr>
       <tr><td><strong>StocksController</strong></td><td>/api/stocks</td><td>CRUD stocks, gestion seuils, stock par site</td></tr>
-      <tr><td><strong>StockMovementsController</strong></td><td>/api/stockmovements</td><td>Créer/modifier/supprimer mouvements, historique</td></tr>
+      <tr><td><strong>StockMovementsController</strong></td><td>/api/stockmovements</td><td>Mouvements CRUD, historique filtré par rôle, scan history, raisons personnalisées</td></tr>
       <tr><td><strong>SitesController</strong></td><td>/api/sites</td><td>CRUD sites/entrepôts</td></tr>
-      <tr><td><strong>AlertsController</strong></td><td>/api/alerts</td><td>CRUD alertes, résolution, marquage</td></tr>
+      <tr><td><strong>AlertsController</strong></td><td>/api/alerts</td><td>Alertes enrichies (site/produit/utilisateur), visibilité par rôle, résolution/suppression</td></tr>
       <tr><td><strong>UsersController</strong></td><td>/api/users</td><td>CRUD utilisateurs, changement de rôle, activation/désactivation</td></tr>
       <tr><td><strong>RolesController</strong></td><td>/api/roles</td><td>CRUD rôles, affectation permissions</td></tr>
       <tr><td><strong>ProfileController</strong></td><td>/api/profile</td><td>Consultation/modification profil connecté</td></tr>
@@ -1009,10 +1117,10 @@ Stock ──1:N──▶ Alert
     </thead>
     <tbody>
       <tr><td><strong>Authentification JWT</strong></td><td>Tokens signés HMAC-SHA256 avec validation Issuer/Audience/Lifetime</td></tr>
-      <tr><td><strong>RBAC</strong></td><td>Contrôle d'accès basé sur les rôles côté frontend (guards) et backend (claims JWT)</td></tr>
+      <tr><td><strong>Autorisation dynamique</strong></td><td>Policies dynamiques <code>PermissionAuthorize</code> + <code>PermissionAuthorizationPolicyProvider</code> + <code>PermissionAuthorizationHandler</code> (permissions résolues depuis la DB)</td></tr>
       <tr><td><strong>CORS</strong></td><td>Configuré pour autoriser le frontend Angular</td></tr>
       <tr><td><strong>Protection XSS</strong></td><td>Sanitization automatique Angular</td></tr>
-      <tr><td><strong>Guards de routes</strong></td><td>4 types de guards : authGuard, adminGuard, stockManagerGuard, permissionGuard</td></tr>
+      <tr><td><strong>Guards de routes</strong></td><td>6 guards/factories : authGuard, adminGuard, stockManagerGuard, roleGuard, permissionGuard, scannerAccessGuard</td></tr>
       <tr><td><strong>Swagger sécurisé</strong></td><td>Documentation API avec schéma Bearer Token</td></tr>
       <tr><td><strong>Dédoublonnage alertes</strong></td><td>Fingerprint unique par type + stock pour éviter les doublons</td></tr>
     </tbody>
@@ -1043,7 +1151,7 @@ Stock ──1:N──▶ Alert
   </ul>
 
   <!-- ==================== 14. DEPLOIEMENT ==================== -->
-  <h1>14. Déploiement & Configuration</h1>
+  <h1>15. Déploiement & Configuration</h1>
 
   <h3>Prérequis</h3>
   <ul>
@@ -1077,12 +1185,12 @@ http://localhost:&lt;port&gt;/swagger/index.html
 
   <!-- ==================== 15. STATS ==================== -->
   <div class="page-break"></div>
-  <h1>15. Résumé des Statistiques du Projet</h1>
+  <h1>16. Résumé des Statistiques du Projet</h1>
 
   <div class="card-grid">
     <div class="stat-card no-break">
       <div class="stat-icon">🧩</div>
-      <div class="stat-value">13</div>
+      <div class="stat-value">14</div>
       <div class="stat-label">Modules Frontend</div>
     </div>
     <div class="stat-card no-break">
@@ -1097,12 +1205,12 @@ http://localhost:&lt;port&gt;/swagger/index.html
     </div>
     <div class="stat-card no-break">
       <div class="stat-icon">⚙️</div>
-      <div class="stat-value">11</div>
+      <div class="stat-value">12</div>
       <div class="stat-label">Services Frontend</div>
     </div>
     <div class="stat-card no-break">
       <div class="stat-icon">🔐</div>
-      <div class="stat-value">16</div>
+      <div class="stat-value">17</div>
       <div class="stat-label">Permissions</div>
     </div>
     <div class="stat-card no-break">
@@ -1112,7 +1220,7 @@ http://localhost:&lt;port&gt;/swagger/index.html
     </div>
     <div class="stat-card no-break">
       <div class="stat-icon">🛡️</div>
-      <div class="stat-value">4</div>
+      <div class="stat-value">6</div>
       <div class="stat-label">Guards de routes</div>
     </div>
     <div class="stat-card no-break">
@@ -1148,9 +1256,55 @@ http://localhost:&lt;port&gt;/swagger/index.html
     </div>
   </div>
 
+  <hr class="separator">
+
+  <h1>17. Mises à Jour Récentes et Améliorations Apportées</h1>
+  <p>
+    Cette section reflète l'état réel du code actuel (frontend + backend), avec les changements majeurs de sécurité, visibilité des données et traçabilité.
+  </p>
+
+  <h2><span class="icon">🔐</span> 17.1 Autorisation Dynamique (Backend + Frontend)</h2>
+  <ul>
+    <li><strong>Backend</strong> : Remplacement des règles statiques par des policies dynamiques via <code>PermissionAuthorize</code>, <code>PermissionAuthorizationPolicyProvider</code> et <code>PermissionAuthorizationHandler</code>.</li>
+    <li><strong>Source de vérité</strong> : Les permissions sont résolues depuis la base de données (rôle → rolepermission → permission).</li>
+    <li><strong>Frontend backend-mode</strong> : Les permissions proviennent des rôles chargés via <code>/api/Roles</code> et <code>/api/Roles/permissions</code>, sans fallback statique de matrice.</li>
+    <li><strong>Catalogue canonique</strong> : 17 permissions incluant <code>view_stocks</code> et <code>manage_stocks</code>; suppression de <code>basic_entry_exit</code>.</li>
+  </ul>
+
+  <h2><span class="icon">🧾</span> 17.2 Visibilité Historique & Alertes par Identité</h2>
+  <ul>
+    <li><strong>Historique mouvements</strong> : un utilisateur standard voit ses propres mouvements; <code>admin</code> et <code>gestionnaire_de_stock</code> voient tout.</li>
+    <li><strong>Historique scanner</strong> : même règle de visibilité, avec traçabilité <code>createdByUserId</code> et <code>createdByUserName</code>.</li>
+    <li><strong>Alertes</strong> : <code>admin</code> et <code>gestionnaire_de_stock</code> voient toutes les alertes; les autres voient uniquement leurs alertes contextualisées.</li>
+    <li><strong>Enrichissement UI</strong> : chaque alerte expose <code>utilisateurNom</code> (aligné avec l'historique des mouvements).</li>
+  </ul>
+
+  <h2><span class="icon">🧩</span> 17.3 Alignement Routes, Permissions et UX</h2>
+  <ul>
+    <li><strong>Routes sécurisées</strong> : alignement des guards avec les permissions <code>view_*</code> / <code>manage_*</code>.</li>
+    <li><strong>Connexion robuste</strong> : redirection post-login vers la première route autorisée pour éviter les boucles de navigation.</li>
+    <li><strong>Scanner mobile</strong> : accès relay via <code>scannerAccessGuard</code> (session QR) sans compromettre les routes authentifiées.</li>
+    <li><strong>UI Stocks</strong> : correctifs de superposition modal/overlay (seuils) pour garantir l'affichage au-dessus du layout.</li>
+  </ul>
+
+  <h2><span class="icon">📦</span> 17.4 Persistance Métier Opérationnelle</h2>
+  <ul>
+    <li><strong>Raisons de mouvements personnalisées</strong> persistées dans <code>Backend/Application/App_Data/movement-reasons.json</code>.</li>
+    <li><strong>Historique scanner</strong> persisté dans <code>Backend/Application/App_Data/scan-history.json</code> (avec normalisation et limite de rétention).</li>
+    <li><strong>Moteur d'alertes</strong> : recalcul automatique sur changement de stock + dédoublonnage par <code>Fingerprint</code>.</li>
+  </ul>
+
+  <h2><span class="icon">✅</span> 17.5 État Technique Vérifié</h2>
+  <ul>
+    <li><strong>Frontend</strong> : build OK (<code>npm run build</code>) avec warnings non bloquants (budgets et dépendances CommonJS liées au QR).</li>
+    <li><strong>Backend</strong> : build OK sur <code>netcoreapp3.1</code> avec warnings de maintenance attendus (framework en fin de support).</li>
+    <li><strong>Architecture</strong> : frontend Angular standalone + signals; backend Clean/CQRS + MediatR + EF Core + JWT + SignalR.</li>
+  </ul>
+
   <div class="footer-note">
-    <strong>Inventory Pro</strong> — Rapport Technique d'Application &bull; Projet de Fin d'Études (PFE) &bull; Mars 2026<br>
-    Ce rapport a été généré automatiquement à partir de l'analyse du code source du projet.
+    <strong>Inventory Pro</strong> — Rapport Technique Mis à Jour &bull; Projet de Fin d'Études (PFE) &bull; Avril 2026<br>
+    <strong>Mises à jour apportées :</strong> autorisation dynamique, visibilité des historiques/alertes par identité, enrichissement alertes utilisateur, alignement route-permission, correctifs UI Stocks.<br>
+    Ce rapport est aligné sur l'implémentation actuelle du dépôt.
   </div>
 </div>
 

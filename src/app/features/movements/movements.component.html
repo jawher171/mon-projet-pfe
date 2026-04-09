@@ -85,10 +85,29 @@
         (click)="onTypeChange('transfer')">Transferts</button>
     </div>
     <div class="mv-select-wrap">
+      <span class="material-symbols-rounded mv-filter-icon">domain</span>
       <select (change)="onSiteChange($event)">
         <option value="">Tous les sites</option>
         @for (site of sites(); track site.id) {
         <option [value]="site.id">{{ site.nom }} ({{ getSiteTypeLabel(site.type) }})</option>
+        }
+      </select>
+    </div>
+    <div class="mv-select-wrap">
+      <span class="material-symbols-rounded mv-filter-icon">category</span>
+      <select [value]="selectedCategory()" (change)="onCategoryFilterChange($event)">
+        <option value="">Toutes les categories</option>
+        @for (cat of movementCategories(); track cat.id) {
+        <option [value]="cat.id">{{ cat.label }}</option>
+        }
+      </select>
+    </div>
+    <div class="mv-select-wrap">
+      <span class="material-symbols-rounded mv-filter-icon">package_2</span>
+      <select [value]="selectedProductFilter()" (change)="onProductFilterChange($event)">
+        <option value="">Tous les produits</option>
+        @for (product of filteredMovementProducts(); track product.id_p) {
+        <option [value]="product.id_p">{{ product.nom }}</option>
         }
       </select>
     </div>
@@ -179,7 +198,7 @@
       </tbody>
     </table>
 
-    @if (movements().length > 7) {
+    @if (filteredMovements().length > 7) {
     <div class="mv-pagination-action" [class.is-collapsed]="!showAllMovements()">
       <button class="btn-toggle-view" (click)="toggleMovements()">
         <span>{{ showAllMovements() ? 'Voir moins' : 'Voir plus' }}</span>

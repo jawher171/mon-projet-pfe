@@ -12,6 +12,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Application.Controllers
 {
@@ -151,11 +152,33 @@ namespace Application.Controllers
             if (toDelete == null)
                 return NotFound(new { message = "User not found." });
 
-            if (toDelete.Role == "admin")
+            var currentUserId = GetCurrentUserId();
+
+            if (string.Equals(toDelete.Role, "admin", StringComparison.OrdinalIgnoreCase))
             {
-                var adminCount = users.Count(u => u.Role == "admin" && u.Status == "active");
-                if (adminCount <= 1)
-                    return BadRequest(new { message = "Cannot delete the last admin." });
+                var adminUsers = users
+                    .Where(u => string.Equals(u.Role, "admin", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                var isSelfDeletion = currentUserId.HasValue && currentUserId.Value == id;
+                if (isSelfDeletion)
+                {
+                    var otherAdminCount = adminUsers.Count(u => u.Id != id);
+                    if (otherAdminCount < 1)
+                    {
+                        return BadRequest(new
+                        {
+                            message = "Admin cannot delete their own account unless another admin account exists."
+                        });
+                    }
+                }
+
+                var activeAdminCount = adminUsers.Count(
+                    u => string.Equals(u.Status, "active", StringComparison.OrdinalIgnoreCase));
+                var deletingActiveAdmin = string.Equals(toDelete.Status, "active", StringComparison.OrdinalIgnoreCase);
+
+                if (!isSelfDeletion && deletingActiveAdmin && activeAdminCount <= 1)
+                    return BadRequest(new { message = "Cannot delete the last active admin." });
             }
 
             var deleted = await _mediator.Send(new RemoveGenericCommand<User>(id));
@@ -163,6 +186,15 @@ namespace Application.Controllers
                 return NotFound(new { message = "User not found." });
 
             return NoContent();
+        }
+
+        private Guid? GetCurrentUserId()
+        {
+            var raw = User?.FindFirstValue(ClaimTypes.NameIdentifier) ?? User?.FindFirst("sub")?.Value;
+            if (Guid.TryParse(raw, out var userId))
+                return userId;
+
+            return null;
         }
 
         private async Task<(bool Success, UserDto? UserDto, string ErrorMessage)> UpdateUserInternal(Guid id, string? nom, string? prenom, string? email, string? password, string? role, string? status)

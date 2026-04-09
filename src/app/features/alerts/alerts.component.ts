@@ -4,9 +4,10 @@
  * Displays alerts with filtering, allows resolution, and manages alert generation rules.
  */
 
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription, interval } from 'rxjs';
 import { AlertService } from '../../core/services/alert.service';
 import { SiteService } from '../../core/services/site.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -19,7 +20,10 @@ import { Alert, AlertFilter, AlertType, AlertSeverity, ALERT_TYPES, SEVERITY_CON
   templateUrl: './alerts.component.html',
   styleUrls: ['./alerts.component.scss']
 })
-export class AlertsComponent implements OnInit {
+export class AlertsComponent implements OnInit, OnDestroy {
+  private refreshSubscription?: Subscription;
+
+  isRefreshing = signal(false);
   // Filter signals
   /** Filter by alert type */
   selectedType = signal<AlertType | 'all'>('all');
@@ -92,7 +96,27 @@ export class AlertsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.alertService.fetchAlerts();
+    void this.refreshAlerts();
+
+    // Keep alerts list in sync with backend-generated alerts.
+    this.refreshSubscription = interval(10000).subscribe(() => {
+      void this.refreshAlerts();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.refreshSubscription?.unsubscribe();
+  }
+
+  async refreshAlerts(): Promise<void> {
+    if (this.isRefreshing()) return;
+
+    this.isRefreshing.set(true);
+    try {
+      await this.alertService.fetchAlerts();
+    } finally {
+      this.isRefreshing.set(false);
+    }
   }
 
   /**

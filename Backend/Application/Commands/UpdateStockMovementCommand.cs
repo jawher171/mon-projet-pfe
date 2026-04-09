@@ -28,7 +28,7 @@ namespace Application.Commands
         public static UpdateStockMovementResult Fail(string error) =>
             new UpdateStockMovementResult { Success = false, ErrorMessage = error };
 
-        public static UpdateStockMovementResult NotFoundResult(string error = "Movement not found.") =>
+        public static UpdateStockMovementResult NotFoundResult(string error = "Mouvement introuvable.") =>
             new UpdateStockMovementResult { Success = false, NotFound = true, ErrorMessage = error };
     }
 }

@@ -111,68 +111,106 @@ $overstock-color: #8b5cf6;
 .so-toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 0.75rem;
   align-items: center;
   margin-bottom: 20px;
-  padding: 16px 18px;
+  padding: 14px;
   background: white;
-  border-radius: 14px;
+  border-radius: 0.75rem;
   border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .so-search {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f1f5f9;
-  border-radius: 10px;
-  padding: 8px 14px;
-  flex: 1 1 220px;
-  min-width: 180px;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.625rem;
+  min-height: 40px;
+  padding: 0 0.75rem;
+  flex: 1 1 340px;
+  min-width: 230px;
+  transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
 
-  .material-symbols-rounded { color: #94a3b8; font-size: 20px; }
+  .material-symbols-rounded { color: #64748b; font-size: 17px; }
 
   input {
     border: none;
     background: transparent;
     outline: none;
-    font-size: 0.88rem;
+    font-size: 0.8125rem;
     width: 100%;
     color: #334155;
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+  }
+
+  &:focus-within {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.14);
+
+    .material-symbols-rounded {
+      color: $primary;
+    }
   }
 }
 
 .so-type-pills, .so-status-pills {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .so-pill {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: 1px solid #e2e8f0;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #d1d9e6;
   background: white;
   cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: #64748b;
-  transition: all 0.15s;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s, transform 0.1s;
 
   .material-symbols-rounded { font-size: 16px; }
 
-  &:hover { border-color: $primary; color: $primary; }
-
-  &.active {
-    background: linear-gradient(135deg, $primary, $accent);
-    color: white;
-    border-color: transparent;
+  &:hover {
+    border-color: #a5b4fc;
+    background: #f8fafc;
+    color: #3730a3;
   }
 
-  &.status { font-size: 0.78rem; padding: 5px 12px; }
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba($primary, 0.35);
+    outline-offset: 1px;
+  }
+
+  &.active {
+    background: #eef2ff;
+    color: #3730a3;
+    border-color: #818cf8;
+  }
+
+  &.status {
+    font-size: 0.8125rem;
+    min-height: 34px;
+    padding: 0 11px;
+  }
 }
 
 .dot {
@@ -191,40 +229,65 @@ $overstock-color: #8b5cf6;
 .so-select-wrap {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: #f1f5f9;
-  border-radius: 10px;
-  padding: 6px 12px;
+  gap: 0.5rem;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.625rem;
+  min-height: 40px;
+  padding: 0 0.75rem;
+  transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
 
-  .material-symbols-rounded { color: #94a3b8; font-size: 20px; }
+  .material-symbols-rounded { color: #64748b; font-size: 17px; }
 
   select {
     border: none;
     background: transparent;
     outline: none;
-    font-size: 0.85rem;
+    font-size: 0.8125rem;
     color: #334155;
+    font-weight: 500;
     cursor: pointer;
-    min-width: 130px;
+    min-width: 160px;
+  }
+
+  &:focus-within {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.14);
+
+    .material-symbols-rounded {
+      color: $primary;
+    }
   }
 }
 
 .so-clear-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  padding: 6px 14px;
-  border-radius: 10px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 0.625rem;
   border: 1px dashed #cbd5e1;
-  background: transparent;
-  color: #94a3b8;
+  background: #fff;
+  color: #64748b;
   cursor: pointer;
-  font-size: 0.82rem;
-  transition: all 0.15s;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: border-color 0.15s, color 0.15s, background-color 0.15s;
 
   .material-symbols-rounded { font-size: 16px; }
 
-  &:hover { border-color: $danger; color: $danger; }
+  &:hover {
+    border-color: #fca5a5;
+    color: #dc2626;
+    background: #fef2f2;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba($danger, 0.25);
+    outline-offset: 1px;
+  }
 }
 
 // ─── Loading ─────────────────────────────────────
@@ -577,6 +640,29 @@ $overstock-color: #8b5cf6;
 @media (max-width: 768px) {
   .so-page { padding: 16px; }
   .so-stats { grid-template-columns: repeat(2, 1fr); }
-  .so-toolbar { flex-direction: column; align-items: stretch; }
-  .so-type-pills, .so-status-pills { justify-content: flex-start; overflow-x: auto; }
+  .so-toolbar {
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .so-search {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+
+  .so-type-pills,
+  .so-status-pills {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .so-select-wrap {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 160px;
+  }
+
+  .so-clear-btn {
+    width: 100%;
+  }
 }

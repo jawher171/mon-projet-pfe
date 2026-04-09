@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Application.Commands;
@@ -29,10 +30,10 @@ namespace Application.Handlers
         {
             var dto = request.Dto;
             if (dto == null)
-                return UpdateStockMovementResult.Fail("Stock movement is required.");
+                return UpdateStockMovementResult.Fail("Le mouvement de stock est obligatoire.");
 
             if (dto.id_sm == Guid.Empty)
-                return UpdateStockMovementResult.Fail("id_sm is required.");
+                return UpdateStockMovementResult.Fail("L'identifiant du mouvement est obligatoire.");
 
             // Fetch existing movement
             var existing = await _mediator.Send(
@@ -52,7 +53,7 @@ namespace Application.Handlers
                 cancellationToken);
 
             if (stock == null)
-                return UpdateStockMovementResult.Fail("Stock not found.");
+                return UpdateStockMovementResult.Fail("Stock introuvable.");
 
             // Parse and validate new type
             var oldExit = IsExitType(existing.Type);
@@ -65,13 +66,54 @@ namespace Application.Handlers
                 || newType.Equals("entree", StringComparison.OrdinalIgnoreCase);
 
             if (!newExit && !newEntry)
-                return UpdateStockMovementResult.Fail("Type must be 'entry' or 'exit' (or 'entrée'/'sortie').");
+                return UpdateStockMovementResult.Fail("Le type doit être 'entry' ou 'exit' (ou 'entrée'/'sortie').");
 
-            // Reverse old stock impact
-            if (oldExit)
-                stock.QuantiteDisponible += oldQuantite;
-            else
-                stock.QuantiteDisponible -= oldQuantite;
+            // Compute projected stock/site deltas before writing any updates.
+            var oldDelta = oldExit ? -oldQuantite : oldQuantite;
+            var newDelta = newExit ? -dto.Quantite : dto.Quantite;
+            var stockDelta = newDelta - oldDelta;
+            var projectedStockQuantity = stock.QuantiteDisponible + stockDelta;
+
+            if (projectedStockQuantity < 0)
+                return UpdateStockMovementResult.Fail("Impossible de mettre à jour le mouvement : la quantité demandée dépasse le stock disponible.");
+
+            if (newEntry && stock.SeuilMaximum > 0 && projectedStockQuantity > stock.SeuilMaximum)
+            {
+                await _mediator.Publish(new StockChangedEvent
+                {
+                    StockId = stock.id_s,
+                    MovementId = Guid.Empty,
+                    MovementType = "update",
+                    DeltaQuantity = 0,
+                    NewQuantity = stock.QuantiteDisponible,
+                    OccurredAt = DateTime.UtcNow
+                }, cancellationToken);
+
+                return UpdateStockMovementResult.Fail($"L'entrée dépasse le seuil maximum. Capacité restante : {Math.Max(0, stock.SeuilMaximum - stock.QuantiteDisponible)}.");
+            }
+
+            if (stockDelta > 0)
+            {
+                var site = await _mediator.Send(
+                    new GetGenericQuery<Site>(
+                        condition: s => s.Id_site == stock.Id_site),
+                    cancellationToken);
+
+                if (site?.Capacite.HasValue == true && site.Capacite.Value > 0)
+                {
+                    var siteStocks = await _mediator.Send(
+                        new GetListGenericQuery<Stock>(
+                            condition: s => s.Id_site == stock.Id_site),
+                        cancellationToken);
+
+                    var currentSiteLoad = siteStocks.Sum(s => s.QuantiteDisponible);
+                    if (currentSiteLoad + stockDelta > site.Capacite.Value)
+                    {
+                        var remainingCapacity = Math.Max(0, site.Capacite.Value - currentSiteLoad);
+                        return UpdateStockMovementResult.Fail($"Le mouvement dépasse la capacité du site '{site.Nom}'. Capacité restante : {remainingCapacity}.");
+                    }
+                }
+            }
 
             // Update existing tracked entity with DTO values
             existing.Type = newExit ? "exit" : "entry";
@@ -85,20 +127,9 @@ namespace Application.Handlers
             if (dto.DateMouvement != default)
                 existing.DateMouvement = dto.DateMouvement;
 
-            // Apply new stock impact
-            int delta;
-            if (newExit)
-            {
-                delta = -existing.Quantite;
-                stock.QuantiteDisponible -= existing.Quantite;
-                if (stock.QuantiteDisponible < 0)
-                    stock.QuantiteDisponible = 0;
-            }
-            else
-            {
-                delta = existing.Quantite;
-                stock.QuantiteDisponible += existing.Quantite;
-            }
+            // Apply projected quantity after validations passed.
+            var delta = newDelta;
+            stock.QuantiteDisponible = projectedStockQuantity;
 
             // Persist
             await _mediator.Send(new PutGenericCommand<StockMovement>(existing), cancellationToken);

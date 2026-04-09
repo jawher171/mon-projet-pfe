@@ -79,6 +79,28 @@
       </select>
     </div>
 
+    <!-- Category selector -->
+    <div class="so-select-wrap">
+      <span class="material-symbols-rounded">category</span>
+      <select [value]="selectedCategoryId()" (change)="onCategoryChange($event)">
+        <option value="">Toutes les catégories</option>
+        @for (category of categories(); track category.id_c) {
+          <option [value]="category.id_c">{{ category.categorieLibelle }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Product selector (depends on selected category) -->
+    <div class="so-select-wrap">
+      <span class="material-symbols-rounded">package_2</span>
+      <select [value]="selectedProductId()" (change)="onProductChange($event)">
+        <option value="">Tous les produits</option>
+        @for (product of filteredProducts(); track product.id_p) {
+          <option [value]="product.id_p">{{ product.nom }}</option>
+        }
+      </select>
+    </div>
+
     <!-- Status pills -->
     <div class="so-status-pills">
       <button class="so-pill status" [class.active]="selectedStatus() === 'all'" (click)="onStatusChange('all')">Tous</button>

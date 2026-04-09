@@ -21,6 +21,33 @@
         <button (click)="forceRefresh()" class="btn-clean" [disabled]="isLoading()" title="Rafraîchir">
           <span class="material-symbols-rounded" [class.spinning]="isLoading()">refresh</span>
         </button>
+
+        @if (canExportReports()) {
+          <div class="export-menu">
+            <button
+              type="button"
+              class="export-trigger btn-export-like-category"
+              (click)="toggleExportMenu()"
+              [disabled]="isLoading()"
+              [attr.aria-expanded]="isExportMenuOpen()"
+            >
+              <span class="material-symbols-rounded export-main-icon">download</span>
+              Exporter
+            </button>
+
+            @if (isExportMenuOpen()) {
+              <div class="export-menu-panel">
+                <button type="button" class="export-option" (click)="exportReport('csv')">
+                  CSV
+                </button>
+                <button type="button" class="export-option" (click)="exportReport('pdf')">
+                  PDF
+                </button>
+              </div>
+            }
+          </div>
+        }
+
         <a routerLink="/movements" class="btn-primary">
           + Nouveau Mouvement
         </a>
@@ -130,8 +157,21 @@
       <div class="mc-icon bg-green"><span class="material-symbols-rounded">sync_alt</span></div>
       <div class="mc-data">
         <span class="mc-label">Mouvements (E/S)</span>
-        <span class="mc-value">{{ d.totalEntrees }} <small class="text-green">↑</small> / {{ d.totalSorties }} <small
-            class="text-red">↓</small></span>
+        <span class="mc-value mc-value-inline">
+          <span>{{ d.totalEntrees }}</span>
+          <span class="text-green">↑</span>
+          <span>/</span>
+          <span>{{ d.totalSorties }}</span>
+          <span class="text-red">↓</span>
+        </span>
+      </div>
+    </div>
+    <!-- Transfers -->
+    <div class="metric-card">
+      <div class="mc-icon bg-violet"><span class="material-symbols-rounded">swap_horiz</span></div>
+      <div class="mc-data">
+        <span class="mc-label">Transferts</span>
+        <span class="mc-value">{{ d.totalTransferts }} <small class="text-violet">↔</small></span>
       </div>
     </div>
     <!-- Critical Alerts -->
@@ -192,16 +232,16 @@
       <div class="list-container">
         @for (mov of showAllMovements() ? d.recentMovements : d.recentMovements.slice(0, 4); track mov.id) {
         <div class="list-item">
-          <div class="li-icon" [class.is-in]="mov.type === 'entry'" [class.is-out]="mov.type === 'exit'">
-            <span class="material-symbols-rounded">{{ mov.type === 'entry' ? 'arrow_downward' : 'arrow_upward' }}</span>
+          <div class="li-icon" [class.is-in]="mov.type === 'entry'" [class.is-out]="mov.type === 'exit'" [class.is-transfer]="mov.type === 'transfer'">
+            <span class="material-symbols-rounded">{{ mov.type === 'entry' ? 'arrow_downward' : mov.type === 'transfer' ? 'swap_horiz' : 'arrow_upward' }}</span>
           </div>
           <div class="li-body">
             <span class="li-title">{{ mov.produitNom }}</span>
             <span class="li-sub">{{ mov.siteNom }} • {{ mov.utilisateur }}</span>
           </div>
           <div class="li-right">
-            <span class="li-qty" [class.text-green]="mov.type === 'entry'" [class.text-red]="mov.type === 'exit'">
-              {{ mov.type === 'entry' ? '+' : '-' }}{{ mov.quantite }}
+            <span class="li-qty" [class.text-green]="mov.type === 'entry'" [class.text-red]="mov.type === 'exit'" [class.text-violet]="mov.type === 'transfer'">
+              {{ mov.type === 'entry' ? '+' : mov.type === 'transfer' ? '↔' : '-' }}{{ mov.quantite }}
             </span>
             <span class="li-time">{{ mov.date | date:'HH:mm (dd/MM)' }}</span>
           </div>

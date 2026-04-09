@@ -8,6 +8,10 @@
       </h1>
       <p>Gérer les alertes et notifications automatiques</p>
     </div>
+    <button class="al-btn outline" (click)="refreshAlerts()" [disabled]="isRefreshing()">
+      <span class="material-symbols-rounded">refresh</span>
+      Rafraîchir
+    </button>
     @if (unreadCount() > 0) {
       <button class="al-btn outline" (click)="markAllAsRead()">
         <span class="material-symbols-rounded">playlist_add_check</span>
@@ -57,18 +61,24 @@
         <button class="al-pill warning" [class.active]="selectedSeverity() === 'warning'" (click)="onSeverityChange('warning')">Avertissements</button>
         <button class="al-pill info" [class.active]="selectedSeverity() === 'info'" (click)="onSeverityChange('info')">Info</button>
       </div>
-      <select class="al-select" (change)="onSiteChange($event)">
-        <option value="">Tous les sites</option>
-        @for (site of sites(); track site.id) {
-          <option [value]="site.id">{{ site.nom }}</option>
-        }
-      </select>
-      <select class="al-select" [value]="selectedProduct()" (change)="selectedProduct.set($any($event.target).value)">
-        <option value="">Tous les produits</option>
-        @for (name of productNames(); track name) {
-          <option [value]="name">{{ name }}</option>
-        }
-      </select>
+      <div class="al-select-wrap">
+        <span class="material-symbols-rounded al-filter-icon">domain</span>
+        <select class="al-select" (change)="onSiteChange($event)">
+          <option value="">Tous les sites</option>
+          @for (site of sites(); track site.id) {
+            <option [value]="site.id">{{ site.nom }}</option>
+          }
+        </select>
+      </div>
+      <div class="al-select-wrap">
+        <span class="material-symbols-rounded al-filter-icon">package_2</span>
+        <select class="al-select" [value]="selectedProduct()" (change)="selectedProduct.set($any($event.target).value)">
+          <option value="">Tous les produits</option>
+          @for (name of productNames(); track name) {
+            <option [value]="name">{{ name }}</option>
+          }
+        </select>
+      </div>
       <div class="al-date-wrap">
         <span class="material-symbols-rounded al-date-icon">calendar_today</span>
         <input type="date" class="al-input" [value]="selectedDate()" (change)="onDateChange($event)">

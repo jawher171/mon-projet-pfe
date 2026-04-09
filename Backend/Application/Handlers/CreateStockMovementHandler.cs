@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,7 +32,7 @@ namespace Application.Handlers
         {
             var dto = request.Dto;
             if (dto == null)
-                return CreateStockMovementResult.Fail("Stock movement is required.");
+                return CreateStockMovementResult.Fail("Le mouvement de stock est obligatoire.");
 
             var stockMovement = _mapper.Map<StockMovement>(dto);
 
@@ -84,7 +85,7 @@ namespace Application.Handlers
             }
 
             if (stock == null)
-                return CreateStockMovementResult.Fail("Stock not found.");
+                return CreateStockMovementResult.Fail("Stock introuvable.");
 
             stockMovement.Id_s = stock.id_s;
 
@@ -99,7 +100,7 @@ namespace Application.Handlers
                 || type.Equals("transfert", StringComparison.OrdinalIgnoreCase);
 
             if (!isExit && !isEntry && !isTransfer)
-                return CreateStockMovementResult.Fail("Type must be 'entry', 'exit', or 'transfer'.");
+                return CreateStockMovementResult.Fail("Le type doit être 'entry', 'exit' ou 'transfer'.");
 
             // Normalize the type string
             if (isTransfer)
@@ -107,67 +108,146 @@ namespace Application.Handlers
             else
                 stockMovement.Type = isExit ? "exit" : "entry";
 
-            // Adjust stock quantity
-            int delta;
-            if (isExit || isTransfer)
-            {
-                // For both exit and transfer, reduce source stock
-                if (stock.QuantiteDisponible <= 0)
-                    return CreateStockMovementResult.Fail("Cannot create movement: stock available is 0.");
-
-                if (stockMovement.Quantite > stock.QuantiteDisponible)
-                    return CreateStockMovementResult.Fail($"Cannot create movement: requested quantity ({stockMovement.Quantite}) exceeds available stock ({stock.QuantiteDisponible}).");
-
-                delta = -stockMovement.Quantite;
-                stock.QuantiteDisponible -= stockMovement.Quantite;
-            }
-            else
-            {
-                if (stock.SeuilMaximum > 0 && stock.QuantiteDisponible + stockMovement.Quantite > stock.SeuilMaximum)
-                    return CreateStockMovementResult.Fail($"Entry exceeds SeuilMaximum. Remaining capacity: {Math.Max(0, stock.SeuilMaximum - stock.QuantiteDisponible)}.");
-
-                delta = stockMovement.Quantite;
-                stock.QuantiteDisponible += stockMovement.Quantite;
-            }
-
             // Resolve destination for transfers and exits with destination
             // The frontend may send destination as a GUID (site ID) or a site name
             Guid? resolvedDestSiteId = null;
-            string resolvedDestSiteName = null;
+            string? resolvedDestSiteName = null;
+            Stock? destStock = null;
             if ((isExit || isTransfer) && !string.IsNullOrWhiteSpace(stockMovement.Destination))
             {
-                if (Guid.TryParse(stockMovement.Destination, out var parsedGuid))
+                var destinationInput = stockMovement.Destination.Trim();
+                Site? destinationSite;
+
+                if (Guid.TryParse(destinationInput, out var parsedGuid))
                 {
-                    resolvedDestSiteId = parsedGuid;
-                    // Also fetch the name for the destination display
-                    var destSiteById = await _mediator.Send(
+                    destinationSite = await _mediator.Send(
                         new GetGenericQuery<Site>(
-                            condition: s => s.Id_site == parsedGuid,
-                            includes: null),
+                            condition: s => s.Id_site == parsedGuid),
                         cancellationToken);
-                    resolvedDestSiteName = destSiteById?.Nom;
                 }
                 else
                 {
                     // Try to resolve by site name
-                    var destSiteByName = await _mediator.Send(
+                    destinationSite = await _mediator.Send(
                         new GetGenericQuery<Site>(
-                            condition: s => s.Nom == stockMovement.Destination,
-                            includes: null),
+                            condition: s => s.Nom == destinationInput),
                         cancellationToken);
-                    if (destSiteByName != null)
-                    {
-                        resolvedDestSiteId = destSiteByName.Id_site;
-                        resolvedDestSiteName = destSiteByName.Nom;
-                    }
                 }
 
+                if (destinationSite == null)
+                    return CreateStockMovementResult.Fail("Le site de destination est introuvable.");
+
+                resolvedDestSiteId = destinationSite.Id_site;
+                resolvedDestSiteName = destinationSite.Nom;
+
                 // Store the destination site NAME in the movement for display
-                if (resolvedDestSiteName != null)
+                stockMovement.Destination = resolvedDestSiteName;
+            }
+
+            // Preload destination stock when destination is resolved to validate limits before writes.
+            if (resolvedDestSiteId.HasValue && stock.id_p != Guid.Empty)
+            {
+                var destSiteId = resolvedDestSiteId.Value;
+                destStock = await _mediator.Send(
+                    new GetGenericQuery<Stock>(
+                        condition: x => x.id_p == stock.id_p && x.Id_site == destSiteId,
+                        includes: i => i.Include(x => x.Produit).Include(x => x.Site)),
+                    cancellationToken);
+            }
+
+            // Validate source stock availability / max threshold before any persistence.
+            if (isExit || isTransfer)
+            {
+                if (stock.QuantiteDisponible <= 0)
+                    return CreateStockMovementResult.Fail("Impossible de créer le mouvement : le stock disponible est de 0.");
+
+                if (stockMovement.Quantite > stock.QuantiteDisponible)
+                    return CreateStockMovementResult.Fail($"Impossible de créer le mouvement : la quantité demandée ({stockMovement.Quantite}) dépasse le stock disponible ({stock.QuantiteDisponible}).");
+            }
+            else
+            {
+                if (stock.SeuilMaximum > 0 && stock.QuantiteDisponible + stockMovement.Quantite > stock.SeuilMaximum)
                 {
-                    stockMovement.Destination = resolvedDestSiteName;
+                    await _mediator.Publish(new StockChangedEvent
+                    {
+                        StockId = stock.id_s,
+                        MovementId = Guid.Empty,
+                        MovementType = "update",
+                        DeltaQuantity = 0,
+                        NewQuantity = stock.QuantiteDisponible,
+                        OccurredAt = DateTime.UtcNow
+                    }, cancellationToken);
+
+                    return CreateStockMovementResult.Fail($"L'entrée dépasse le seuil maximum. Capacité restante : {Math.Max(0, stock.SeuilMaximum - stock.QuantiteDisponible)}.");
                 }
             }
+
+            // Validate destination stock threshold before persisting source movement.
+            if (resolvedDestSiteId.HasValue && destStock != null && destStock.id_s != stock.id_s)
+            {
+                if (destStock.SeuilMaximum > 0 && destStock.QuantiteDisponible + stockMovement.Quantite > destStock.SeuilMaximum)
+                {
+                    await _mediator.Publish(new StockChangedEvent
+                    {
+                        StockId = destStock.id_s,
+                        MovementId = Guid.Empty,
+                        MovementType = "update",
+                        DeltaQuantity = 0,
+                        NewQuantity = destStock.QuantiteDisponible,
+                        OccurredAt = DateTime.UtcNow
+                    }, cancellationToken);
+
+                    return CreateStockMovementResult.Fail($"Le transfert dépasse le seuil maximum du site de destination. Capacité restante : {Math.Max(0, destStock.SeuilMaximum - destStock.QuantiteDisponible)}.");
+                }
+            }
+
+            // Validate site-level capacities with net deltas so same-site transfers are handled correctly.
+            var siteDeltas = new Dictionary<Guid, int>();
+            void AccumulateSiteDelta(Guid siteId, int amount)
+            {
+                if (siteDeltas.ContainsKey(siteId))
+                {
+                    siteDeltas[siteId] += amount;
+                }
+                else
+                {
+                    siteDeltas[siteId] = amount;
+                }
+            }
+
+            var sourceDelta = isEntry ? stockMovement.Quantite : -stockMovement.Quantite;
+            AccumulateSiteDelta(stock.Id_site, sourceDelta);
+            if (resolvedDestSiteId.HasValue)
+                AccumulateSiteDelta(resolvedDestSiteId.Value, stockMovement.Quantite);
+
+            foreach (var siteDelta in siteDeltas.Where(x => x.Value > 0))
+            {
+                var site = await _mediator.Send(
+                    new GetGenericQuery<Site>(
+                        condition: s => s.Id_site == siteDelta.Key),
+                    cancellationToken);
+
+                if (site?.Capacite.HasValue != true || site.Capacite <= 0)
+                    continue;
+
+                var siteCapacity = site.Capacite.GetValueOrDefault();
+
+                var siteStocks = await _mediator.Send(
+                    new GetListGenericQuery<Stock>(
+                        condition: s => s.Id_site == siteDelta.Key),
+                    cancellationToken);
+
+                var currentSiteLoad = siteStocks.Sum(s => s.QuantiteDisponible);
+                if (currentSiteLoad + siteDelta.Value > siteCapacity)
+                {
+                    var remainingCapacity = Math.Max(0, siteCapacity - currentSiteLoad);
+                    return CreateStockMovementResult.Fail($"Le mouvement dépasse la capacité du site '{site.Nom}'. Capacité restante : {remainingCapacity}.");
+                }
+            }
+
+            // Apply source stock quantity change now that all business checks passed.
+            var delta = sourceDelta;
+            stock.QuantiteDisponible += sourceDelta;
 
             // Persist the movement and update source stock
             var result = await _mediator.Send(new AddGenericCommand<StockMovement>(stockMovement), cancellationToken);
@@ -177,12 +257,6 @@ namespace Application.Handlers
             if (resolvedDestSiteId.HasValue && stock.id_p != Guid.Empty)
             {
                 var destSiteId = resolvedDestSiteId.Value;
-                var destStock = await _mediator.Send(
-                    new GetGenericQuery<Stock>(
-                        condition: x => x.id_p == stock.id_p && x.Id_site == destSiteId,
-                        includes: i => i.Include(x => x.Produit).Include(x => x.Site)),
-                    cancellationToken);
-
                 if (destStock == null)
                 {
                     destStock = new Stock
@@ -204,9 +278,6 @@ namespace Application.Handlers
                             includes: i => i.Include(x => x.Produit).Include(x => x.Site)),
                         cancellationToken);
                 }
-
-                if (destStock.SeuilMaximum > 0 && destStock.QuantiteDisponible + stockMovement.Quantite > destStock.SeuilMaximum)
-                    return CreateStockMovementResult.Fail($"Transfer exceeds destination SeuilMaximum. Remaining capacity: {Math.Max(0, destStock.SeuilMaximum - destStock.QuantiteDisponible)}.");
 
                 destStock.QuantiteDisponible += stockMovement.Quantite;
                 await _mediator.Send(new PutGenericCommand<Stock>(destStock), cancellationToken);

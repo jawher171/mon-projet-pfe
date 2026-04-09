@@ -233,17 +233,50 @@ export class UserService {
 
   async deleteUser(id: string): Promise<boolean> {
     this.errorSignal.set(null);
+
+    const users = this.usersSignal();
+    const targetUser = users.find(u => String(u.id) === id);
+    const currentUser = this.authService.currentUser();
+    const isSelfDeletion = !!currentUser && String(currentUser.id) === id;
+
+    if (targetUser?.role === 'admin') {
+      const adminUsers = users.filter(u => u.role === 'admin');
+      const otherAdminCount = adminUsers.filter(u => String(u.id) !== id).length;
+
+      if (isSelfDeletion && otherAdminCount < 1) {
+        const msg = 'Un admin ne peut pas supprimer son propre compte sans un autre compte admin.';
+        this.errorSignal.set(msg);
+        throw new Error(msg);
+      }
+
+      const activeAdminCount = adminUsers.filter(u => u.status === 'active').length;
+      const deletingActiveAdmin = targetUser.status === 'active';
+      if (!isSelfDeletion && deletingActiveAdmin && activeAdminCount <= 1) {
+        const msg = 'Impossible de supprimer cet administrateur car il s\'agit du seul compte administrateur actif.';
+        this.errorSignal.set(msg);
+        throw new Error(msg);
+      }
+    }
+
     if (!USE_BACKEND) {
       const ok = this.authorizationService.deleteMember(id);
-      if (ok) this.usersSignal.update(u => u.filter(m => m.id !== id && String(m.id) !== id));
-      return ok;
+      if (!ok) {
+        const msg = targetUser?.role === 'admin'
+          ? 'Impossible de supprimer cet administrateur car il s\'agit du seul compte administrateur actif.'
+          : 'Impossible de supprimer cet utilisateur.';
+        this.errorSignal.set(msg);
+        throw new Error(msg);
+      }
+
+      this.usersSignal.update(u => u.filter(m => m.id !== id && String(m.id) !== id));
+      return true;
     }
     try {
       await this.http.delete(`${API_BASE_URL}/api/Users/${id}`).toPromise();
       this.usersSignal.update(u => u.filter(m => m.id !== id && String(m.id) !== id));
       return true;
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Failed to delete user';
+    } catch (e: unknown) {
+      const msg = this.getErrorMessage(e);
       this.errorSignal.set(msg);
       throw new Error(msg);
     }

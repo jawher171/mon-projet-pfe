@@ -120,7 +120,10 @@ $accent: #764ba2;
   }
 
   .th-right { text-align: right; }
-  .th-actions { text-align: center; }
+  .th-actions {
+    text-align: center;
+    min-width: 280px;
+  }
 
   tbody tr {
     border-bottom: 1px solid hsl(var(--border));
@@ -212,13 +215,15 @@ $accent: #764ba2;
 /* ── Actions ── */
 .ss-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.375rem;
   justify-content: center;
+  white-space: nowrap;
 }
 
 .ss-act {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 0.25rem;
   padding: 0.375rem 0.625rem;

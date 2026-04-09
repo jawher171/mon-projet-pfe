@@ -8,6 +8,9 @@ namespace Domain.Enums
         TRANSFER_VALIDATED,
         MIN_STOCK,
         OUT_OF_STOCK,
+        SITE_CAPACITY_NEAR_MAXIMUM,
+        SITE_CAPACITY_MAXIMUM,
+        STOCK_NEAR_MAXIMUM,
         STOCK_MAXIMUM,
         STOCK_ALERTE,
         STOCK_SECURITE

@@ -28,12 +28,15 @@
       <span class="material-symbols-rounded">search</span>
       <input type="text" placeholder="Rechercher les produits par nom..." (input)="onSearch($event)">
     </div>
-    <select class="pd-select" (change)="onCategoryChange($event)">
-      <option value="all">Toutes les catégories</option>
-      @for (category of listCategories; track category.id_c) {
-        <option [value]="category.id_c">{{ category.categorieLibelle }}</option>
-      }
-    </select>
+    <div class="pd-select-wrap">
+      <span class="material-symbols-rounded pd-filter-icon">category</span>
+      <select class="pd-select" (change)="onCategoryChange($event)">
+        <option value="all">Toutes les catégories</option>
+        @for (category of listCategories; track category.id_c) {
+          <option [value]="category.id_c">{{ category.categorieLibelle }}</option>
+        }
+      </select>
+    </div>
     <button class="pd-btn outline icon-only" (click)="toggleViewMode()">
       <span class="material-symbols-rounded">{{ viewMode() === 'grid' ? 'view_list' : 'grid_view' }}</span>
     </button>

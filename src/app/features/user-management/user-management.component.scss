@@ -119,6 +119,11 @@
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1rem;
+  padding: 0.875rem;
+  border-radius: 0.75rem;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .um-search {
@@ -149,6 +154,11 @@
     border-color: hsl(var(--ring));
     box-shadow: 0 0 0 3px hsl(var(--ring) / 0.1);
     .material-symbols-rounded { color: hsl(var(--primary)); }
+  }
+
+  &:hover {
+    border-color: hsl(var(--ring) / 0.45);
+    background: hsl(var(--card));
   }
 }
 

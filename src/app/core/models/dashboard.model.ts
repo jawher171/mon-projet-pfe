@@ -52,15 +52,22 @@ export interface DashboardData {
 
   // 2. Movements
   totalMouvements: number;
+  totalMouvementsBruts: number;
+  totalMouvementsIgnores: number;
   totalEntrees: number;
   totalSorties: number;
+  totalTransferts: number;
   entreesQuantite: number;
   sortiesQuantite: number;
+  transfertsQuantite: number;
+  netVariationQuantite: number;
 
   // 3. Alerts
   totalAlertesActives: number;
   totalAlertesCritiques: number;
   tauxAlertesResolues: number;
+  topAlertProducts: { name: string; count: number }[];
+  topAlertSites: { name: string; count: number }[];
 
   // 4. Stock analysis
   produitsEnRupture: number;
@@ -77,7 +84,7 @@ export interface DashboardData {
   recentMovements: {
     id: string | number;
     date: Date;
-    type: 'entry' | 'exit';
+    type: 'entry' | 'exit' | 'transfer' | 'unknown';
     produitNom: string;
     siteNom: string;
     quantite: number;

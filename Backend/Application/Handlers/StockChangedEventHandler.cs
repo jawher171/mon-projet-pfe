@@ -8,6 +8,7 @@ using Domain.Models;
 using Domain.Queries;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Application.Handlers
 {
@@ -23,8 +24,9 @@ namespace Application.Handlers
     ///    QuantiteDisponible ≤ SeuilAlerte  → STOCK_ALERTE    (Warning)
     ///    Else                              → close all threshold alerts
     /// C) Maximum (independent):
-    ///    QuantiteDisponible > SeuilMaximum → STOCK_MAXIMUM  (Warning)
-    ///    Else                              → close STOCK_MAXIMUM
+    ///    QuantiteDisponible ≥ SeuilMaximum                 → STOCK_MAXIMUM       (Critical)
+    ///    QuantiteDisponible ≥ 90% SeuilMaximum et < max    → STOCK_NEAR_MAXIMUM  (Warning)
+    ///    Else                                               → close maximum alerts
     /// </summary>
     public class StockChangedEventHandler : INotificationHandler<StockChangedEvent>
     {
@@ -96,6 +98,11 @@ namespace Application.Handlers
             // C) MAXIMUM ALERT — independent
             // ═══════════════════════════════════════════════════
             await EvaluateMaximumAlert(stock, qty, produitNom, siteNom, cancellationToken);
+
+            // ═══════════════════════════════════════════════════
+            // D) SITE CAPACITY ALERTS — independent (near max / max reached)
+            // ═══════════════════════════════════════════════════
+            await EvaluateSiteCapacityAlerts(stock, siteNom, cancellationToken);
         }
 
         private async Task EvaluateThresholdAlerts(Stock stock, int qty, string produitNom, string siteNom, CancellationToken ct)
@@ -161,19 +168,109 @@ namespace Application.Handlers
 
         private async Task EvaluateMaximumAlert(Stock stock, int qty, string produitNom, string siteNom, CancellationToken ct)
         {
-            if (stock.SeuilMaximum > 0 && qty > stock.SeuilMaximum)
+            if (stock.SeuilMaximum <= 0)
             {
+                await _alertService.CloseAlertAsync(stock.id_s, nameof(AlertType.STOCK_MAXIMUM), ct);
+                await _alertService.CloseAlertAsync(stock.id_s, nameof(AlertType.STOCK_NEAR_MAXIMUM), ct);
+                return;
+            }
+
+            var seuilMaximum = stock.SeuilMaximum;
+            var seuilProcheMaximum = (int)Math.Floor(seuilMaximum * 0.9d);
+            seuilProcheMaximum = Math.Max(1, seuilProcheMaximum);
+
+            // If max is very low, avoid near-max having the same threshold as max.
+            if (seuilProcheMaximum >= seuilMaximum)
+                seuilProcheMaximum = Math.Max(1, seuilMaximum - 1);
+
+            if (qty >= seuilMaximum)
+            {
+                await _alertService.CloseAlertAsync(stock.id_s, nameof(AlertType.STOCK_NEAR_MAXIMUM), ct);
+
                 await _alertService.UpsertOpenAlertAsync(
                     stock.id_s,
                     nameof(AlertType.STOCK_MAXIMUM),
-                    "Warning",
+                    "Critical",
                     $"Stock maximum atteint pour {produitNom} au site {siteNom}. " +
-                    $"Quantité: {qty}, Seuil maximum: {stock.SeuilMaximum}.",
+                    $"Quantité: {qty}, Seuil maximum: {seuilMaximum}.",
+                    ct);
+            }
+            else if (qty >= seuilProcheMaximum)
+            {
+                await _alertService.CloseAlertAsync(stock.id_s, nameof(AlertType.STOCK_MAXIMUM), ct);
+
+                await _alertService.UpsertOpenAlertAsync(
+                    stock.id_s,
+                    nameof(AlertType.STOCK_NEAR_MAXIMUM),
+                    "Warning",
+                    $"Stock proche du maximum pour {produitNom} au site {siteNom}. " +
+                    $"Quantité: {qty}, seuil proche maximum: {seuilProcheMaximum}, seuil maximum: {seuilMaximum}.",
                     ct);
             }
             else
             {
                 await _alertService.CloseAlertAsync(stock.id_s, nameof(AlertType.STOCK_MAXIMUM), ct);
+                await _alertService.CloseAlertAsync(stock.id_s, nameof(AlertType.STOCK_NEAR_MAXIMUM), ct);
+            }
+        }
+
+        private async Task EvaluateSiteCapacityAlerts(Stock stock, string siteNom, CancellationToken ct)
+        {
+            var siteCapacity = stock.Site?.Capacite.GetValueOrDefault() ?? 0;
+
+            var siteStocks = (await _mediator.Send(
+                new GetListGenericQuery<Stock>(
+                    condition: s => s.Id_site == stock.Id_site,
+                    includes: null),
+                ct)).ToList();
+
+            var anchorStockId = siteStocks
+                .OrderBy(s => s.id_s)
+                .Select(s => s.id_s)
+                .FirstOrDefault();
+
+            if (anchorStockId == Guid.Empty)
+                anchorStockId = stock.id_s;
+
+            if (siteCapacity <= 0)
+            {
+                await _alertService.CloseAlertAsync(anchorStockId, nameof(AlertType.SITE_CAPACITY_MAXIMUM), ct);
+                await _alertService.CloseAlertAsync(anchorStockId, nameof(AlertType.SITE_CAPACITY_NEAR_MAXIMUM), ct);
+                return;
+            }
+
+            var currentSiteLoad = siteStocks.Sum(s => s.QuantiteDisponible);
+            var nearMaxThreshold = (int)Math.Floor(siteCapacity * 0.9d);
+            nearMaxThreshold = Math.Max(1, nearMaxThreshold);
+            if (nearMaxThreshold >= siteCapacity)
+                nearMaxThreshold = Math.Max(1, siteCapacity - 1);
+
+            if (currentSiteLoad >= siteCapacity)
+            {
+                await _alertService.CloseAlertAsync(anchorStockId, nameof(AlertType.SITE_CAPACITY_NEAR_MAXIMUM), ct);
+
+                await _alertService.UpsertOpenAlertAsync(
+                    anchorStockId,
+                    nameof(AlertType.SITE_CAPACITY_MAXIMUM),
+                    "Critical",
+                    $"Capacité maximale du site atteinte pour {siteNom}. Charge actuelle: {currentSiteLoad}, capacité: {siteCapacity}.",
+                    ct);
+            }
+            else if (currentSiteLoad >= nearMaxThreshold)
+            {
+                await _alertService.CloseAlertAsync(anchorStockId, nameof(AlertType.SITE_CAPACITY_MAXIMUM), ct);
+
+                await _alertService.UpsertOpenAlertAsync(
+                    anchorStockId,
+                    nameof(AlertType.SITE_CAPACITY_NEAR_MAXIMUM),
+                    "Warning",
+                    $"Capacité du site proche du maximum pour {siteNom}. Charge actuelle: {currentSiteLoad}, seuil proche max: {nearMaxThreshold}, capacité: {siteCapacity}.",
+                    ct);
+            }
+            else
+            {
+                await _alertService.CloseAlertAsync(anchorStockId, nameof(AlertType.SITE_CAPACITY_MAXIMUM), ct);
+                await _alertService.CloseAlertAsync(anchorStockId, nameof(AlertType.SITE_CAPACITY_NEAR_MAXIMUM), ct);
             }
         }
     }

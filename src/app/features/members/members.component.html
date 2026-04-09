@@ -230,6 +230,12 @@
         </div>
         <h2>Supprimer ce membre ?</h2>
         <p>Le compte de <strong>{{ member.prenom }} {{ member.nom }}</strong> sera définitivement supprimé. Cette action est irréversible.</p>
+        @if (deleteErrorMessage()) {
+          <div class="me-form-error">
+            <span class="material-symbols-rounded">error</span>
+            <span>{{ deleteErrorMessage() }}</span>
+          </div>
+        }
         <div class="me-confirm-actions">
           <button class="me-btn cancel" (click)="cancelDelete()">Annuler</button>
           <button class="me-btn danger" (click)="confirmDelete()" [disabled]="deleting()">

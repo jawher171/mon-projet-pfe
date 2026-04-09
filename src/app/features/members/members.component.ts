@@ -25,6 +25,7 @@ export class MembersComponent implements OnInit {
   showDeleteModal = signal(false);
   memberToDelete = signal<User | null>(null);
   deleting = signal(false);
+  deleteErrorMessage = signal('');
 
   // Toggle status confirmation modal
   showToggleModal = signal(false);
@@ -138,11 +139,13 @@ export class MembersComponent implements OnInit {
   }
 
   deleteMember(member: User): void {
+    this.deleteErrorMessage.set('');
     this.memberToDelete.set(member);
     this.showDeleteModal.set(true);
   }
 
   cancelDelete(): void {
+    this.deleteErrorMessage.set('');
     this.showDeleteModal.set(false);
     this.memberToDelete.set(null);
   }
@@ -153,11 +156,13 @@ export class MembersComponent implements OnInit {
     this.deleting.set(true);
     try {
       await this.userService.deleteUser(String(member.id));
+      this.cancelDelete();
     } catch (e) {
-      this.errorMessage.set(e instanceof Error ? e.message : 'Impossible de supprimer.');
+      const msg = e instanceof Error ? e.message : 'Impossible de supprimer.';
+      this.deleteErrorMessage.set(msg);
+      this.errorMessage.set(msg);
     } finally {
       this.deleting.set(false);
-      this.cancelDelete();
     }
   }
 

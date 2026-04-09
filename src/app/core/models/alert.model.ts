@@ -30,7 +30,7 @@ export interface AlertFilter {
   produitNom?: string;
 }
 
-export type AlertType = 'OUT_OF_STOCK' | 'MIN_STOCK' | 'STOCK_SECURITE' | 'STOCK_ALERTE' | 'STOCK_MAXIMUM' | 'ENTRY_VALIDATED' | 'EXIT_VALIDATED' | string;
+export type AlertType = 'OUT_OF_STOCK' | 'MIN_STOCK' | 'SITE_CAPACITY_NEAR_MAXIMUM' | 'SITE_CAPACITY_MAXIMUM' | 'STOCK_SECURITE' | 'STOCK_ALERTE' | 'STOCK_NEAR_MAXIMUM' | 'STOCK_MAXIMUM' | 'ENTRY_VALIDATED' | 'EXIT_VALIDATED' | string;
 export type AlertSeverity = 'Critical' | 'Warning' | 'Info' | string;
 
 export interface AlertStats {
@@ -45,8 +45,11 @@ export interface AlertStats {
 export const ALERT_TYPES: { value: string; label: string; icon: string }[] = [
   { value: 'OUT_OF_STOCK', label: 'Rupture de Stock', icon: 'report_problem' },
   { value: 'MIN_STOCK', label: 'Stock Minimum', icon: 'production_quantity_limits' },
+  { value: 'SITE_CAPACITY_NEAR_MAXIMUM', label: 'Site Proche du Maximum', icon: 'home_storage' },
+  { value: 'SITE_CAPACITY_MAXIMUM', label: 'Capacité Site Atteinte', icon: 'warehouse' },
   { value: 'STOCK_SECURITE', label: 'Seuil de Sécurité', icon: 'shield' },
   { value: 'STOCK_ALERTE', label: 'Seuil d\'Alerte', icon: 'campaign' },
+  { value: 'STOCK_NEAR_MAXIMUM', label: 'Proche du Maximum', icon: 'warning' },
   { value: 'STOCK_MAXIMUM', label: 'Stock Maximum', icon: 'deployed_code_alert' },
   { value: 'ENTRY_VALIDATED', label: 'Entrée Validée', icon: 'input' },
   { value: 'EXIT_VALIDATED', label: 'Sortie Validée', icon: 'output' },

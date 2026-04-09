@@ -10,8 +10,12 @@ import { AuthService } from '../../core/services/auth.service';
 import { StockService } from '../../core/services/stock.service';
 import { SiteService } from '../../core/services/site.service';
 import { AlertService } from '../../core/services/alert.service';
+import { ProductService } from '../../core/services/product.service';
+import { CategoryService } from '../../core/services/category.service';
 import { Stock } from '../../core/models/stock.model';
 import { Site, SITE_TYPES, SiteType } from '../../core/models/site.model';
+import { Product } from '../../core/models/product.model';
+import { Category } from '../../core/models/category.model';
 
 type StockStatus = 'all' | 'ok' | 'warning' | 'critical' | 'rupture' | 'overstock';
 
@@ -28,6 +32,8 @@ export class StocksOverviewComponent implements OnInit {
   private stockService = inject(StockService);
   private siteService = inject(SiteService);
   private alertService = inject(AlertService);
+  private productService = inject(ProductService);
+  private categoryService = inject(CategoryService);
 
   loading = signal(true);
   allStocks = signal<Stock[]>([]);
@@ -36,12 +42,30 @@ export class StocksOverviewComponent implements OnInit {
   searchTerm = signal('');
   selectedSiteType = signal<SiteType | 'all'>('all');
   selectedSiteId = signal('');
+  selectedCategoryId = signal('');
+  selectedProductId = signal('');
   selectedStatus = signal<StockStatus>('all');
 
   siteTypes = SITE_TYPES;
 
   // All sites from service
   sites = computed(() => this.siteService.getSites()());
+  products = computed<Product[]>(() => this.productService.getProducts()());
+  categories = computed<Category[]>(() => this.categoryService.getCategories()());
+
+  private productCategoryByProductId = computed(() => {
+    const map = new Map<string, string>();
+    for (const product of this.products()) {
+      map.set(String(product.id_p), String(product.id_c));
+    }
+    return map;
+  });
+
+  filteredProducts = computed(() => {
+    const categoryId = this.selectedCategoryId();
+    if (!categoryId) return this.products();
+    return this.products().filter(p => String(p.id_c) === categoryId);
+  });
 
   // Sites filtered by type
   filteredSites = computed(() => {
@@ -59,6 +83,8 @@ export class StocksOverviewComponent implements OnInit {
     const search = this.searchTerm().toLowerCase();
     const siteType = this.selectedSiteType();
     const siteId = this.selectedSiteId();
+    const categoryId = this.selectedCategoryId();
+    const productId = this.selectedProductId();
     const status = this.selectedStatus();
 
     // Filter by site type
@@ -72,6 +98,17 @@ export class StocksOverviewComponent implements OnInit {
     // Filter by specific site
     if (siteId) {
       stocks = stocks.filter(s => String(s.siteId) === siteId);
+    }
+
+    // Filter by product category
+    if (categoryId) {
+      const categoryMap = this.productCategoryByProductId();
+      stocks = stocks.filter(s => categoryMap.get(String(s.produitId)) === categoryId);
+    }
+
+    // Filter by specific product
+    if (productId) {
+      stocks = stocks.filter(s => String(s.produitId) === productId);
     }
 
     // Filter by search term (product name)
@@ -114,7 +151,12 @@ export class StocksOverviewComponent implements OnInit {
   private async loadData() {
     this.loading.set(true);
     try {
-      await this.siteService.fetchSites();
+      await Promise.all([
+        this.siteService.fetchSites(),
+        this.categoryService.fetchCategories(),
+        this.productService.fetchProducts()
+      ]);
+
       const stocks = await this.stockService.fetchStocks();
       this.allStocks.set(stocks);
     } catch (err) {
@@ -144,6 +186,24 @@ export class StocksOverviewComponent implements OnInit {
     this.selectedSiteId.set((event.target as HTMLSelectElement).value);
   }
 
+  onCategoryChange(event: Event) {
+    const categoryId = (event.target as HTMLSelectElement).value;
+    this.selectedCategoryId.set(categoryId);
+
+    const selectedProduct = this.selectedProductId();
+    if (!selectedProduct) return;
+
+    const categoryMap = this.productCategoryByProductId();
+    const selectedProductCategory = categoryMap.get(selectedProduct) ?? '';
+    if (selectedProductCategory !== categoryId) {
+      this.selectedProductId.set('');
+    }
+  }
+
+  onProductChange(event: Event) {
+    this.selectedProductId.set((event.target as HTMLSelectElement).value);
+  }
+
   onStatusChange(status: StockStatus) {
     this.selectedStatus.set(status);
   }
@@ -152,6 +212,8 @@ export class StocksOverviewComponent implements OnInit {
     this.searchTerm.set('');
     this.selectedSiteType.set('all');
     this.selectedSiteId.set('');
+    this.selectedCategoryId.set('');
+    this.selectedProductId.set('');
     this.selectedStatus.set('all');
   }
 
@@ -159,6 +221,8 @@ export class StocksOverviewComponent implements OnInit {
     return this.searchTerm() !== '' ||
       this.selectedSiteType() !== 'all' ||
       this.selectedSiteId() !== '' ||
+      this.selectedCategoryId() !== '' ||
+        this.selectedProductId() !== '' ||
       this.selectedStatus() !== 'all';
   }
 

@@ -32,6 +32,26 @@ export class DashboardService {
     dateRange: 'thisMonth'
   });
 
+  private normalizeMovementType(type: string | undefined, reason: string | undefined): 'entry' | 'exit' | 'transfer' | 'unknown' {
+    const normalizedType = (type ?? '').toLowerCase();
+    if (normalizedType === 'entry' || normalizedType === 'exit' || normalizedType === 'transfer') {
+      return normalizedType;
+    }
+
+    const normalizedReason = (reason ?? '').toLowerCase();
+    if (normalizedReason.includes('transfer') || normalizedReason.includes('transfert')) {
+      return 'transfer';
+    }
+    if (normalizedReason.includes('sortie') || normalizedReason.includes('exit')) {
+      return 'exit';
+    }
+    if (normalizedReason.includes('entree') || normalizedReason.includes('entrée') || normalizedReason.includes('entry')) {
+      return 'entry';
+    }
+
+    return 'unknown';
+  }
+
   readonly dashboardData$: Observable<DashboardData> = combineLatest([
     timer(0, POLL_INTERVAL_MS),
     this.filterSubject.asObservable()
@@ -172,16 +192,50 @@ export class DashboardService {
       return sum + (s.quantiteDisponible * prix);
     }, 0);
 
-    const totalEntrees = filteredMovements.filter(m => (m.type ?? 'entry') === 'entry');
-    const totalSorties = filteredMovements.filter(m => m.type === 'exit');
+    const normalizedMovements = filteredMovements.map(m => ({
+      movement: m,
+      normalizedType: this.normalizeMovementType(m.type, m.raison)
+    }));
+
+    const totalEntrees = normalizedMovements.filter(m => m.normalizedType === 'entry').map(m => m.movement);
+    const totalSorties = normalizedMovements.filter(m => m.normalizedType === 'exit').map(m => m.movement);
+    const totalTransferts = normalizedMovements.filter(m => m.normalizedType === 'transfer').map(m => m.movement);
+    const totalMouvementsIgnores = normalizedMovements.filter(m => m.normalizedType === 'unknown').length;
+    const totalMouvementsBruts = filteredMovements.length;
+
+    const totalMouvements = totalEntrees.length + totalSorties.length + totalTransferts.length;
     const entreesQuantite = totalEntrees.reduce((sum, m) => sum + (m.quantite ?? 0), 0);
     const sortiesQuantite = totalSorties.reduce((sum, m) => sum + (m.quantite ?? 0), 0);
+    const transfertsQuantite = totalTransferts.reduce((sum, m) => sum + (m.quantite ?? 0), 0);
+    const netVariationQuantite = entreesQuantite - sortiesQuantite;
 
     const totalAlerts = filteredAlerts.length;
     const activeAlerts = filteredAlerts.filter(a => !a.resolue);
     const resolvedAlerts = filteredAlerts.filter(a => a.resolue);
     const criticalAlerts = filteredAlerts.filter(a => !a.resolue && (a.severity === 'critical' || a.severity === 'Critical'));
     const tauxResolues = totalAlerts > 0 ? Math.round((resolvedAlerts.length / totalAlerts) * 100) : (filter.dateRange === 'all' ? 100 : 0);
+
+    const topAlertProducts = Array.from(
+      activeAlerts.reduce((acc, a) => {
+        const key = (a.produitNom ?? 'Produit inconnu').trim() || 'Produit inconnu';
+        acc.set(key, (acc.get(key) ?? 0) + 1);
+        return acc;
+      }, new Map<string, number>())
+    )
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    const topAlertSites = Array.from(
+      activeAlerts.reduce((acc, a) => {
+        const key = (a.siteNom ?? 'Site inconnu').trim() || 'Site inconnu';
+        acc.set(key, (acc.get(key) ?? 0) + 1);
+        return acc;
+      }, new Map<string, number>())
+    )
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
 
     const rupture = filteredStocks.filter(s => s.quantiteDisponible === 0);
     const critique = filteredStocks.filter(s => s.quantiteDisponible > 0 && s.quantiteDisponible <= s.seuilMinimum);
@@ -197,13 +251,13 @@ export class DashboardService {
         return (order[a.status] ?? 4) - (order[b.status] ?? 4);
       });
 
-    const recentMovements = [...filteredMovements]
-      .sort((a, b) => new Date(b.dateMouvement).getTime() - new Date(a.dateMouvement).getTime())
+    const recentMovements = [...normalizedMovements]
+      .sort((a, b) => new Date(b.movement.dateMouvement).getTime() - new Date(a.movement.dateMouvement).getTime())
       .slice(0, 10)
-      .map(m => ({
+      .map(({ movement: m }) => ({
         id: m.id,
         date: new Date(m.dateMouvement),
-        type: (m.type ?? 'entry') as 'entry' | 'exit',
+        type: this.normalizeMovementType(m.type, m.raison),
         produitNom: m.produitNom ?? 'Produit inconnu',
         siteNom: m.siteNom ?? 'Site inconnu',
         quantite: m.quantite,
@@ -250,29 +304,32 @@ export class DashboardService {
 
     // 3. Movement Trends (Line)
     // Group movements by day for the last 10 days
-    const trendMap = new Map<string, { entries: number, exits: number }>();
+    const trendMap = new Map<string, { entries: number, exits: number, transfers: number }>();
     const today = new Date();
     // Initialize last 10 days
     for (let i = 9; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       const key = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
-      trendMap.set(key, { entries: 0, exits: 0 });
+      trendMap.set(key, { entries: 0, exits: 0, transfers: 0 });
     }
-    
-    filteredMovements.forEach(m => {
+
+    normalizedMovements.forEach(({ movement, normalizedType }) => {
+      const m = movement;
       const d = new Date(m.dateMouvement);
       const key = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
       if (trendMap.has(key)) {
         const stats = trendMap.get(key)!;
-        if ((m.type ?? 'entry') === 'entry') stats.entries += (m.quantite ?? 1);
-        else stats.exits += (m.quantite ?? 1);
+        if (normalizedType === 'entry') stats.entries += (m.quantite ?? 1);
+        else if (normalizedType === 'exit') stats.exits += (m.quantite ?? 1);
+        else if (normalizedType === 'transfer') stats.transfers += (m.quantite ?? 1);
       }
     });
 
     const trendLabels = Array.from(trendMap.keys());
     const entriesData = trendLabels.map(k => trendMap.get(k)!.entries);
     const exitsData = trendLabels.map(k => trendMap.get(k)!.exits);
+    const transfersData = trendLabels.map(k => trendMap.get(k)!.transfers);
 
     const movementTrendChart: ChartData = {
       labels: trendLabels,
@@ -292,6 +349,14 @@ export class DashboardService {
           backgroundColor: 'transparent',
           fill: false,
           tension: 0.4
+        },
+        {
+          label: 'Transferts',
+          data: transfersData,
+          borderColor: '#8b5cf6',
+          backgroundColor: 'rgba(139, 92, 246, 0.08)',
+          fill: true,
+          tension: 0.4
         }
       ]
     };
@@ -303,15 +368,22 @@ export class DashboardService {
       nombreSitesActifs: rawSites.length, 
       nombreUtilisateursActifs: rawUsers.filter(u => u.status === 'active').length,
 
-      totalMouvements: filteredMovements.length,
+      totalMouvements,
+      totalMouvementsBruts,
+      totalMouvementsIgnores,
       totalEntrees: totalEntrees.length,
       totalSorties: totalSorties.length,
+      totalTransferts: totalTransferts.length,
       entreesQuantite,
       sortiesQuantite,
+      transfertsQuantite,
+      netVariationQuantite,
 
       totalAlertesActives: activeAlerts.length,
       totalAlertesCritiques: criticalAlerts.length,
       tauxAlertesResolues: totalAlerts === 0 ? 100 : tauxResolues,
+      topAlertProducts,
+      topAlertSites,
 
       produitsEnRupture: rupture.length,
       produitsCritiques: critique.length,
@@ -370,13 +442,20 @@ export class DashboardService {
       nombreSitesActifs: 0,
       nombreUtilisateursActifs: 0,
       totalMouvements: 0,
+      totalMouvementsBruts: 0,
+      totalMouvementsIgnores: 0,
       totalEntrees: 0,
       totalSorties: 0,
+      totalTransferts: 0,
       entreesQuantite: 0,
       sortiesQuantite: 0,
+      transfertsQuantite: 0,
+      netVariationQuantite: 0,
       totalAlertesActives: 0,
       totalAlertesCritiques: 0,
       tauxAlertesResolues: 100,
+      topAlertProducts: [],
+      topAlertSites: [],
       produitsEnRupture: 0,
       produitsCritiques: 0,
       produitsEnAlerte: 0,

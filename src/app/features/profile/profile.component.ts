@@ -135,9 +135,9 @@ export class ProfileComponent {
     if (!user) return 'Unknown';
 
     const roleMap: Record<string, string> = {
-      'admin': 'Administrator',
-      'gestionnaire_de_stock': 'Stock Manager',
-      'operateur': 'Operator'
+      'admin': 'Administrateur',
+      'gestionnaire_de_stock': 'gestionnaire de stock',
+      'operateur': 'Opérateur'
     };
 
     return roleMap[user.role] || user.role;
