@@ -4,7 +4,8 @@
  * Applies filters (site, category, product, date) to all calculated data and builds Chart.js objects.
  */
 import { Injectable, inject } from '@angular/core';
-import { Observable, timer, from, of, BehaviorSubject, combineLatest } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, timer, from, of, BehaviorSubject, combineLatest, firstValueFrom } from 'rxjs';
 import { switchMap, shareReplay, catchError } from 'rxjs/operators';
 import { StockService } from './stock.service';
 import { ProductService } from './product.service';
@@ -15,11 +16,13 @@ import { CategoryService } from './category.service';
 import { UserService } from './user.service';
 import { DashboardData, ReplenishmentItem, DashboardFilter, ChartData } from '../models/dashboard.model';
 import { Stock } from '../models/stock.model';
+import { API_BASE_URL, USE_BACKEND } from '../../app.config';
 
 const POLL_INTERVAL_MS = 30_000;
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
+  private readonly http = inject(HttpClient);
   private readonly stockService = inject(StockService);
   private readonly productService = inject(ProductService);
   private readonly alertService = inject(AlertService);
@@ -77,6 +80,14 @@ export class DashboardService {
   }
 
   private async fetchAllAndCompute(filter: DashboardFilter): Promise<DashboardData> {
+    if (USE_BACKEND) {
+      // VISUALIZATION source (preferred): consume backend ETL snapshot.
+      const etlData = await this.fetchFromEtl(filter);
+      if (etlData) {
+        return etlData;
+      }
+    }
+
     const [rawStocks, rawProducts, rawAlerts, rawMovements, rawSites, rawUsers, categories] = await Promise.all([
       this.stockService.fetchStocks(),
       this.productService.fetchProducts(),
@@ -402,6 +413,40 @@ export class DashboardService {
       lastRefresh: new Date(),
       activeFilter: filter
     };
+  }
+
+  private async fetchFromEtl(filter: DashboardFilter): Promise<DashboardData | null> {
+    try {
+      // VISUALIZATION handoff: request precomputed ETL payload used by charts and KPI cards.
+      const params = new URLSearchParams();
+      if (filter.siteType) params.set('siteType', filter.siteType);
+      if (filter.siteId) params.set('siteId', filter.siteId);
+      if (filter.categoryId) params.set('categoryId', filter.categoryId);
+      if (filter.productId) params.set('productId', filter.productId);
+      if (filter.dateRange) params.set('dateRange', filter.dateRange);
+
+      const query = params.toString();
+      const url = query
+        ? `${API_BASE_URL}/api/DashboardEtl/GetDashboardEtl?${query}`
+        : `${API_BASE_URL}/api/DashboardEtl/GetDashboardEtl`;
+
+      const data = await firstValueFrom(this.http.get<DashboardData>(url));
+      if (!data) {
+        return null;
+      }
+
+      return {
+        ...data,
+        lastRefresh: data.lastRefresh ? new Date(data.lastRefresh) : new Date(),
+        recentMovements: (data.recentMovements ?? []).map(m => ({
+          ...m,
+          date: new Date(m.date)
+        }))
+      };
+    } catch (error) {
+      console.warn('Dashboard ETL endpoint unavailable, fallback to local compute.', error);
+      return null;
+    }
   }
 
   private stockToReplenishmentItem(s: Stock, priceMap: Map<string, number>): ReplenishmentItem {
