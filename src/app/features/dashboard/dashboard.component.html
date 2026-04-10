@@ -62,7 +62,7 @@
         <div class="filter-input-wrap">
           <span class="material-symbols-rounded fb-icon">store</span>
           <select [(ngModel)]="currentFilter.siteType" (change)="onSiteTypeChange()" class="fb-select">
-            <option [ngValue]="undefined">Tous confondus</option>
+            <option [ngValue]="undefined">Tous les Types</option>
             <option value="warehouse">Entrepôts uniquement</option>
             <option value="store">Magasins uniquement</option>
           </select>
@@ -70,7 +70,7 @@
       </div>
 
       <div class="db-filter-item">
-        <label>Emplacement</label>
+        <label>SITE</label>
         <div class="filter-input-wrap">
           <span class="material-symbols-rounded fb-icon">domain</span>
           <select [(ngModel)]="currentFilter.siteId" (change)="onSiteChange()" class="fb-select">

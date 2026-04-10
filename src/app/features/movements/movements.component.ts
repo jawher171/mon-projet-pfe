@@ -512,6 +512,28 @@ export class MovementsComponent implements OnInit, OnDestroy {
     this.searchTerm.set(input.value);
   }
 
+  hasActiveFilters(): boolean {
+    return !!(
+      this.searchTerm().trim() ||
+      this.selectedType() !== 'all' ||
+      this.selectedSite() ||
+      this.selectedCategory() ||
+      this.selectedProductFilter() ||
+      this.selectedReason() ||
+      this.selectedDate()
+    );
+  }
+
+  clearFilters(): void {
+    this.searchTerm.set('');
+    this.selectedType.set('all');
+    this.selectedSite.set('');
+    this.selectedCategory.set('');
+    this.selectedProductFilter.set('');
+    this.selectedReason.set('');
+    this.selectedDate.set('');
+  }
+
   onTypeChange(type: 'all' | 'entry' | 'exit' | 'transfer') {
     this.selectedType.set(type);
   }

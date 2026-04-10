@@ -435,9 +435,25 @@ export class DashboardService {
         return null;
       }
 
+      const normalizeText = (value: string | null | undefined): string | undefined => {
+        const normalized = (value ?? '').trim();
+        return normalized.length > 0 ? normalized : undefined;
+      };
+
+      const normalizedActiveFilter: DashboardFilter = {
+        siteType: normalizeText((data.activeFilter as any)?.siteType),
+        siteId: normalizeText((data.activeFilter as any)?.siteId),
+        categoryId: normalizeText((data.activeFilter as any)?.categoryId),
+        productId: normalizeText((data.activeFilter as any)?.productId),
+        dateRange: (normalizeText((data.activeFilter as any)?.dateRange) as DashboardFilter['dateRange'])
+          ?? filter.dateRange
+          ?? 'thisMonth'
+      };
+
       return {
         ...data,
         lastRefresh: data.lastRefresh ? new Date(data.lastRefresh) : new Date(),
+        activeFilter: normalizedActiveFilter,
         recentMovements: (data.recentMovements ?? []).map(m => ({
           ...m,
           date: new Date(m.date)

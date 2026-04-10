@@ -74,15 +74,14 @@
       <input type="text" placeholder="Rechercher par numéro, produit..." [value]="searchTerm()"
         (input)="onSearch($event)">
     </div>
-    <div class="mv-type-tabs">
-      <button class="mv-tab" [class.active]="selectedType() === 'all'" [attr.data-variant]="'all'"
-        (click)="onTypeChange('all')">Tous</button>
-      <button class="mv-tab" [class.active]="selectedType() === 'entry'" [attr.data-variant]="'entry'"
-        (click)="onTypeChange('entry')">Entrées</button>
-      <button class="mv-tab" [class.active]="selectedType() === 'exit'" [attr.data-variant]="'exit'"
-        (click)="onTypeChange('exit')">Sorties</button>
-      <button class="mv-tab" [class.active]="selectedType() === 'transfer'" [attr.data-variant]="'transfer'"
-        (click)="onTypeChange('transfer')">Transferts</button>
+    <div class="mv-select-wrap">
+      <span class="material-symbols-rounded mv-filter-icon">swap_vert</span>
+      <select [value]="selectedType()" (change)="onTypeChange($any($event.target).value)">
+        <option value="all">Tous</option>
+        <option value="entry">Entrées</option>
+        <option value="exit">Sorties</option>
+        <option value="transfer">Transferts</option>
+      </select>
     </div>
     <div class="mv-select-wrap">
       <span class="material-symbols-rounded mv-filter-icon">domain</span>
@@ -120,6 +119,12 @@
       </button>
       }
     </div>
+    @if (hasActiveFilters()) {
+    <button class="mv-clear-btn" (click)="clearFilters()" title="Réinitialiser les filtres">
+      <span class="material-symbols-rounded">filter_alt_off</span>
+      Réinitialiser
+    </button>
+    }
   </div>
 
   <!-- Table -->
