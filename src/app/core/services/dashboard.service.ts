@@ -314,33 +314,31 @@ export class DashboardService {
     };
 
     // 3. Movement Trends (Line)
-    // Group movements by day for the last 10 days
+    // Build timeline from selected date range to align x-axis with active filter.
+    const movementDates = normalizedMovements.map(({ movement }) => new Date(movement.dateMouvement));
+    const { start: trendStart, end: trendEnd } = this.resolveMovementTrendBounds(filter.dateRange, movementDates);
+    const trendTimeline = this.buildTrendTimeline(trendStart, trendEnd);
     const trendMap = new Map<string, { entries: number, exits: number, transfers: number }>();
-    const today = new Date();
-    // Initialize last 10 days
-    for (let i = 9; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const key = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
-      trendMap.set(key, { entries: 0, exits: 0, transfers: 0 });
-    }
+    trendTimeline.forEach(point => {
+      trendMap.set(point.key, { entries: 0, exits: 0, transfers: 0 });
+    });
 
     normalizedMovements.forEach(({ movement, normalizedType }) => {
       const m = movement;
-      const d = new Date(m.dateMouvement);
-      const key = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+      const key = this.formatTrendDateKey(new Date(m.dateMouvement));
       if (trendMap.has(key)) {
         const stats = trendMap.get(key)!;
-        if (normalizedType === 'entry') stats.entries += (m.quantite ?? 1);
-        else if (normalizedType === 'exit') stats.exits += (m.quantite ?? 1);
-        else if (normalizedType === 'transfer') stats.transfers += (m.quantite ?? 1);
+        const qty = Math.abs(m.quantite ?? 0);
+        if (normalizedType === 'entry') stats.entries += qty;
+        else if (normalizedType === 'exit') stats.exits += qty;
+        else if (normalizedType === 'transfer') stats.transfers += qty;
       }
     });
 
-    const trendLabels = Array.from(trendMap.keys());
-    const entriesData = trendLabels.map(k => trendMap.get(k)!.entries);
-    const exitsData = trendLabels.map(k => trendMap.get(k)!.exits);
-    const transfersData = trendLabels.map(k => trendMap.get(k)!.transfers);
+    const trendLabels = trendTimeline.map(point => point.label);
+    const entriesData = trendTimeline.map(point => trendMap.get(point.key)!.entries);
+    const exitsData = trendTimeline.map(point => trendMap.get(point.key)!.exits);
+    const transfersData = trendTimeline.map(point => trendMap.get(point.key)!.transfers);
 
     const movementTrendChart: ChartData = {
       labels: trendLabels,
@@ -348,25 +346,28 @@ export class DashboardService {
         {
           label: 'Entrées',
           data: entriesData,
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.1)',
-          fill: true,
+          borderColor: '#059669',
+          backgroundColor: 'transparent',
+          borderWidth: 3,
+          fill: false,
           tension: 0.4
         },
         {
           label: 'Sorties',
           data: exitsData,
-          borderColor: '#ef4444',
+          borderColor: '#dc2626',
           backgroundColor: 'transparent',
+          borderWidth: 3,
           fill: false,
           tension: 0.4
         },
         {
           label: 'Transferts',
           data: transfersData,
-          borderColor: '#8b5cf6',
-          backgroundColor: 'rgba(139, 92, 246, 0.08)',
-          fill: true,
+          borderColor: '#7c3aed',
+          backgroundColor: 'transparent',
+          borderWidth: 3,
+          fill: false,
           tension: 0.4
         }
       ]
@@ -463,6 +464,82 @@ export class DashboardService {
       console.warn('Dashboard ETL endpoint unavailable, fallback to local compute.', error);
       return null;
     }
+  }
+
+  private resolveMovementTrendBounds(
+    dateRange: DashboardFilter['dateRange'],
+    movementDates: Date[]
+  ): { start: Date; end: Date } {
+    const today = this.startOfDay(new Date());
+
+    if (dateRange === 'today') {
+      return { start: today, end: today };
+    }
+
+    if (dateRange === '7days') {
+      const start = new Date(today);
+      start.setDate(start.getDate() - 6);
+      return { start, end: today };
+    }
+
+    if (dateRange === '30days') {
+      const start = new Date(today);
+      start.setDate(start.getDate() - 29);
+      return { start, end: today };
+    }
+
+    if (dateRange === 'thisMonth' || !dateRange) {
+      const start = new Date(today.getFullYear(), today.getMonth(), 1);
+      return { start, end: today };
+    }
+
+    if (movementDates.length === 0) {
+      const start = new Date(today);
+      start.setDate(start.getDate() - 9);
+      return { start, end: today };
+    }
+
+    const minTime = Math.min(...movementDates.map(d => d.getTime()));
+    const maxTime = Math.max(...movementDates.map(d => d.getTime()));
+    return {
+      start: this.startOfDay(new Date(minTime)),
+      end: this.startOfDay(new Date(maxTime))
+    };
+  }
+
+  private buildTrendTimeline(start: Date, end: Date): Array<{ key: string; label: string }> {
+    const points: Array<{ key: string; label: string }> = [];
+    const cursor = this.startOfDay(new Date(start));
+    const endDay = this.startOfDay(new Date(end));
+
+    while (cursor.getTime() <= endDay.getTime()) {
+      points.push({
+        key: this.formatTrendDateKey(cursor),
+        label: this.formatTrendDateLabel(cursor)
+      });
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    return points;
+  }
+
+  private startOfDay(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  private formatTrendDateKey(date: Date): string {
+    const day = this.startOfDay(date);
+    const y = day.getFullYear();
+    const m = String(day.getMonth() + 1).padStart(2, '0');
+    const d = String(day.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  private formatTrendDateLabel(date: Date): string {
+    const day = this.startOfDay(date);
+    const d = String(day.getDate()).padStart(2, '0');
+    const m = String(day.getMonth() + 1).padStart(2, '0');
+    return `${d}/${m}`;
   }
 
   private stockToReplenishmentItem(s: Stock, priceMap: Map<string, number>): ReplenishmentItem {

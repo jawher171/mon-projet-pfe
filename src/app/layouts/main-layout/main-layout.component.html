@@ -91,7 +91,7 @@
 
         <div class="search-container relative flex items-center max-w-md flex-1">
           <span class="material-symbols-rounded absolute left-3 text-muted-foreground text-lg search-icon-main">search</span>
-          <input type="text" placeholder="Rechercher des produits, commandes..."
+          <input type="text" placeholder="Rechercher des produits, catégorie..."
             [value]="searchQuery()"
             (input)="onSearchInput($any($event.target).value)"
             (focus)="onSearchFocus()"

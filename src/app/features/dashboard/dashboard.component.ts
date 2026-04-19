@@ -74,6 +74,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     plugins: { 
       legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'Inter, sans-serif' } } } 
     },
+    elements: {
+      line: { borderWidth: 3 },
+      point: { radius: 2.5, hoverRadius: 5, hitRadius: 10 }
+    },
     scales: { 
       x: { grid: { display: false } },
       y: { beginAtZero: true, border: { dash: [4, 4] } }
@@ -439,12 +443,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
       .replace(/'/g, '&#39;');
   }
 
-  private getDateRangeLabel(dateRange?: DashboardFilter['dateRange']): string {
+  getDateRangeLabel(dateRange?: DashboardFilter['dateRange']): string {
     if (dateRange === 'today') return "Aujourd'hui";
     if (dateRange === '7days') return '7 derniers jours';
     if (dateRange === '30days') return '30 derniers jours';
-    if (dateRange === 'thisMonth') return 'Ce mois';
-    return 'Historique complet';
+    if (dateRange === 'thisMonth') return 'Ce mois-ci';
+    return "Tout l'historique";
   }
 
   private getFilterSummary(filter: DashboardFilter): string {

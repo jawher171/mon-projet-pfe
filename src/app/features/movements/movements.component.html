@@ -20,7 +20,7 @@
       </button>
       <button class="mv-btn transfer" (click)="openTransferModal()">
         <span class="material-symbols-rounded">sync_alt</span>
-        Transfert entre Magasins
+        Transfert entre magasins
       </button>
       <button class="mv-btn outline" (click)="openAddReasonModal()">
         <span class="material-symbols-rounded">edit_note</span>
@@ -69,11 +69,6 @@
 
   <!-- Filters -->
   <div class="mv-toolbar">
-    <div class="mv-search">
-      <span class="material-symbols-rounded">search</span>
-      <input type="text" placeholder="Rechercher par numéro, produit..." [value]="searchTerm()"
-        (input)="onSearch($event)">
-    </div>
     <div class="mv-select-wrap">
       <span class="material-symbols-rounded mv-filter-icon">swap_vert</span>
       <select [value]="selectedType()" (change)="onTypeChange($any($event.target).value)">
@@ -435,12 +430,7 @@
 
         <!-- Référence -->
         <div class="mv-field" [class.full]="movementType() !== 'entry'">
-          <label>Référence</label>
-          <div class="mv-input-wrap">
-            <span class="material-symbols-rounded">receipt_long</span>
-            <input type="text" placeholder="N° commande, bon de livraison..." [value]="formData().reference"
-              (input)="updateFormField('reference', $any($event.target).value)">
-          </div>
+        
         </div>
 
         <!-- Notes -->
@@ -579,7 +569,7 @@
           <span class="material-symbols-rounded">sync_alt</span>
         </div>
         <div>
-          <h2>Transfert entre Magasins</h2>
+          <h2>Transfert entre magasins</h2>
         </div>
       </div>
       <button class="mv-modal-close" (click)="closeTransferModal()">
@@ -676,7 +666,7 @@
           @if (showTransferProductDropdown() && transferProductSearch() && filteredTransferProducts().length === 0) {
           <div class="mv-dropdown empty">
             <span class="material-symbols-rounded">manage_search</span>
-            Aucun produit trouvé dans ce magasin
+            Aucun produit trouvé
           </div>
           }
           }
@@ -729,6 +719,26 @@
           <p class="mv-field-error">
             <span class="material-symbols-rounded">warning</span>
             {{ transferFormErrors()['quantity'] }}
+          </p>
+          }
+        </div>
+
+        <!-- Raison -->
+        <div class="mv-field">
+          <label>Raison <span class="req">*</span></label>
+          <div class="mv-input-wrap select">
+            <select [class.has-error]="transferFormErrors()['reason']" [value]="transferFormData().reason"
+              (change)="updateTransferField('reason', $any($event.target).value)">
+              <option value="">Sélectionner une raison</option>
+              @for (reason of getReasonsByType('transfer'); track reason.value) {
+              <option [value]="reason.value">{{ reason.label }}</option>
+              }
+            </select>
+          </div>
+          @if (transferFormErrors()['reason']) {
+          <p class="mv-field-error">
+            <span class="material-symbols-rounded">warning</span>
+            {{ transferFormErrors()['reason'] }}
           </p>
           }
         </div>

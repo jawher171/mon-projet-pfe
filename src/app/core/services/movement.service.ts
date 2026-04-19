@@ -342,6 +342,16 @@ export class MovementService {
   getReasonLabel(reason: MovementReason): string {
     const baseReason = MOVEMENT_REASONS.find(r => r.value === reason);
     if (baseReason) return baseReason.label;
+
+    const normalizedReason = String(reason ?? '').trim().toLowerCase();
+    if (
+      normalizedReason === 'transfer_magasin' ||
+      normalizedReason === 'transfert_magasin' ||
+      normalizedReason === 'transfer_between_stores' ||
+      normalizedReason === 'transfert_entre_magasins'
+    ) {
+      return 'Transfert entre magasins';
+    }
     
     const customReason = this.customReasonsSignal().find(r => r.value === reason);
     return customReason?.label || reason;

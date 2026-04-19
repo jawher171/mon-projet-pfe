@@ -45,5 +45,5 @@ export const MOVEMENT_REASONS: { value: MovementReason; label: string; type: 'en
   { value: 'return_supplier', label: 'Livraison Fournisseur', type: 'entry' },
   { value: 'return_customer', label: 'Retour client', type: 'entry' },
   { value: 'transfer_out', label: 'Transfert Sortant', type: 'exit' },
-  { value: 'transfer_magasin', label: 'Transfert entre Magasins', type: 'transfer' },
+  { value: 'transfer_magasin', label: 'Transfert entre magasins', type: 'transfer' },
 ];

@@ -24,6 +24,8 @@ export interface AlertFilter {
   resolue?: boolean;
   type?: string;
   severity?: string;
+  /** Filter by site name */
+  siteNom?: string;
   /** Filter by date (YYYY-MM-DD) — only alerts from that day */
   date?: string;
   /** Filter by product name */
