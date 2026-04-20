@@ -62,7 +62,7 @@
         <div class="filter-input-wrap">
           <span class="material-symbols-rounded fb-icon">store</span>
           <select [(ngModel)]="currentFilter.siteType" (change)="onSiteTypeChange()" class="fb-select">
-            <option [ngValue]="undefined">Tous confondus</option>
+            <option [ngValue]="undefined">Tous les Types</option>
             <option value="warehouse">Entrepôts uniquement</option>
             <option value="store">Magasins uniquement</option>
           </select>
@@ -70,7 +70,7 @@
       </div>
 
       <div class="db-filter-item">
-        <label>Emplacement</label>
+        <label>SITE</label>
         <div class="filter-input-wrap">
           <span class="material-symbols-rounded fb-icon">domain</span>
           <select [(ngModel)]="currentFilter.siteId" (change)="onSiteChange()" class="fb-select">
@@ -191,8 +191,7 @@
     <div class="chart-card span-2">
       <div class="card-header">
         <h3 class="card-title">Tendance des Flux Comparatifs</h3>
-        <span class="card-action badge-light">{{ currentFilter.dateRange === 'thisMonth' ? 'Ce Mois' :
-          currentFilter.dateRange }}</span>
+        <span class="card-action badge-light">{{ getDateRangeLabel(currentFilter.dateRange) }}</span>
       </div>
       <div class="card-body chart-container-large">
         <canvas baseChart [data]="d.movementTrendChart" [options]="lineOptions" [type]="'line'">
@@ -283,7 +282,7 @@
           <th>Produit</th>
           <th>Site / Localisation</th>
           <th class="text-right">Stock Actuel</th>
-          <th class="text-right">Seuil Critique</th>
+          <th class="text-right">Seuil d'Alerte</th>
           <th>État</th>
           <th class="text-right bg-highlight">Qté Recommandée</th>
           <th class="text-center">Action</th>
@@ -295,7 +294,7 @@
           <td class="fw-600 text-dark">{{ item.produitNom }}</td>
           <td class="text-muted">{{ item.siteNom }}</td>
           <td class="text-right font-mono">{{ item.quantiteDisponible }} u.</td>
-          <td class="text-right text-muted font-mono"><span class="badge-outline">{{ item.seuilMinimum }}</span></td>
+          <td class="text-right text-muted font-mono"><span class="badge-outline">{{ item.seuilAlerte }}</span></td>
           <td>
             <span class="status-pill" [class]="item.status">
               {{ item.status | uppercase }}

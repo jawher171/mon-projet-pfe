@@ -95,6 +95,9 @@ export class AlertService {
       if (filter.severity) {
         alerts = alerts.filter(a => a.severity === filter.severity);
       }
+      if (filter.siteNom) {
+        alerts = alerts.filter(a => a.siteNom === filter.siteNom);
+      }
       if (filter.date) {
         const d = filter.date; // YYYY-MM-DD
         alerts = alerts.filter(a => {

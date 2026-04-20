@@ -72,13 +72,21 @@ export class AlertsComponent implements OnInit, OnDestroy {
   });
 
   /** Computed filter object */
-  filter = computed<AlertFilter>(() => ({
-    type: this.selectedType() === 'all' ? undefined : this.selectedType(),
-    resolue: this.showResolved() ? undefined : false,
-    severity: this.selectedSeverity() === 'all' ? undefined : this.selectedSeverity(),
-    date: this.selectedDate() || undefined,
-    produitNom: this.selectedProduct() || undefined
-  }));
+  filter = computed<AlertFilter>(() => {
+    const selectedSiteId = this.selectedSite();
+    const selectedSiteName = selectedSiteId
+      ? this.sites().find(site => String(site.id) === String(selectedSiteId))?.nom
+      : undefined;
+
+    return {
+      type: this.selectedType() === 'all' ? undefined : this.selectedType(),
+      resolue: this.showResolved() ? undefined : false,
+      severity: this.selectedSeverity() === 'all' ? undefined : this.selectedSeverity(),
+      siteNom: selectedSiteName,
+      date: this.selectedDate() || undefined,
+      produitNom: this.selectedProduct() || undefined
+    };
+  });
 
   /** Filtered alerts */
   alerts = computed(() => this.alertService.getFilteredAlerts(this.filter())());
@@ -241,5 +249,9 @@ export class AlertsComponent implements OnInit, OnDestroy {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  getSiteTypeLabel(type: string): string {
+    return this.siteService.getSiteTypeLabel(type);
   }
 }

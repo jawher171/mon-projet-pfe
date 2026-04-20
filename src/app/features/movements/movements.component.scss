@@ -356,10 +356,30 @@
 .mv-type-tabs {
   display: flex;
   flex: 0 0 auto;
+  flex-wrap: nowrap;
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: 0.5rem;
   padding: 3px;
+  min-width: max-content;
+}
+
+.mv-type-tabs-scroll {
+  flex: 0 1 auto;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 999px;
+  }
 }
 
 .mv-tab {
@@ -371,6 +391,8 @@
   background: transparent;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
+  white-space: nowrap;
+  flex: 0 0 auto;
   transition: background 0.15s, color 0.15s;
 
   &:hover:not(.active) {
@@ -452,6 +474,40 @@
     background-repeat: no-repeat;
     background-position: right 10px center;
     transition: color 0.2s;
+  }
+}
+
+.mv-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 0.625rem;
+  border: 1px dashed hsl(var(--input));
+  background: hsl(var(--background));
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+  flex: 0 0 auto;
+  white-space: nowrap;
+
+  .material-symbols-rounded {
+    font-size: 16px;
+  }
+
+  &:hover {
+    border-color: #fca5a5;
+    color: #dc2626;
+    background: #fef2f2;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(239, 68, 68, 0.25);
+    outline-offset: 1px;
   }
 }
 
@@ -1784,5 +1840,11 @@
   p {
     font-size: 0.82rem;
     margin: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .mv-type-tabs-scroll {
+    width: 100%;
   }
 }

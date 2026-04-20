@@ -191,20 +191,20 @@
                 <div><span class="sc-details-label">Nom:</span> <span>{{ product.nom }}</span></div>
                 <div><span class="sc-details-label">Référence:</span> <span>{{ product.id_p }}</span></div>
                 <div><span class="sc-details-label">Code-barres:</span> <span class="sc-mono">{{ product.codeBarre || '—' }}</span></div>
-                <div><span class="sc-details-label">Catégorie:</span> <span>{{ product.categorieLibelle || '—' }}</span></div>
+                <div><span class="sc-details-label">Catégorie:</span> <span>{{ getProductCategoryLabel(product) }}</span></div>
               </div>
 
               <div class="sc-stock-sites">
                 <div class="sc-stock-sites-header">
                   <h5>Stock par site</h5>
-                  <span class="sc-stock-total">Total: {{ totalStockForLastScan() }}</span>
+                  <span class="sc-stock-total">Total: {{ totalStockForLastScan() }} unités</span>
                 </div>
                 @for (row of scannedSiteStocks(); track row.siteId) {
                   <div class="sc-stock-site-row">
                     <div class="sc-stock-site-name">{{ row.siteName }}</div>
                     <div class="sc-stock-site-meta">
-                      <span class="sc-stock-qty" [class.low]="row.isLow">{{ row.quantity }}</span>
-                      <span class="sc-stock-threshold">Seuil: {{ row.threshold }}</span>
+                      <span class="sc-stock-qty" [class.low]="row.isLow">{{ row.quantity }} unités</span>
+                      <span class="sc-stock-threshold">Seuil d'alerte: {{ row.threshold }}</span>
                       <span class="sc-stock-badge" [class.low]="getStockBadgeClass(row) === 'low'" [class.ok]="getStockBadgeClass(row) === 'ok'">
                         {{ row.isLow ? 'Stock faible' : 'OK' }}
                       </span>

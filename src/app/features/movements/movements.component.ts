@@ -58,6 +58,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
     destSiteId: '',
     productId: '',
     productName: '',
+    reason: 'transfer_magasin' as MovementReason | '',
     quantity: 0,
     notes: ''
   });
@@ -207,6 +208,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
       errors['dest'] = 'Le magasin source et destination doivent être différents';
     }
     if (!this.transferSelectedProduct()) errors['product'] = 'Veuillez sélectionner un produit';
+    if (!form.reason) errors['reason'] = 'Veuillez sélectionner une raison';
     if (!form.quantity || form.quantity <= 0) errors['quantity'] = 'La quantité doit être supérieure à 0';
     if (this.transferAvailableStock() !== null && form.quantity > this.transferAvailableStock()!) {
       errors['quantity'] = `Stock insuffisant sur le magasin source (disponible: ${this.transferAvailableStock()})`;
@@ -512,6 +514,28 @@ export class MovementsComponent implements OnInit, OnDestroy {
     this.searchTerm.set(input.value);
   }
 
+  hasActiveFilters(): boolean {
+    return !!(
+      this.searchTerm().trim() ||
+      this.selectedType() !== 'all' ||
+      this.selectedSite() ||
+      this.selectedCategory() ||
+      this.selectedProductFilter() ||
+      this.selectedReason() ||
+      this.selectedDate()
+    );
+  }
+
+  clearFilters(): void {
+    this.searchTerm.set('');
+    this.selectedType.set('all');
+    this.selectedSite.set('');
+    this.selectedCategory.set('');
+    this.selectedProductFilter.set('');
+    this.selectedReason.set('');
+    this.selectedDate.set('');
+  }
+
   onTypeChange(type: 'all' | 'entry' | 'exit' | 'transfer') {
     this.selectedType.set(type);
   }
@@ -601,6 +625,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
       destSiteId: '',
       productId: '',
       productName: '',
+      reason: 'transfer_magasin',
       quantity: 0,
       notes: ''
     });
@@ -726,7 +751,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
 
       await this.movementService.addMovement({
         dateMouvement: new Date(),
-        raison: 'transfer_magasin',
+        raison: (form.reason || 'transfer_magasin') as MovementReason,
         quantite: form.quantity,
         note: form.notes || undefined,
         produitNom: product.nom,

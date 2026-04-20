@@ -10,6 +10,7 @@ import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
+import { CategoryService } from '../../core/services/category.service';
 import { MovementService } from '../../core/services/movement.service';
 import { SiteService } from '../../core/services/site.service';
 import { StockService } from '../../core/services/stock.service';
@@ -69,6 +70,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private categoryService = inject(CategoryService);
   private scanSession = inject(ScanSessionService);
   private scanSub?: Subscription;
   private readonly desktopScanPurpose = 'SCANNER_LOOKUP';
@@ -208,6 +210,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     // Avoid protected API calls on unauthenticated phone scan pages to prevent forced login redirects.
     if (!this.phoneMode() || hasToken) {
       void this.productService.fetchProducts().catch(() => undefined);
+      void this.categoryService.fetchCategories().catch(() => undefined);
       void this.siteService.fetchSites().catch(() => undefined);
       void this.stockService.fetchStocks().catch(() => undefined);
     }
@@ -746,6 +749,28 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   getStockBadgeClass(row: SiteStockRow): 'low' | 'ok' {
     return row.isLow ? 'low' : 'ok';
+  }
+
+  getProductCategoryLabel(product: Product): string {
+    const directLabel = (product.categorieLibelle ?? '').trim();
+    if (directLabel) return directLabel;
+
+    const codeBarre = (product.codeBarre ?? '').trim().toLowerCase();
+    const cachedProduct = this.products().find(p =>
+      String(p.id_p) === String(product.id_p) ||
+      (!!codeBarre && (p.codeBarre ?? '').trim().toLowerCase() === codeBarre)
+    );
+    const cachedLabel = (cachedProduct?.categorieLibelle ?? '').trim();
+    if (cachedLabel) return cachedLabel;
+
+    const categoryId = String(product.id_c ?? '').trim();
+    if (categoryId) {
+      const category = this.categoryService.getCategories()().find(c => String(c.id_c) === categoryId);
+      const categoryLabel = (category?.categorieLibelle ?? '').trim();
+      if (categoryLabel) return categoryLabel;
+    }
+
+    return '—';
   }
 
   getReasonsByMode() {

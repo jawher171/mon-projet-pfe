@@ -161,7 +161,7 @@ namespace Application.Services
 
                 StockHealthChart = BuildStockHealthChart(ruptureStocks.Count, criticalStocks.Count, warningStocks.Count, overStocks.Count, normalStocksCount),
                 ProductStockChart = BuildProductStockChart(filteredStocks),
-                MovementTrendChart = BuildMovementTrendChart(normalizedMovements),
+                MovementTrendChart = BuildMovementTrendChart(normalizedMovements, filter.DateRange),
 
                 LastRefresh = DateTime.UtcNow,
                 ActiveFilter = new DashboardEtlFilterDto
@@ -481,38 +481,38 @@ namespace Application.Services
             };
         }
 
-        private static DashboardChartDataDto BuildMovementTrendChart(IEnumerable<NormalizedMovement> normalizedMovements)
+        private static DashboardChartDataDto BuildMovementTrendChart(IEnumerable<NormalizedMovement> normalizedMovements, string? dateRange)
         {
-            var trend = new Dictionary<string, (int entries, int exits, int transfers)>();
-            var today = DateTime.UtcNow.Date;
-            for (var i = 9; i >= 0; i--)
+            var movementList = normalizedMovements.ToList();
+            var (rangeStart, rangeEnd) = ResolveMovementTrendBounds(dateRange, movementList);
+
+            var trend = new Dictionary<DateTime, (int entries, int exits, int transfers)>();
+            for (var day = rangeStart; day <= rangeEnd; day = day.AddDays(1))
             {
-                var day = today.AddDays(-i);
-                var key = day.ToString("dd/MM", CultureInfo.InvariantCulture);
-                trend[key] = (0, 0, 0);
+                trend[day] = (0, 0, 0);
             }
 
-            foreach (var item in normalizedMovements)
+            foreach (var item in movementList)
             {
                 var movement = item.Movement;
-                var movementDate = movement.DateMouvement.ToUniversalTime().Date;
-                var key = movementDate.ToString("dd/MM", CultureInfo.InvariantCulture);
-                if (!trend.ContainsKey(key))
+                var movementDay = movement.DateMouvement.ToUniversalTime().Date;
+                if (!trend.ContainsKey(movementDay))
                     continue;
 
-                var current = trend[key];
+                var current = trend[movementDay];
                 if (item.NormalizedType == "entry")
-                    trend[key] = (current.entries + Math.Abs(movement.Quantite), current.exits, current.transfers);
+                    trend[movementDay] = (current.entries + Math.Abs(movement.Quantite), current.exits, current.transfers);
                 else if (item.NormalizedType == "exit")
-                    trend[key] = (current.entries, current.exits + Math.Abs(movement.Quantite), current.transfers);
+                    trend[movementDay] = (current.entries, current.exits + Math.Abs(movement.Quantite), current.transfers);
                 else if (item.NormalizedType == "transfer")
-                    trend[key] = (current.entries, current.exits, current.transfers + Math.Abs(movement.Quantite));
+                    trend[movementDay] = (current.entries, current.exits, current.transfers + Math.Abs(movement.Quantite));
             }
 
-            var labels = trend.Keys.ToList();
-            var entries = labels.Select(k => (double)trend[k].entries).ToList();
-            var exits = labels.Select(k => (double)trend[k].exits).ToList();
-            var transfers = labels.Select(k => (double)trend[k].transfers).ToList();
+            var orderedDays = trend.Keys.OrderBy(day => day).ToList();
+            var labels = orderedDays.Select(day => day.ToString("dd/MM", CultureInfo.InvariantCulture)).ToList();
+            var entries = orderedDays.Select(day => (double)trend[day].entries).ToList();
+            var exits = orderedDays.Select(day => (double)trend[day].exits).ToList();
+            var transfers = orderedDays.Select(day => (double)trend[day].transfers).ToList();
 
             return new DashboardChartDataDto
             {
@@ -523,17 +523,19 @@ namespace Application.Services
                     {
                         Label = "Entrees",
                         Data = entries,
-                        BorderColor = "#10b981",
-                        BackgroundColor = "rgba(16, 185, 129, 0.1)",
-                        Fill = true,
+                        BorderColor = "#059669",
+                        BackgroundColor = "transparent",
+                        BorderWidth = 3,
+                        Fill = false,
                         Tension = 0.4
                     },
                     new DashboardChartDatasetDto
                     {
                         Label = "Sorties",
                         Data = exits,
-                        BorderColor = "#ef4444",
+                        BorderColor = "#dc2626",
                         BackgroundColor = "transparent",
+                        BorderWidth = 3,
                         Fill = false,
                         Tension = 0.4
                     },
@@ -541,13 +543,39 @@ namespace Application.Services
                     {
                         Label = "Transferts",
                         Data = transfers,
-                        BorderColor = "#8b5cf6",
-                        BackgroundColor = "rgba(139, 92, 246, 0.08)",
-                        Fill = true,
+                        BorderColor = "#7c3aed",
+                        BackgroundColor = "transparent",
+                        BorderWidth = 3,
+                        Fill = false,
                         Tension = 0.4
                     }
                 }
             };
+        }
+
+        private static (DateTime Start, DateTime End) ResolveMovementTrendBounds(string? dateRange, IReadOnlyCollection<NormalizedMovement> normalizedMovements)
+        {
+            var today = DateTime.UtcNow.Date;
+            var range = (dateRange ?? string.Empty).Trim().ToLowerInvariant();
+
+            if (range == "today")
+                return (today, today);
+
+            if (range == "7days")
+                return (today.AddDays(-6), today);
+
+            if (range == "30days")
+                return (today.AddDays(-29), today);
+
+            if (range == "thismonth" || string.IsNullOrWhiteSpace(range))
+                return (new DateTime(today.Year, today.Month, 1), today);
+
+            if (normalizedMovements.Count == 0)
+                return (today.AddDays(-9), today);
+
+            var minDate = normalizedMovements.Min(x => x.Movement.DateMouvement.ToUniversalTime().Date);
+            var maxDate = normalizedMovements.Max(x => x.Movement.DateMouvement.ToUniversalTime().Date);
+            return (minDate, maxDate);
         }
 
         private async Task WriteSnapshotToCacheAsync(DashboardEtlDto snapshot, CancellationToken cancellationToken)

@@ -4,6 +4,45 @@
     <p class="text-sm text-muted-foreground">Suggestions automatiques selon les seuils de stock</p>
   </div>
 
+  <div class="so-toolbar">
+    <div class="so-select-wrap">
+      <span class="material-symbols-rounded">domain</span>
+      <select [value]="selectedSiteId() || ''" (change)="onSiteChange($any($event.target).value || undefined)">
+        <option value="">Tous les sites</option>
+        @for (site of sites(); track site.id) {
+          <option [value]="site.id">{{ site.nom }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="so-select-wrap">
+      <span class="material-symbols-rounded">category</span>
+      <select [value]="selectedCategoryId() || ''" (change)="onCategoryChange($any($event.target).value || undefined)">
+        <option value="">Toutes les catégories</option>
+        @for (category of categories(); track category.id_c) {
+          <option [value]="category.id_c">{{ category.categorieLibelle }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="so-select-wrap">
+      <span class="material-symbols-rounded">package_2</span>
+      <select [value]="selectedProductId() || ''" (change)="onProductChange($any($event.target).value || undefined)">
+        <option value="">Tous les produits</option>
+        @for (product of filteredProducts(); track product.id_p) {
+          <option [value]="product.id_p">{{ product.nom }}</option>
+        }
+      </select>
+    </div>
+
+    @if (hasActiveFilters()) {
+      <button class="so-clear-btn" (click)="clearFilters()" title="Réinitialiser les filtres">
+        <span class="material-symbols-rounded">filter_alt_off</span>
+        Réinitialiser
+      </button>
+    }
+  </div>
+
   <div class="rp-table-wrap">
     <table class="rp-table">
       <thead>
