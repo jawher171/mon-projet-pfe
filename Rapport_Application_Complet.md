@@ -7,80 +7,80 @@ L'objectif de ce projet de fin d'études (PFE) est de concevoir et développer u
 Le projet se base sur une **Architecture Client-Serveur** moderne, isolant complètement la partie interface utilisateur de la logique métier.
 
 - **Frontend (Application Client) :**
-  - **Framework :** Angular 21 (Single Page Application - SPA).
-  - **Styling & UI :** TailwindCSS pour le design utilitaire, SCSS.
+  - **Framework :** Angular 21 (Single Page Application - SPA). Utilisation massive des `Signals` pour une réactivité optimale et synchronisée.
+  - **Styling & UI :** CSS Modulaire/SCSS et Layouts dynamiques.
   - **Visualisation de Données :** Chart.js avec ng2-charts pour des graphiques dynamiques.
-  - **Fonctionnalités matérielles (Hardware) :** Scanner de code-barres et QR code via `@zxing/browser`.
-  - **Temps Réel :** Intégration de Microsoft SignalR pour des mises à jour asynchrones en temps réel sur les clients connectés.
+  - **Temps Réel :** Intégration de Microsoft SignalR et rafraîchissements périodiques asynchrones (polling rxJS).
 
 - **Backend (API Restful) :**
-  - **Framework :** ASP.NET Core 3.1 Web API.
-  - **Langage :** C#.
-  - **Design Patterns :**
-    - **N-Tiers :** Couches Application, Domain, Data.
-    - **CQRS (Command Query Responsibility Segregation) :** Implémenté avec la librairie **MediatR**. Séparation stricte entre les modèles modifiant les données (Commands) et ceux les lisant (Queries).
-    - **Repository Pattern :** Utilisation d'un `IGenericRepository` pour mutualiser la logique d'accès aux données.
-  - **ORM (Object-Relational Mapping) :** Entity Framework Core (EF Core).
-  - **Base de données :** Microsoft SQL Server.
-
-- **Sécurité et Authentification :**
-  - Sécurisation des routes par **JWT (JSON Web Tokens)**.
-  - Concept de **RBAC (Role-Based Access Control)** couplé à une **matrice de permissions** granulaire (ex: `view_products`, `manage_sites`, `manage_movements`).
+  - **Framework :** ASP.NET Core 3.1 Web API en C#.
+  - **Design Patterns :** Architecture N-Tiers, CQRS via **MediatR**, et Repository Pattern (`IGenericRepository`).
+  - **ORM :** Entity Framework Core couplé à SQL Server.
 
 ## 3. Modélisation des Données (Entités Principales)
-La base de données relationnelle est articulée autour des entités fondamentales suivantes :
-- **User (Utilisateur) :** Informations de connexion, lié de manière N:1 à un `Role`.
-- **Role & Permission :** L'association `RolePermission` définit l'accès aux sous-systèmes de l'application.
-- **Product (Produit) & Category :** Définition centralisée du catalogue articles (Code-barres, Nom, Prix, Catégorie).
-- **Site :** Un lieu physique de stockage (Magasin principal, Entrepôt secondaire).
-- **Stock (L'entité pivot) :** Représente l'intersection entre un `Produit` et un `Site`. Contient la `QuantiteDisponible` et gère le paramétrage des différents seuils logistiques (Alerte, Sécurité).
-- **StockMovement (Mouvement de Stock) :** Registre inaltérable mémorisant qui (Utilisateur) a fait quoi (Type: Entrée/Sortie/Transfert), de combien (Quantité), sur quel Stock, et pour quelle `Raison`.
-- **Alert (Alerte) :** Entité de surveillance générée par des déclencheurs métiers quand un niveau critique est atteint.
-
-## 4. Fonctionnalités Détaillées (Ce que fait l'application)
-
-### 4.1. Tableau de Bord Intéractif (Dashboard)
-- Vue d'ensemble stratégique sur l'état du système via des graphiques.
-- Suivi des Indicateurs Clés de Performance (KPI) : Mouvements totaux, alertes ouvertes, valeur du stock.
-
-### 4.2. Gestion Multi-Sites et Catalogue Produits
-- Configuration avancée de multiples sites depuis l'interface d'administration.
-- Maintenance du catalogue de produits et génération automatisée ou manuelle de codes-barres.
-- **Aperçu des Stocks (Stocks Overview) :** Visualisation matricielle des quantitées disponibles de chaque produit réparties sur chaque site actif de l'entreprise.
-
-### 4.3. Mouvements de Stock et Transferts Inter-Magasins
-- **Traçabilité :** Enregistrement de tous types de transactions (réception fournisseur, vente, casse).
-- **Transferts Inter-Magasins :** Fonctionnalité complexe de déplacement de marchandise d'un Site A (Source) vers un Site B (Destination). L'application gère la mise à jour double et simultanée du `Stock` pour garantir l'équité des quantités.
-- **Raisons personnalisées (Gérer Raisons) :** Interface d'administration pour créer, éditer et supprimer des motifs de mouvement de stock ("Défectueux", "DLC dépassée"). Le backend inclut des contrôles robustes contre l'ajout de motifs en doublon pour le même type d'action.
-
-### 4.4. Moteur de Règles des Seuils et Alertes
-- Configuration poussée des paramètres de stock : *Seuil de Sécurité, Seuil Minimum, Seuil d'Alerte, Seuil Maximum*.
-- **Validation croisée frontend/backend :** Un algorithme empêche la soumission de seuils illogiques (ex: Empêcher un seuil Minimum d'être inférieur au seuil de Sécurité, empêchant l'utilisateur de valider le formulaire HTML, tout en vérifiant côté API).
-- **Génération d'Alertes :** Lorsqu'un mouvement de sortie ou de transfert réduit la quantité disponible d'un produit en deçà de son "Seuil d'alerte", une alerte est enregistrée, affichée aux gestionnaires et non dupliquée grâce à un système de `Fingerprint`.
-
-### 4.5. Module Réapprovisionnement Intelligent
-- Module analysant les stocks actuels par rapport aux "Seuils Maximum".
-- Génère automatiquement des propositions de commandes (Quantité Suggérée) pour ramener le stock à son niveau optimal sans intervention manuelle complexe.
-
-### 4.6. Scanner Mobile et PDA (Relais Téléphone)
-- Interface spécialement pensée pour une utilisation sur smartphone (`Route: /scan`).
-- Permet l'ouverture de la caméra pour lire en direct les codes-barres ou QR codes des produits.
-- L'architecture permet, lors du scan mobile, de remonter l'information en temps réel sur le poste ordinateur du magasinier, synchronisant l'action dans le panier ou provoquant un mouvement direct de la base de données.
-- Accompagné d'un journal/historique des scans (`Scan History`) côté backend.
-
-## 5. Exemple de Flux Technologique (Workflow de transfert)
-*Ce workflow illustre le niveau technique devant être repris dans la rédaction du mémoire d'ingénieur/technicien :*
-1. Le "Gestionnaire de Stock" navigue vers l'écran de mouvements et choisit "Transfert".
-2. Angular vérifie la permission `view_movements` et `manage_movements` (via Guards).
-3. Soumission de la requête `POST /api/StockMovements/AddStockMovement`.
-4. Le Backend .NET valide le Token JWT.
-5. Une "Command" MediatR (`CreateStockMovementCommand`) est encapsulée avec le DTO reçu et traitée par son `Handler`.
-6. Le gestionnaire de la commande effectue une transaction avec EF Core : Déduction de la quantité du Site Source (sortie) => Ajout de la même quantité sur le Site Destinataire (entrée).
-7. Le système de domaine interroge ensuite les seuils dynamiques. Si la source est < Seuil Alerte, une alerte est persistée en DB.
-8. La transaction est commitée dans SQL Server, et une notification temps-réel (SignalR) est poussée à tous les clients pour rafraîchir l'UI.
+La base de données relationnelle s'articule autour des entités suivantes : User, Role/Permission (Sécurité RBAC), Product, Category, Site, Stock (Intersection cruciale entre Site et Produit incluant tous les seuils d'alerte), StockMovement, et Alert.
 
 ---
 
-**Comment utiliser ce document pour Claude.ai (ou ChatGPT) :** 
-Fournissez l'intégralité de ce prompt à l'IA en lui demandant :
-*"Voici l'analyse complète de l'architecture et des fonctionnalités de mon application de PFE. Agis comme un directeur de thèse ou un consultant technique, et rédige-moi les différentes parties de mon rapport (Introduction, Contexte, Choix Techniques, Modélisation, Diagramme de cas d'utilisation, Architecture) en te basant exclusivement sur ce contenu exhaustif."*
+## 4. Focus Analytique et Technique sur les Interfaces (UI/UX) Clés
+
+Pour maximiser l'ergonomie et l'aide à la décision logistique, l'application propose trois modules interactifs hautement travaillés : le **Tableau de Bord**, le **Gestionnaire d'Alertes**, et le module de **Réapprovisionnement**.
+
+### 4.1. Tableau de Bord (Dashboard) : Le Centre Stratégique
+Le composant `DashboardComponent` est une véritable centrale de contrôle réactive (mise à jour via polling et Signals). Il est conçu pour offrir une visibilité instantanée sur la valeur et la santé de l'inventaire.
+
+**a. Filtres et Recherche Multicritères Avancée :**
+L'en-tête (Header) propose une barre de filtrage granulaire dynamique liant plusieurs composants :
+- **Type de site** (Entrepôt vs Magasin), **Site physique**, **Catégorie de produit** et **Produit spécifique**. Les filtres sont connectés : choisir un "Entrepôt" filtre automatiquement la dropdown associée.
+- **Période d'analyse temporelle :** (Aujourd'hui, 7 jours, 30 jours, Mois en cours, Historique Complet).
+
+**b. Indicateurs Clés de Performance (KPI Cards) :**
+Le haut du tableau de bord déploie 6 cartes KPI interactives colorées :
+1. **Valorisation du Stock :** Montant financier global affiché formatté dynamiquement (en TND).
+2. **Unités en Stock :** Comptage brut des produits.
+3. **Produits Gérés :** Variété d'articles dans le catalogue.
+4. **Mouvements (E/S) :** Visualisation scindée et colorée des entrées (↑ Vert) et sorties (↓ Rouge).
+5. **Transferts Inter-magasins :** (↔ Violet).
+6. **Alertes Critiques :** Rouge clignotant s'il dépasse zéro.
+
+**c. Dashboard Graphique & Visualisation des Datas (Chart.js) :**
+- **Trending (Line Chart) :** *Tendance des Flux Comparatifs* affiche l'évolution des stocks selon la période.
+- **Doughnut Chart :** *Santé de l'Inventaire* qui modélise visuellement les pourcentages de l'inventaire en statut Normal, Sur-stock, Alerte, ou Rupture.
+- **Bar Chart :** *Stock Total par Produit* (Top des inventaires).
+- **Recent Activity Feed :** Une liste ergonomique ("Derniers Mouvements") montrant l'heure exacte, le produit, l'utilisateur et l'icône de la direction du flux.
+
+**d. Moteur d'Exportation Natif (Rapports CSV & PDF) :**
+L'UI intègre un puissant module asynchrone permettant au gestionnaire d'exporter la situation exacte filtrée (Génération HTML programmatique dynamique convertie en fenêtre d'impression globale).
+
+### 4.2. Module des Alertes (Alerts UI) : Surveillance Proactive
+Le module d'alerte (`AlertsComponent`) est bâti pour la réactivité, interrogeant le backend toutes les 10 secondes et rafraîchissant l'écran avec fluidité.
+
+**a. Synthèse Statistique (Stats Strip) :**
+Au sommet, quatre cartes statistiques distinctives catégorisent le degré d'urgence : Critiques (Rouge), Avertissements (Orange), Infos (Bleu) et Alertes Non Lues.
+
+**b. Liste d'Alertes Intelligentes et Modales interactives :**
+- La liste est constituée de **"Cards" (Cartes d'alerte)** dynamiques disposant de badges (Résolu, Criticité).
+- L'affichage montre exactement la localisation (Site), l'objet (Produit), l'auteur (Utilisateur) et un formatage temporel "Il y a X minutes/jours" (Time-ago formatter).
+- **Interactivité :** En cliquant, une Modale (Pop-up) détaillée s'ouvre, expliquant la règle ayant déclenché l'alerte, et présente un bouton "Marquer comme résolu" exclusif aux rôles manager.
+- Filtres intégrés par sévérité (Pills), par produit, par sélecteur de date calendaire natif HTML5, et un toggle pour masquer/afficher les archives résolues.
+
+### 4.3. Module de Réapprovisionnement : Aide à la décision automatisée
+Le script métier derrière le `ReapprovisionnementComponent` analyse la totalité des matrices (seuilMaximum, seuilMinimum, seuilSecurite, seuilAlerte) pour chaque article de chaque site. 
+
+**a. Algorithme de Suggestion et Moteur de Décision :**
+La logique (Logique Métier/Front) est stricte :
+- Si la **Quantité disponible** ≤ **Seuil Alerte** : Le produit est flagué pour action.
+- Le système calcule une **Quantité Commandée Suggérée**. 
+  - *Calcul :* Il identifie la cible idéale (soit le paramètre "Seuil Maximum", soit "Seuil Alerte") et lui soustrait la quantité actuelle, garantissant une commande mathématiquement optimisée évitant le surstockage inutile.
+
+**b. Interface "Action-oriented" (Data Grid) :**
+- La vue tableau est expurgée de bruit visuel. Chaque ligne reçoit une animation d'entrée décalée (Staggered Animation en MS).
+- Des statuts colorés et iconographiés qualifient l'urgence : **Rupture** (Icône danger), **Critique** (Warning), **Sécurité** (Shield), ou **Alerte** (Cloche).
+- **Le Deep-Linking (Deep Action) :** Face à chaque rupture, un bouton "Approvisionner" redirige le magasinier directement vers le module d'entrée de stock (`/movements`), en remplissant automatiquement l'URL avec les *QueryParameters* (`productId`, `siteId`, `mode=entry`). Cela supprime 4 clics de navigation pour le travailleur et optimise considérablement le flux de travail (Workflow efficiency).
+
+---
+
+## 5. Synthèse des Exigences Non Fonctionnelles et de la Logique Métier
+- **Temps Réel et Asynchronisme :** Les requêtes sont asynchrones (RxJS) pour maintenir l'application vivante et rapide (absence de rafraîchissements de page bloquants).
+- **Traçabilité stricte :** Rien n'échappe au backend (Historique de Scan Mobile par ZXing, Historique complet des motifs avec validations anti-doublons).
+- **Architecture de droit RBAC :** Intégrée nativement en *Guards Angular*, tout composant masque ses sous-briques administratives aux simples Opérateurs manutentionnaires.
