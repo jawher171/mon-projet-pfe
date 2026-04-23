@@ -249,6 +249,22 @@ export class MovementsComponent implements OnInit, OnDestroy {
     return Math.max(0, stock.seuilMaximum - stock.quantiteDisponible);
   });
 
+  /** Check if thresholds are all 0 (not configured) for entry mode */
+  entryThresholdsNotConfigured = computed(() => {
+    if (this.movementType() !== 'entry') return false;
+    const product = this.selectedProduct();
+    const siteId = this.formData().siteId;
+    if (!product || !siteId) return false;
+    const stock = this.stockService.getStockForProductSite(String(product.id_p), siteId);
+    if (!stock) return false;
+    return (
+      (stock.seuilAlerte ?? 0) === 0 &&
+      (stock.seuilSecurite ?? 0) === 0 &&
+      (stock.seuilMinimum ?? 0) === 0 &&
+      (stock.seuilMaximum ?? 0) === 0
+    );
+  });
+
   // Get data from services
   sites = computed(() => this.siteService.getActiveSites()());
 
@@ -323,6 +339,9 @@ export class MovementsComponent implements OnInit, OnDestroy {
       const remaining = this.entryCapacityLeft();
       if (remaining !== null && form.quantity > remaining) {
         errors['quantity'] = `La quantité dépasse le seuil maximum (capacité restante: ${remaining})`;
+      }
+      if (this.entryThresholdsNotConfigured()) {
+        errors['thresholds'] = 'Les seuils de ce produit ne sont pas configurés. Veuillez configurer les seuils dans la vue des stocks avant de faire une entrée.';
       }
     }
     if (!form.reason) errors['reason'] = 'Veuillez sélectionner une raison';

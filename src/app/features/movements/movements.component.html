@@ -365,6 +365,17 @@
               Capacité restante avant seuil maximum : {{ entryCapacityLeft() }} unités
             </div>
             }
+            @if (entryThresholdsNotConfigured()) {
+            <div class="mv-threshold-warning">
+              <div class="mv-threshold-warning-icon">
+                <span class="material-symbols-rounded">warning</span>
+              </div>
+              <div class="mv-threshold-warning-content">
+                <strong>Seuils non configurés</strong>
+                <p>Les seuils de ce produit sur cet entrepôt sont tous à 0. Veuillez d'abord configurer les seuils (minimum, sécurité, maximum) dans la <strong>Vue des Stocks</strong> avant de faire une entrée.</p>
+              </div>
+            </div>
+            }
           </div>
         </div>
         }
