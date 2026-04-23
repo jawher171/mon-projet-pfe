@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs';
 import { AuthService } from '../services/auth.service';
-import { API_BASE_URL, USE_BACKEND } from '../../app.config';
+import { API_BASE_URL } from '../../app.config';
 
 function isBackendApiRequest(url: string): boolean {
   if (url.startsWith(API_BASE_URL)) return true;
@@ -21,7 +21,6 @@ function isBackendApiRequest(url: string): boolean {
 }
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  if (!USE_BACKEND) return next(req);
   const auth = inject(AuthService);
   const router = inject(Router);
   const token = auth.getToken();

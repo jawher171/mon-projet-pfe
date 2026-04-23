@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Product, ProductFilter } from '../models/product.model';
-import { API_BASE_URL, USE_BACKEND } from '../../app.config';
+import { API_BASE_URL } from '../../app.config';
 
 interface ProductDto {
   id_p?: string;
@@ -20,6 +20,7 @@ interface ProductDto {
 @Injectable({ providedIn: 'root' })
 export class ProductService {
   private readonly http = inject(HttpClient);
+  // Signal Angular réactif : contient tous les produits mis en cache localement
   private products = signal<Product[]>([]);
 
   private dtoToProduct(d: ProductDto): Product {
@@ -53,17 +54,15 @@ export class ProductService {
   getProducts() {
     return this.products;
   }
-getProduit() {
+  getProduit() {
     return this.http.get<Product[]>(`${API_BASE_URL}/api/Products/GetProducts`);
   }
+
+  // Importe les produits depuis l'API et met à jour le Signal local
   async fetchProducts(filter?: ProductFilter): Promise<Product[]> {
-    if (USE_BACKEND) {
-      const dtos = await firstValueFrom(this.http.get<ProductDto[]>(`${API_BASE_URL}/api/Products/GetProducts`));
-      const mapped = (dtos ?? []).map(d => this.dtoToProduct(d));
-      this.products.set(mapped);
-    } else {
-      await this.delay(500);
-    }
+    const dtos = await firstValueFrom(this.http.get<ProductDto[]>(`${API_BASE_URL}/api/Products/GetProducts`));
+    const mapped = (dtos ?? []).map(d => this.dtoToProduct(d));
+    this.products.set(mapped);
 
     let filtered = this.products();
     if (filter?.search) {
@@ -80,91 +79,54 @@ getProduit() {
   }
 
   async getProduct(id: string | number): Promise<Product | undefined> {
-    if (USE_BACKEND) {
-      const dto = await firstValueFrom(this.http.get<ProductDto>(`${API_BASE_URL}/api/Products/GetProduct/${id}`));
-      return dto ? this.dtoToProduct(dto) : undefined;
-    }
-
-    await this.delay(300);
-    return this.products().find(p => String(p.id_p) === String(id));
+    const dto = await firstValueFrom(this.http.get<ProductDto>(`${API_BASE_URL}/api/Products/GetProduct/${id}`));
+    return dto ? this.dtoToProduct(dto) : undefined;
   }
 
   async addProduct(product: Omit<Product, 'id_p'>): Promise<Product> {
-    if (USE_BACKEND) {
-      const dto = this.productToDto(product as Product);
-      const result = await firstValueFrom(this.http.post<ProductDto>(`${API_BASE_URL}/api/Products/AddProduct`, dto));
-      const created = this.dtoToProduct(result);
-      this.products.update(products => [...products, created]);
-      return created;
-    }
-    const newProduct: Product = {
-      ...product,
-      id_p: Date.now().toString()
-    };
-    this.products.update(products => [...products, newProduct]);
-    return newProduct;
+    const dto = this.productToDto(product as Product);
+    const result = await firstValueFrom(this.http.post<ProductDto>(`${API_BASE_URL}/api/Products/AddProduct`, dto));
+    const created = this.dtoToProduct(result);
+    this.products.update(products => [...products, created]);
+    return created;
   }
 
   async updateProduct(id: string | number, updates: Partial<Product>): Promise<void> {
-    if (USE_BACKEND) {
-      const current = this.products().find(p => String(p.id_p) === String(id));
-      const merged = { ...current, ...updates, id_p: id };
-      const dto = this.productToDto(merged as Product);
-      const result = await firstValueFrom(this.http.put<ProductDto>(`${API_BASE_URL}/api/Products/UpdateProduct`, dto));
-      const updated = this.dtoToProduct(result);
-      this.products.update(products =>
-        products.map(p => (String(p.id_p) === String(id) ? updated : p))
-      );
-      return;
-    }
+    const current = this.products().find(p => String(p.id_p) === String(id));
+    const merged = { ...current, ...updates, id_p: id };
+    const dto = this.productToDto(merged as Product);
+    const result = await firstValueFrom(this.http.put<ProductDto>(`${API_BASE_URL}/api/Products/UpdateProduct`, dto));
+    const updated = this.dtoToProduct(result);
     this.products.update(products =>
-      products.map(p => (String(p.id_p) === String(id) ? { ...p, ...updates } : p))
-    );
-  }
-
-  /** Synchronous local update (kept for offline/local mode compatibility) */
-  updateProductSync(id: string | number, updates: Partial<Product>): void {
-    this.products.update(products =>
-      products.map(p => (String(p.id_p) === String(id) ? { ...p, ...updates } : p))
+      products.map(p => (String(p.id_p) === String(id) ? updated : p))
     );
   }
 
   async deleteProduct(id: string | number): Promise<void> {
-    if (USE_BACKEND) {
-      await firstValueFrom(this.http.delete(`${API_BASE_URL}/api/Products/DeleteProduct/${id}`));
-    }
+    await firstValueFrom(this.http.delete(`${API_BASE_URL}/api/Products/DeleteProduct/${id}`));
     this.products.update(products => products.filter(p => String(p.id_p) !== String(id)));
   }
 
-  /** Synchronous local delete (kept for offline/local mode compatibility) */
-  deleteProductSync(id: string | number): void {
-    this.products.update(products => products.filter(p => String(p.id_p) !== String(id)));
-  }
-
-  /** Lookup a product by its barcode — checks local cache first, then backend API */
+  /**
+   * Recherche un produit via son Code-Barre.
+   * Optimisation (Cache-First) : regarde d'abord en mémoire locale (très rapide).
+   * Fallback : interroge l'API si le code barre n'est pas dans le cache.
+   */
   async getProductByBarcode(code: string): Promise<Product | null> {
-    // 1. Check locally-loaded products first (fastest, always works)
+    // 1. Cherche dans le Signal local
     const local = this.products().find(
       p => p.codeBarre != null && p.codeBarre.trim().toLowerCase() === code.trim().toLowerCase()
     );
     if (local) return local;
 
-    // 2. Fallback: try the backend API
-    if (USE_BACKEND) {
-      try {
-        const dto = await firstValueFrom(
-          this.http.get<ProductDto>(`${API_BASE_URL}/api/Products/by-barcode/${encodeURIComponent(code)}`)
-        );
-        return dto ? this.dtoToProduct(dto) : null;
-      } catch {
-        return null;
-      }
+    // 2. Cherche en base de données si inconnu
+    try {
+      const dto = await firstValueFrom(
+        this.http.get<ProductDto>(`${API_BASE_URL}/api/Products/by-barcode/${encodeURIComponent(code)}`)
+      );
+      return dto ? this.dtoToProduct(dto) : null;
+    } catch {
+      return null;
     }
-
-    return null;
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }

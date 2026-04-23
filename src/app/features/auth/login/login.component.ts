@@ -2,7 +2,6 @@
  * Login Component
  * Handles user authentication.
  * Collects email and password credentials and authenticates with the auth service.
- * Displays mock test accounts for development and testing.
  */
 
 import { Component, signal, computed } from '@angular/core';
@@ -10,7 +9,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { USE_BACKEND } from '../../../app.config';
 
 const ALLOWED_DOMAINS = ['@pgh.com', '@inventaire.ma'];
 const MIN_PASSWORD_LENGTH = 6;
@@ -30,8 +28,6 @@ export class LoginComponent {
   isLoading = signal(false);
   errorMessage = signal('');
   formSubmitted = signal(false);
-
-  useBackend = USE_BACKEND;
 
   emailError = computed(() => {
     if (!this.formSubmitted()) return '';

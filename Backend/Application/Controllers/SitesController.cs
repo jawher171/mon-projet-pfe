@@ -13,6 +13,8 @@ using System.Collections.Generic;
 
 namespace Application.Controllers
 {
+    // Contrôleur de gestion des Sites géographiques.
+    // Délégué via MediatR (CQRS) pour garder le contrôleur léger.
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]

@@ -15,6 +15,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Controllers
 {
+    // Contrôleur de gestion des produits (Catalogue)
+    // Utilise MediatR pour envoyer des requêtes et commandes génériques sans surcharger le contrôleur.
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]

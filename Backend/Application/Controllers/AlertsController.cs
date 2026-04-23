@@ -16,6 +16,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Controllers
 {
+    // Contrôleur des Alertes (seuils de sécurité, stock zéro, etc.)
+    // Centralise la logique complexe pour savoir qui a le droit de voir quelle alerte (Propriétaire vs Admin).
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
@@ -196,11 +198,12 @@ namespace Application.Controllers
             Guid userId,
             IReadOnlyDictionary<Guid, List<StockMovement>> movementsByStock)
         {
-            // Stock state alerts are system-level and must remain visible to all users
-            // that already have permission to view alerts.
+            // Les alertes de stock brut (comme OUT_OF_STOCK) sont au niveau du système 
+            // et doivent rester visibles pour tout le monde ayant la permission "view_alerts".
             if (IsSystemStockAlertType(alert.Type))
                 return true;
 
+            // Sinon, on cherche l'utilisateur qui a fait la dernière action avant le déclenchement de l'alerte
             var ownerMovement = GetAlertOwnerMovement(alert, movementsByStock);
             return ownerMovement?.Id_u == userId;
         }
@@ -214,7 +217,8 @@ namespace Application.Controllers
 
             var referenceDate = alert.DateCreation;
 
-            // Owner = user who made the most recent movement for this stock at/before the alert creation timestamp.
+            // Propriétaire = l'utilisateur qui a fait le mouvement de stock le plus récent 
+            // exactement au moment (ou juste avant) le déclenchement de l'alerte.
             var ownerMovement = stockMovements
                 .Where(m => m.DateMouvement <= referenceDate)
                 .OrderByDescending(m => m.DateMouvement)

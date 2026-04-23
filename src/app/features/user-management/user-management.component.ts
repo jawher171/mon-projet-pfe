@@ -5,7 +5,6 @@ import { User } from '../../core/models/user.model';
 import { UserRole } from '../../core/models/role.model';
 import { UserService } from '../../core/services/user.service';
 import { RolesService } from '../../core/services/roles.service';
-import { USE_BACKEND } from '../../app.config';
 
 @Pipe({ name: 'filterUsers', standalone: true })
 export class FilterUsersPipe implements PipeTransform {
@@ -22,7 +21,6 @@ export class FilterUsersPipe implements PipeTransform {
   styleUrls: ['./user-management.component.scss']
 })
 export class UserManagementComponent implements OnInit {
-  readonly backendMode = USE_BACKEND;
 
   /** Search input value for filtering the user list */
   searchTerm = signal('');

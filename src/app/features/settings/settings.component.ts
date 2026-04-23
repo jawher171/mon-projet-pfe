@@ -111,19 +111,28 @@ export class SettingsComponent implements OnInit {
   /** Track save feedback */
   saved = signal(false);
 
-  /** Role management */
+  /** Role management - Create */
   showAddRoleModal = signal(false);
   newRoleName = signal('');
   newRoleDescription = signal('');
   roleError = signal('');
   savingRole = signal(false);
 
+  /** Role management - Edit */
+  showEditRoleModal = signal(false);
+  editRoleName = signal('');
+  editRoleDescription = signal('');
+  editRoleOriginalNom = signal('');
+  editRoleError = signal('');
+  savingEditRole = signal(false);
+
+  /** Role management - Delete */
   showDeleteRoleModal = signal(false);
   roleToDelete = signal<Role | null>(null);
   deletingRole = signal(false);
   deleteRoleError = signal('');
 
-  /** Built-in roles that cannot be deleted */
+  /** Built-in roles that cannot be deleted or renamed */
   readonly protectedRoles = ['admin', 'gestionnaire_de_stock', 'operateur'];
 
   async ngOnInit(): Promise<void> {
@@ -277,7 +286,8 @@ export class SettingsComponent implements OnInit {
     return value.charAt(0).toUpperCase() + value.slice(1);
   }
 
-  // ── Role CRUD ──────────────────────────────────
+  // ── Role CREATE ──────────────────────────────────
+  // Ouvre le modal de création
   openAddRoleModal() {
     this.newRoleName.set('');
     this.newRoleDescription.set('');
@@ -285,10 +295,12 @@ export class SettingsComponent implements OnInit {
     this.showAddRoleModal.set(true);
   }
 
+  // Ferme le modal de création
   closeAddRoleModal() {
     this.showAddRoleModal.set(false);
   }
 
+  // Validation et envoi du nouveau rôle au backend
   async saveNewRole() {
     const name = this.newRoleName().trim();
     if (!name) {
@@ -299,6 +311,23 @@ export class SettingsComponent implements OnInit {
       this.roleError.set('Le nom ne doit contenir que des lettres, chiffres, tirets ou underscores.');
       return;
     }
+    // Un nom 100% numérique est refusé (ex: "1234")
+    if (!/[A-Za-zÀ-ÿ]/.test(name)) {
+      this.roleError.set('Le nom du rôle doit contenir au moins une lettre.');
+      return;
+    }
+
+    // Vérification de doublon côté Frontend (UX avant même de requêter l'API)
+    const key = name.toLowerCase();
+    const existing = this.authorizationService.rolesSignal();
+    const isDuplicate = Object.values(existing).some(
+      r => r.nom.toLowerCase() === key
+    );
+    if (isDuplicate) {
+      this.roleError.set(`Le rôle "${name}" existe déjà.`);
+      return;
+    }
+
     this.savingRole.set(true);
     this.roleError.set('');
     const result = await this.rolesService.createRole(name, this.newRoleDescription().trim() || undefined);
@@ -312,6 +341,70 @@ export class SettingsComponent implements OnInit {
     }
   }
 
+  // ── Role EDIT ──────────────────────────────────
+  // Initialise les valeurs dans le modal de modification
+  openEditRoleModal(role: Role) {
+    this.editRoleOriginalNom.set(role.nom);
+    this.editRoleName.set((role as { label?: string }).label ?? role.nom);
+    this.editRoleDescription.set(role.description ?? '');
+    this.editRoleError.set('');
+    this.showEditRoleModal.set(true);
+  }
+
+  // Ferme le modal d'édition
+  closeEditRoleModal() {
+    this.showEditRoleModal.set(false);
+  }
+
+  // Validation et envoi des modifications au backend
+  async saveEditRole() {
+    const name = this.editRoleName().trim();
+    if (!name) {
+      this.editRoleError.set('Le nom du rôle est obligatoire.');
+      return;
+    }
+    if (!/^[A-Za-zÀ-ÿ0-9_\s\-]+$/.test(name)) {
+      this.editRoleError.set('Le nom ne doit contenir que des lettres, chiffres, tirets ou underscores.');
+      return;
+    }
+    // Règle: un nom 100% num n'est pas autorisé
+    if (!/[A-Za-zÀ-ÿ]/.test(name)) {
+      this.editRoleError.set('Le nom du rôle doit contenir au moins une lettre.');
+      return;
+    }
+
+    // Sécurité: Si on renomme, on vérifie que le nom n'est pas déjà pris
+    const newKey = name.toLowerCase();
+    const originalKey = this.editRoleOriginalNom().toLowerCase();
+    if (newKey !== originalKey) {
+      const existing = this.authorizationService.rolesSignal();
+      const isDuplicate = Object.values(existing).some(
+        r => r.nom.toLowerCase() === newKey
+      );
+      if (isDuplicate) {
+        this.editRoleError.set(`Le rôle "${name}" existe déjà.`);
+        return;
+      }
+    }
+
+    this.savingEditRole.set(true);
+    this.editRoleError.set('');
+    const result = await this.rolesService.updateRole(
+      this.editRoleOriginalNom(),
+      name,
+      this.editRoleDescription().trim() || undefined
+    );
+    this.savingEditRole.set(false);
+    if (result.success) {
+      this.closeEditRoleModal();
+      this.saved.set(true);
+      setTimeout(() => this.saved.set(false), 2000);
+    } else {
+      this.editRoleError.set(result.message ?? 'Erreur lors de la modification.');
+    }
+  }
+
+  // ── Role DELETE ──────────────────────────────────
   openDeleteRoleModal(role: Role) {
     this.roleToDelete.set(role);
     this.deleteRoleError.set('');
@@ -343,3 +436,4 @@ export class SettingsComponent implements OnInit {
     return this.protectedRoles.includes(role.nom.toLowerCase());
   }
 }
+

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, Observable, tap } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Category } from '../models/category.model';
-import { API_BASE_URL, USE_BACKEND } from '../../app.config';
+import { API_BASE_URL } from '../../app.config';
 
 interface CategoryDto {
   id?: string | number;
@@ -14,11 +14,7 @@ interface CategoryDto {
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
   private readonly http = inject(HttpClient);
-  private categories = signal<Category[]>([
-    { id_c: 1, categorieLibelle: 'Électronique' },
-    { id_c: 2, categorieLibelle: 'Consommables' },
-    { id_c: 3, categorieLibelle: 'Pièces de rechange' }
-  ]);
+  private categories = signal<Category[]>([]);
 
   getCategories() {
     return this.categories;
@@ -38,44 +34,15 @@ export class CategoryService {
   }
 
   async fetchCategories(): Promise<Category[]> {
-    if (USE_BACKEND) {
-      const dtos = await firstValueFrom(this.http.get<CategoryDto[]>(`${API_BASE_URL}/api/Categories/GetCategories`));
-      const mapped = (dtos ?? []).map(d => this.dtoToCategory(d));
-      this.categories.set(mapped);
-      return mapped;
-    }
-
-    await this.delay(300);
-    return this.categories();
+    const dtos = await firstValueFrom(this.http.get<CategoryDto[]>(`${API_BASE_URL}/api/Categories/GetCategories`));
+    const mapped = (dtos ?? []).map(d => this.dtoToCategory(d));
+    this.categories.set(mapped);
+    return mapped;
   }
 
   async getCategory(id: string | number): Promise<Category | undefined> {
-    if (USE_BACKEND) {
-      const dto = await firstValueFrom(this.http.get<CategoryDto>(`${API_BASE_URL}/api/Categories/GetCategory/${id}`));
-      return dto ? this.dtoToCategory(dto) : undefined;
-    }
-
-    await this.delay(200);
-    return this.categories().find(c => String(c.id_c) === String(id));
-  }
-
-  addCategorySync(libelle: string): Category {
-    const normalized = libelle.trim();
-    const existing = this.categories().find(
-      c => c.categorieLibelle.toLowerCase() === normalized.toLowerCase()
-    );
-
-    if (existing) {
-      return existing;
-    }
-
-    const newCategory: Category = {
-      id_c: this.generateId(),
-      categorieLibelle: normalized
-    };
-
-    this.categories.update(categories => [...categories, newCategory]);
-    return newCategory;
+    const dto = await firstValueFrom(this.http.get<CategoryDto>(`${API_BASE_URL}/api/Categories/GetCategory/${id}`));
+    return dto ? this.dtoToCategory(dto) : undefined;
   }
 
   async addCategoryApi(libelle: string): Promise<Category> {
@@ -85,43 +52,32 @@ export class CategoryService {
     );
     if (existing) return existing;
 
-    if (USE_BACKEND) {
-      const dto = { libelle: normalized };
-      const result = await firstValueFrom(
-        this.http.post<CategoryDto>(`${API_BASE_URL}/api/Categories/AddCategory`, dto)
-      );
-      const created = this.dtoToCategory(result);
-      this.categories.update(categories => [...categories, created]);
-      return created;
-    }
-    return this.addCategorySync(normalized);
+    const dto = { libelle: normalized };
+    const result = await firstValueFrom(
+      this.http.post<CategoryDto>(`${API_BASE_URL}/api/Categories/AddCategory`, dto)
+    );
+    const created = this.dtoToCategory(result);
+    this.categories.update(categories => [...categories, created]);
+    return created;
   }
 
   /** Update an existing category */
   async updateCategoryApi(id: string | number, libelle: string): Promise<Category> {
     const normalized = libelle.trim();
-    if (USE_BACKEND) {
-      const dto = { id: String(id), libelle: normalized };
-      const result = await firstValueFrom(
-        this.http.put<CategoryDto>(`${API_BASE_URL}/api/Categories/UpdateCategory`, dto)
-      );
-      const updated = this.dtoToCategory(result);
-      this.categories.update(cats => cats.map(c => String(c.id_c) === String(id) ? updated : c));
-      return updated;
-    }
-    // Local mode
-    const updated: Category = { id_c: id, categorieLibelle: normalized };
+    const dto = { id: String(id), libelle: normalized };
+    const result = await firstValueFrom(
+      this.http.put<CategoryDto>(`${API_BASE_URL}/api/Categories/UpdateCategory`, dto)
+    );
+    const updated = this.dtoToCategory(result);
     this.categories.update(cats => cats.map(c => String(c.id_c) === String(id) ? updated : c));
     return updated;
   }
 
   /** Delete a category */
   async deleteCategoryApi(id: string | number): Promise<boolean> {
-    if (USE_BACKEND) {
-      await firstValueFrom(
-        this.http.delete(`${API_BASE_URL}/api/Categories/DeleteCategory/${id}`)
-      );
-    }
+    await firstValueFrom(
+      this.http.delete(`${API_BASE_URL}/api/Categories/DeleteCategory/${id}`)
+    );
     this.categories.update(cats => cats.filter(c => String(c.id_c) !== String(id)));
     return true;
   }
@@ -133,9 +89,5 @@ export class CategoryService {
     }, 0);
 
     return maxId + 1;
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }

@@ -7,7 +7,7 @@ import { Site, SiteFilter, SITE_TYPES } from '../models/site.model';
 import { inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { API_BASE_URL, USE_BACKEND } from '../../app.config';
+import { API_BASE_URL } from '../../app.config';
 
 interface SiteDto {
   id_site?: string;
@@ -28,10 +28,7 @@ interface SiteDto {
 @Injectable({ providedIn: 'root' })
 export class SiteService {
   private readonly http = inject(HttpClient);
-  private sitesSignal = signal<Site[]>([
-    { id: 1, nom: 'poulina pricipale', adresse: 'Zone industriel', ville: 'hammem lif', codeFiscale: '20000', telephone: '+212 5XX XXX XXX', type: 'warehouse', capacite: 10000 },
-    { id: 2, nom: 'mazzraa sousse', adresse: 'Avenue Mohammed V', ville: 'sousse', codeFiscale: '10000', type: 'store', capacite: 500 }
-  ]);
+  private sitesSignal = signal<Site[]>([]);
 
   getSites() {
     return this.sitesSignal;
@@ -54,21 +51,15 @@ export class SiteService {
   }
 
   async fetchSites(): Promise<Site[]> {
-    if (USE_BACKEND) {
-      const dtos = await firstValueFrom(this.http.get<SiteDto[]>(`${API_BASE_URL}/api/Sites/GetSites`));
-      const mapped = (dtos ?? []).map(d => this.dtoToSite(d));
-      this.sitesSignal.set(mapped);
-      return mapped;
-    }
-    return this.sitesSignal();
+    const dtos = await firstValueFrom(this.http.get<SiteDto[]>(`${API_BASE_URL}/api/Sites/GetSites`));
+    const mapped = (dtos ?? []).map(d => this.dtoToSite(d));
+    this.sitesSignal.set(mapped);
+    return mapped;
   }
 
   async fetchSite(id: string | number): Promise<Site | undefined> {
-    if (USE_BACKEND) {
-      const dto = await firstValueFrom(this.http.get<SiteDto>(`${API_BASE_URL}/api/Sites/GetSite/${id}`));
-      return dto ? this.dtoToSite(dto) : undefined;
-    }
-    return this.getSiteById(id);
+    const dto = await firstValueFrom(this.http.get<SiteDto>(`${API_BASE_URL}/api/Sites/GetSite/${id}`));
+    return dto ? this.dtoToSite(dto) : undefined;
   }
 
   getActiveSites() {
@@ -99,80 +90,50 @@ export class SiteService {
     return this.sitesSignal().find(s => String(s.id) === String(id));
   }
 
-  addSite(site: Omit<Site, 'id'>): Site {
-    const newSite: Site = { ...site, id: 'site_' + Date.now() };
-    this.sitesSignal.update(sites => [...sites, newSite]);
-    return newSite;
-  }
-
   async addSiteApi(site: Omit<Site, 'id'>): Promise<Site> {
-    if (USE_BACKEND) {
-      const dto: Partial<SiteDto> = {
-        nom: site.nom,
-        adresse: site.adresse,
-        ville: site.ville,
-        code_fiscale: site.codeFiscale,
-        telephone: site.telephone,
-        email: site.email,
-        responsableSite: site.responsableSite,
-        type: site.type,
-        capacite: site.capacite,
-        estEntrepotPrincipal: site.estEntrepotPrincipal ?? false
-      };
-      const result = await firstValueFrom(this.http.post<SiteDto>(`${API_BASE_URL}/api/Sites/AddSite`, dto));
-      const created = this.dtoToSite(result);
-      this.sitesSignal.update(sites => [...sites, created]);
-      return created;
-    }
-    return this.addSite(site);
-  }
-
-  updateSite(id: string | number, updates: Partial<Site>): boolean {
-    const index = this.sitesSignal().findIndex(s => String(s.id) === String(id));
-    if (index === -1) return false;
-    this.sitesSignal.update(sites => {
-      const updated = [...sites];
-      updated[index] = { ...updated[index], ...updates };
-      return updated;
-    });
-    return true;
+    const dto: Partial<SiteDto> = {
+      nom: site.nom,
+      adresse: site.adresse,
+      ville: site.ville,
+      code_fiscale: site.codeFiscale,
+      telephone: site.telephone,
+      email: site.email,
+      responsableSite: site.responsableSite,
+      type: site.type,
+      capacite: site.capacite,
+      estEntrepotPrincipal: site.estEntrepotPrincipal ?? false
+    };
+    const result = await firstValueFrom(this.http.post<SiteDto>(`${API_BASE_URL}/api/Sites/AddSite`, dto));
+    const created = this.dtoToSite(result);
+    this.sitesSignal.update(sites => [...sites, created]);
+    return created;
   }
 
   async updateSiteApi(id: string | number, updates: Partial<Site>): Promise<boolean> {
-    if (USE_BACKEND) {
-      const current = this.sitesSignal().find(s => String(s.id) === String(id));
-      if (!current) return false;
-      const merged = { ...current, ...updates };
-      const dto: Partial<SiteDto> = {
-        id_site: String(id),
-        nom: merged.nom,
-        adresse: merged.adresse,
-        ville: merged.ville,
-        code_fiscale: merged.codeFiscale,
-        telephone: merged.telephone,
-        email: merged.email,
-        responsableSite: merged.responsableSite,
-        type: merged.type,
-        capacite: merged.capacite,
-        estEntrepotPrincipal: merged.estEntrepotPrincipal ?? false
-      };
-      const result = await firstValueFrom(this.http.put<SiteDto>(`${API_BASE_URL}/api/Sites/UpdateSite`, dto));
-      const updated = this.dtoToSite(result);
-      this.sitesSignal.update(sites => sites.map(s => String(s.id) === String(id) ? updated : s));
-      return true;
-    }
-    return this.updateSite(id, updates);
-  }
-
-  deleteSite(id: string | number): boolean {
-    this.sitesSignal.update(sites => sites.filter(s => String(s.id) !== String(id)));
+    const current = this.sitesSignal().find(s => String(s.id) === String(id));
+    if (!current) return false;
+    const merged = { ...current, ...updates };
+    const dto: Partial<SiteDto> = {
+      id_site: String(id),
+      nom: merged.nom,
+      adresse: merged.adresse,
+      ville: merged.ville,
+      code_fiscale: merged.codeFiscale,
+      telephone: merged.telephone,
+      email: merged.email,
+      responsableSite: merged.responsableSite,
+      type: merged.type,
+      capacite: merged.capacite,
+      estEntrepotPrincipal: merged.estEntrepotPrincipal ?? false
+    };
+    const result = await firstValueFrom(this.http.put<SiteDto>(`${API_BASE_URL}/api/Sites/UpdateSite`, dto));
+    const updated = this.dtoToSite(result);
+    this.sitesSignal.update(sites => sites.map(s => String(s.id) === String(id) ? updated : s));
     return true;
   }
 
   async deleteSiteApi(id: string | number): Promise<boolean> {
-    if (USE_BACKEND) {
-      await firstValueFrom(this.http.delete(`${API_BASE_URL}/api/Sites/DeleteSite/${id}`));
-    }
+    await firstValueFrom(this.http.delete(`${API_BASE_URL}/api/Sites/DeleteSite/${id}`));
     this.sitesSignal.update(sites => sites.filter(s => String(s.id) !== String(id)));
     return true;
   }

@@ -19,7 +19,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { QrScanModalComponent } from '../../shared/components/qr-scan-modal.component';
 import { Product } from '../../core/models/product.model';
 import { MovementReason, MOVEMENT_REASONS } from '../../core/models/movement.model';
-import { API_BASE_URL, USE_BACKEND } from '../../app.config';
+import { API_BASE_URL } from '../../app.config';
 import { environment } from '../../../environments/environment';
 import { firstValueFrom, Subscription } from 'rxjs';
 
@@ -215,7 +215,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
       void this.stockService.fetchStocks().catch(() => undefined);
     }
 
-    if (USE_BACKEND && hasToken) {
+    if (hasToken) {
       void this.loadHistoryFromBackend();
     }
   }
@@ -224,16 +224,6 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.scanSub?.unsubscribe();
     this.stopCamera();
     void this.scanSession.stop();
-  }
-
-  // Simulate barcode scanning
-  /**
-   * Simulate a random barcode scan
-   */
-  simulateScan() {
-    const barcodes = ['1234567890123', '2345678901234', '3456789012345', '9999999999999'];
-    const randomBarcode = barcodes[Math.floor(Math.random() * barcodes.length)];
-    this.processBarcode(randomBarcode);
   }
 
   // Manual barcode entry
@@ -255,7 +245,12 @@ export class ScannerComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Opens a QR modal so the user can pair their phone scanner with this PC session. */
+  /** 
+   * RELAIS SANS FIL (QR) :
+   * Génère un code QR unique sur l'ordinateur. 
+   * Si ce QR est scanné par un mobile, les deux appareils sont "pairés".
+   * Le mobile agit alors comme une douchette sans fil pour envoyer les codes à ce PC.
+   */
   async openQrPairing(): Promise<void> {
     if (this.phoneMode()) return;
 
@@ -291,10 +286,14 @@ export class ScannerComponent implements OnInit, OnDestroy {
     void this.scanSession.stop();
   }
 
-  // Process scanned barcode
+  // Traitement principal d'un code scanné (via douchette USB, Camera, ou Relais Phone)
   async processBarcode(barcode: string) {
     if (this.isScanning()) return;
+
+    // Normalisation du texte scanné pour éviter les erreurs d'espace ou d'URL
     const normalizedBarcode = this.extractScannedCode(barcode);
+    
+    // Anti-rebond (Debounce) : évite de scanner le même produit 5 fois de suite en 1 seconde
     if (!normalizedBarcode || this.isRecentlyProcessed(normalizedBarcode)) return;
 
     this.lastProcessedCode = normalizedBarcode;
@@ -368,7 +367,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   private async loadHistoryFromBackend(): Promise<void> {
-    if (!USE_BACKEND || !this.hasAuthToken()) return;
+    if (!this.hasAuthToken()) return;
 
     try {
       const dtos = await firstValueFrom(
@@ -389,7 +388,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   private async saveScanToBackend(result: ScanResult): Promise<void> {
-    if (!USE_BACKEND || !this.hasAuthToken()) return;
+    if (!this.hasAuthToken()) return;
 
     const payload: ScanHistoryDto = {
       barcode: result.barcode,
@@ -620,10 +619,6 @@ export class ScannerComponent implements OnInit, OnDestroy {
     }
   }
 
-  findProductByBarcode(barcode: string): Product | null {
-    return this.products().find(p => p.codeBarre === barcode) || null;
-  }
-
   // Quick actions
   setQuickActionMode(mode: 'entry' | 'exit' | 'view' | null) {
     this.quickActionMode.set(mode);
@@ -681,6 +676,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
     }
   }
 
+  // ── SCANNER CAMÉRA ──
+  // Utilise la librairie ZXing pour lire les codes-barres directement depuis la webcam
   async startCamera() {
     this.cameraError.set('');
     try {
@@ -734,7 +731,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   private async clearHistoryInBackend(): Promise<void> {
-    if (!USE_BACKEND || !this.hasAuthToken()) return;
+    if (!this.hasAuthToken()) return;
     try {
       const clearAllSuffix = this.authService.isAdmin() ? '?all=true' : '';
       await firstValueFrom(this.http.delete(`${API_BASE_URL}/api/StockMovements/ClearScanHistory${clearAllSuffix}`));

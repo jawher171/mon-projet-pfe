@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Application.Dtos;
 using Application.Security;
@@ -12,7 +13,7 @@ using Domain.Models;
 
 namespace Application.Controllers
 {
-    /// <summary>Roles and permissions API. Aligns with frontend Settings (role.model, Permission codes).</summary>
+    // Contrôleur de gestion des rôles, accessible uniquement avec la permission "manage_roles"
     [Route("api/[controller]")]
     [ApiController]
     [PermissionAuthorize("manage_roles")]
@@ -20,7 +21,7 @@ namespace Application.Controllers
     {
         private readonly AppDbContext _context;
 
-        // Canonical permissions expected by frontend and API access model.
+        // Catalogue principal des permissions de l'application
         private static readonly (string Code, string Description)[] PermissionCatalog = new[]
         {
             ("view_dashboard", "Voir le tableau de bord"),
@@ -42,6 +43,7 @@ namespace Application.Controllers
             ("manage_reapprovisionnement", "Gérer le réapprovisionnement")
         };
 
+        // Liste des vieilles permissions à supprimer de la base
         private static readonly string[] DeprecatedPermissionCodes =
         {
             "basic_entry_exit"
@@ -52,10 +54,11 @@ namespace Application.Controllers
             _context = context;
         }
 
-        /// <summary>Get all roles with their permissions. Frontend Settings uses this for role-permission management.</summary>
+        // Récupérer tous les rôles et leurs permissions
         [HttpGet]
         public async Task<IEnumerable<RoleDto>> GetRoles()
         {
+            // Toujours s'assurer que la table Permissions est à jour
             await EnsurePermissionCatalogAsync();
 
             var roles = await _context.role
@@ -75,7 +78,7 @@ namespace Application.Controllers
             });
         }
 
-        /// <summary>Get full permission catalog from DB (auto-synced with canonical codes).</summary>
+        // Récupérer toutes les permissions disponibles
         [HttpGet("permissions")]
         public async Task<IEnumerable<PermissionDto>> GetPermissions()
         {
@@ -93,7 +96,7 @@ namespace Application.Controllers
             return permissions;
         }
 
-        /// <summary>Update permissions for a role. Frontend Settings calls this when toggling permissions.</summary>
+        // Mettre à jour les permissions d'un rôle
         [HttpPut("{roleName}/permissions")]
         public async Task<IActionResult> UpdateRolePermissions(string roleName, [FromBody] UpdateRolePermissionsRequest request)
         {
@@ -102,6 +105,7 @@ namespace Application.Controllers
 
             await EnsurePermissionCatalogAsync();
 
+            // Trouver le rôle ciblé
             var role = await _context.role
                 .Include(r => r.RolePermissions)
                 .ThenInclude(rp => rp.Permission)
@@ -115,7 +119,7 @@ namespace Application.Controllers
                 .Where(p => permissions.Contains(p.Code_p))
                 .ToDictionaryAsync(p => p.Code_p, p => p.permissionId);
 
-            // Auto-create any permission codes that don't exist yet in the Permission table
+            // Créer auto les permissions manquantes envoyées par le front
             var missingCodes = permissions.Distinct().Where(c => !existingPermIds.ContainsKey(c)).ToList();
             foreach (var code in missingCodes)
             {
@@ -129,8 +133,10 @@ namespace Application.Controllers
                 existingPermIds[code] = newPerm.permissionId;
             }
 
+            // Écraser les permissions actuelles...
             _context.rolepermission.RemoveRange(role.RolePermissions);
 
+            // ...et insérer les nouvelles
             foreach (var code in permissions.Distinct())
             {
                 if (existingPermIds.TryGetValue(code, out var permId))
@@ -166,6 +172,7 @@ namespace Application.Controllers
             return Ok(dto);
         }
 
+        // Synchroniser le catalogue en dur avec la BDD
         private async Task EnsurePermissionCatalogAsync()
         {
             var changed = false;
@@ -177,6 +184,7 @@ namespace Application.Controllers
                 p => p.Description,
                 StringComparer.OrdinalIgnoreCase);
 
+            // 1. Ajouter celles qui manquent
             var missing = PermissionCatalog
                 .Where(p => !existingSet.Contains(p.Code))
                 .ToList();
@@ -199,6 +207,7 @@ namespace Application.Controllers
                 changed = true;
             }
 
+            // 2. Mettre à jour les descriptions si besoin
             foreach (var permission in existingPermissions)
             {
                 if (string.IsNullOrWhiteSpace(permission.Code_p))
@@ -222,6 +231,7 @@ namespace Application.Controllers
                 }
             }
 
+            // 3. Supprimer les obsloètes
             var deprecatedPermissions = await _context.permission
                 .Where(p => DeprecatedPermissionCodes.Contains(p.Code_p))
                 .ToListAsync();
@@ -252,6 +262,7 @@ namespace Application.Controllers
             }
         }
 
+        // Fonction de secours si la desc n'est pas dans le catalogue
         private static string BuildDefaultPermissionDescription(string code)
         {
             if (string.IsNullOrWhiteSpace(code))
@@ -280,14 +291,22 @@ namespace Application.Controllers
             return normalized.Replace("_", " ");
         }
 
-        /// <summary>Create a new role. Returns 409 if role name already exists.</summary>
+        // Créer un nouveau rôle
         [HttpPost]
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleRequest request)
         {
             if (string.IsNullOrWhiteSpace(request?.Nom))
                 return BadRequest(new { message = "Le nom du rôle est obligatoire." });
 
-            var normalized = request.Nom.Trim().ToLower();
+            var trimmedName = request.Nom.Trim();
+
+            // Bloquer les noms composés 100% de nombres
+            if (!Regex.IsMatch(trimmedName, @"[A-Za-z\u00C0-\u024F]"))
+                return BadRequest(new { message = "Le nom du rôle doit contenir au moins une lettre." });
+
+            var normalized = trimmedName.ToLower();
+            
+            // Empêcher les doublons
             var exists = await _context.role.AnyAsync(r => r.Nom.ToLower() == normalized);
             if (exists)
                 return Conflict(new { message = "Ce rôle existe déjà." });
@@ -298,6 +317,7 @@ namespace Application.Controllers
                 Nom = normalized,
                 Description = request.Description?.Trim()
             };
+            
             _context.role.Add(role);
             await _context.SaveChangesAsync();
 
@@ -309,7 +329,61 @@ namespace Application.Controllers
             });
         }
 
-        /// <summary>Delete a role. Returns 400 if role is assigned to users (cannot delete used role).</summary>
+        // Mettre à jour NOM ou DESC d'un rôle
+        [HttpPut("{roleName}")]
+        public async Task<IActionResult> UpdateRole(string roleName, [FromBody] UpdateRoleRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(roleName))
+                return BadRequest(new { message = "Le nom du rôle est obligatoire." });
+
+            if (string.IsNullOrWhiteSpace(request?.Nom))
+                return BadRequest(new { message = "Le nouveau nom du rôle est obligatoire." });
+
+            var trimmedName = request.Nom.Trim();
+
+            // Bloquer les noms composés 100% de nombres
+            if (!Regex.IsMatch(trimmedName, @"[A-Za-z\u00C0-\u024F]"))
+                return BadRequest(new { message = "Le nom du rôle doit contenir au moins une lettre." });
+
+            var currentKey = roleName.Trim().ToLower();
+            var role = await _context.role
+                .Include(r => r.RolePermissions)
+                .ThenInclude(rp => rp.Permission)
+                .FirstOrDefaultAsync(r => r.Nom.ToLower() == currentKey);
+
+            if (role == null)
+                return NotFound(new { message = "Rôle introuvable." });
+
+            var newKey = request.Nom.Trim().ToLower();
+
+            // Si on renomme, vérifier que le nouveau nom n'est pas déjà pris
+            if (currentKey != newKey)
+            {
+                var duplicate = await _context.role.AnyAsync(r => r.Nom.ToLower() == newKey);
+                if (duplicate)
+                    return Conflict(new { message = $"Le rôle \"{request.Nom.Trim()}\" existe déjà." });
+            }
+
+            role.Nom = newKey;
+            role.Description = request.Description?.Trim();
+
+            await _context.SaveChangesAsync();
+
+            var dto = new RoleDto
+            {
+                Nom = role.Nom,
+                Description = role.Description,
+                Permissions = role.RolePermissions
+                    .Where(rp => rp.Permission != null && !string.IsNullOrEmpty(rp.Permission.Code_p))
+                    .Select(rp => rp.Permission!.Code_p)
+                    .Distinct()
+                    .ToList()
+            };
+
+            return Ok(dto);
+        }
+
+        // Supprimer un rôle (bloqué si utilisé par des comptes)
         [HttpDelete("{roleName}")]
         public async Task<IActionResult> DeleteRole(string roleName)
         {
@@ -324,6 +398,7 @@ namespace Application.Controllers
             if (role == null)
                 return NotFound(new { message = "Rôle introuvable." });
 
+            // Sécurité : On ne supprime pas un rôle attribué
             if (role.Users != null && role.Users.Any())
                 return BadRequest(new { message = "Impossible de supprimer ce rôle car il est assigné à des utilisateurs." });
 
@@ -335,7 +410,14 @@ namespace Application.Controllers
         }
     }
 
+    // DTOs (Data Transfer Objects) : formats utilisés pour communiquer avec le front
     public class CreateRoleRequest
+    {
+        public string Nom { get; set; } = string.Empty;
+        public string? Description { get; set; }
+    }
+
+    public class UpdateRoleRequest
     {
         public string Nom { get; set; } = string.Empty;
         public string? Description { get; set; }

@@ -1,14 +1,13 @@
 /**
  * User Service - User management (admin).
- * Uses backend API when USE_BACKEND=true, otherwise mock data.
+ * Uses backend API for all user operations.
  */
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { User } from '../models/user.model';
 import { UserRole } from '../models/role.model';
-import { API_BASE_URL, USE_BACKEND } from '../../app.config';
+import { API_BASE_URL } from '../../app.config';
 import { ROLES } from '../models/role.model';
-import { AuthorizationService } from './auth-authorization.service';
 import { AuthService } from './auth.service';
 
 interface UserDto {
@@ -24,7 +23,6 @@ interface UserDto {
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private readonly http = inject(HttpClient);
-  private readonly authorizationService = inject(AuthorizationService);
   private readonly authService = inject(AuthService);
   private readonly usersSignal = signal<User[]>([]);
   private readonly loadingSignal = signal(false);
@@ -60,12 +58,6 @@ export class UserService {
   async fetchUsers(): Promise<User[]> {
     this.loadingSignal.set(true);
     this.errorSignal.set(null);
-    if (!USE_BACKEND) {
-      const members = this.authorizationService.getMembers()();
-      this.usersSignal.set([...members]);
-      this.loadingSignal.set(false);
-      return members;
-    }
     try {
       const dtos = await this.http.get<UserDto[]>(`${API_BASE_URL}/api/Users`).toPromise();
       const list = (dtos ?? []).map(d => this.dtoToUser(d));
@@ -89,17 +81,6 @@ export class UserService {
     status?: 'active' | 'inactive';
   }): Promise<User | null> {
     this.errorSignal.set(null);
-    if (!USE_BACKEND) {
-      const user = this.authorizationService.addMember({
-        nom: data.nom,
-        prenom: data.prenom,
-        email: data.email,
-        role: data.role,
-        status: data.status ?? 'active'
-      });
-      this.usersSignal.update(u => [...u, user]);
-      return user;
-    }
     try {
       const d = await this.http.post<UserDto>(`${API_BASE_URL}/api/Users`, {
         nom: data.nom,
@@ -128,19 +109,6 @@ export class UserService {
     password: string;
   }>): Promise<User | null> {
     this.errorSignal.set(null);
-    if (!USE_BACKEND) {
-      const current = this.authService.currentUser();
-      if (!current) return null;
-      const updated: User = {
-        ...current,
-        nom: updates.nom ?? current.nom,
-        prenom: updates.prenom ?? current.prenom,
-        email: updates.email ?? current.email
-      };
-      this.authService.updateCurrentUser(updated);
-      this.usersSignal.update(u => u.map(m => m.id === current.id || String(m.id) === current.id ? updated : m));
-      return updated;
-    }
     try {
       const d = await this.http.put<UserDto>(`${API_BASE_URL}/api/Profile`, updates).toPromise();
       if (!d) return null;
@@ -173,14 +141,6 @@ export class UserService {
     status: 'active' | 'inactive';
   }>): Promise<User | null> {
     this.errorSignal.set(null);
-    if (!USE_BACKEND) {
-      const ok = this.authorizationService.updateMember(id, updates);
-      if (!ok) return null;
-      const members = this.authorizationService.getMembers()();
-      const user = members.find(m => String(m.id) === id);
-      this.usersSignal.set([...members]);
-      return user ?? null;
-    }
     try {
       const d = await this.http.put<UserDto>(`${API_BASE_URL}/api/Users/${id}`, updates).toPromise();
       if (!d) return null;
@@ -196,14 +156,6 @@ export class UserService {
 
   async changeRole(id: string, role: UserRole): Promise<User | null> {
     this.errorSignal.set(null);
-    if (!USE_BACKEND) {
-      const ok = this.authorizationService.changeRole(id, role);
-      if (!ok) return null;
-      const members = this.authorizationService.getMembers()();
-      const user = members.find(m => String(m.id) === id);
-      this.usersSignal.set([...members]);
-      return user ?? null;
-    }
     try {
       const d = await this.http.put<UserDto>(`${API_BASE_URL}/api/Users/${id}/role`, { role }).toPromise();
       if (!d) return null;
@@ -219,14 +171,6 @@ export class UserService {
 
   async toggleStatus(id: string, currentStatus: 'active' | 'inactive'): Promise<User | null> {
     this.errorSignal.set(null);
-    if (!USE_BACKEND) {
-      const ok = this.authorizationService.toggleMemberStatus(id);
-      if (!ok) return null;
-      const members = this.authorizationService.getMembers()();
-      const user = members.find(m => String(m.id) === id);
-      this.usersSignal.set([...members]);
-      return user ?? null;
-    }
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
     return this.updateUser(id, { status: newStatus });
   }
@@ -258,19 +202,6 @@ export class UserService {
       }
     }
 
-    if (!USE_BACKEND) {
-      const ok = this.authorizationService.deleteMember(id);
-      if (!ok) {
-        const msg = targetUser?.role === 'admin'
-          ? 'Impossible de supprimer cet administrateur car il s\'agit du seul compte administrateur actif.'
-          : 'Impossible de supprimer cet utilisateur.';
-        this.errorSignal.set(msg);
-        throw new Error(msg);
-      }
-
-      this.usersSignal.update(u => u.filter(m => m.id !== id && String(m.id) !== id));
-      return true;
-    }
     try {
       await this.http.delete(`${API_BASE_URL}/api/Users/${id}`).toPromise();
       this.usersSignal.update(u => u.filter(m => m.id !== id && String(m.id) !== id));

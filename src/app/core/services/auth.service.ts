@@ -4,7 +4,7 @@ import { User } from '../models/user.model';
 import { UserRole, Permission } from '../models/role.model';
 import { AuthorizationService } from './auth-authorization.service';
 import { RolesService } from './roles.service';
-import { API_BASE_URL, USE_BACKEND } from '../../app.config';
+import { API_BASE_URL } from '../../app.config';
 
 interface LoginResponse {
   token: string;
@@ -20,20 +20,6 @@ interface LoginResponse {
   };
 }
 
-const MOCK_ACCOUNTS: { email: string; password: string; user: User }[] = [
-  { email: 'admin@pgh.com', password: 'admin123', user: { id: 'user_001', email: 'admin@pgh.com', nom: 'Admin', prenom: 'Ahmed', role: 'admin', status: 'active', lastLogin: new Date() } },
-  { email: 'admin@inventaire.ma', password: 'admin123', user: { id: 'user_001a', email: 'admin@inventaire.ma', nom: 'Admin', prenom: 'Ahmed', role: 'admin', status: 'active', lastLogin: new Date() } },
-  { email: 'admin2@inventaire.ma', password: 'admin123', user: { id: 'user_001b', email: 'admin2@inventaire.ma', nom: 'Ben Ali', prenom: 'Yassine', role: 'admin', status: 'active', lastLogin: new Date() } },
-  { email: 'stock@pgh.com', password: 'stock123', user: { id: 'user_002', email: 'stock@pgh.com', nom: 'Zahra', prenom: 'Fatima', role: 'gestionnaire_de_stock', status: 'active', lastLogin: new Date() } },
-  { email: 'stock@inventaire.ma', password: 'stock123', user: { id: 'user_002a', email: 'stock@inventaire.ma', nom: 'Zahra', prenom: 'Fatima', role: 'gestionnaire_de_stock', status: 'active', lastLogin: new Date() } },
-  { email: 'operator@pgh.com', password: 'operator123', user: { id: 'user_003', email: 'operator@pgh.com', nom: 'Salah', prenom: 'Mohammed', role: 'operateur', status: 'active', lastLogin: new Date() } },
-  { email: 'operator@inventaire.ma', password: 'operator123', user: { id: 'user_003a', email: 'operator@inventaire.ma', nom: 'Salah', prenom: 'Mohammed', role: 'operateur', status: 'active', lastLogin: new Date() } },
-  { email: 'stock2@pgh.com', password: 'stock123', user: { id: 'user_004', email: 'stock2@pgh.com', nom: 'Amrani', prenom: 'Youssef', role: 'gestionnaire_de_stock', status: 'active', lastLogin: new Date() } },
-  { email: 'stock2@inventaire.ma', password: 'stock123', user: { id: 'user_004a', email: 'stock2@inventaire.ma', nom: 'Amrani', prenom: 'Youssef', role: 'gestionnaire_de_stock', status: 'active', lastLogin: new Date() } },
-  { email: 'operator2@pgh.com', password: 'operator123', user: { id: 'user_005', email: 'operator2@pgh.com', nom: 'Khaldi', prenom: 'Leila', role: 'operateur', status: 'active', lastLogin: new Date() } },
-  { email: 'operator2@inventaire.ma', password: 'operator123', user: { id: 'user_005a', email: 'operator2@inventaire.ma', nom: 'Khaldi', prenom: 'Leila', role: 'operateur', status: 'active', lastLogin: new Date() } }
-];
-
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly TOKEN_KEY = 'auth_token';
@@ -46,7 +32,7 @@ export class AuthService {
   isAuthenticated = signal<boolean>(this.hasToken());
 
   constructor() {
-    if (USE_BACKEND && this.hasToken()) {
+    if (this.hasToken()) {
       // Delay role preload until after AuthService construction to avoid DI cycle
       // with Http interceptor injecting AuthService during the first HTTP call.
       queueMicrotask(() => {
@@ -65,9 +51,6 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<boolean> {
-    if (!USE_BACKEND) {
-      return this.mockLogin(email, password);
-    }
     try {
       const res = await this.http.post<LoginResponse>(`${API_BASE_URL}/api/Authentification/login`, {
         email,
@@ -96,21 +79,6 @@ export class AuthService {
     } catch {
       return false;
     }
-  }
-
-  private mockLogin(email: string, password: string): boolean {
-    const emailNorm = (email ?? '').trim().toLowerCase();
-    const passwordNorm = (password ?? '').trim();
-    const account = MOCK_ACCOUNTS.find(a => a.email.toLowerCase() === emailNorm);
-    if (!account || account.user.status !== 'active') return false;
-    if (passwordNorm !== account.password) return false;
-
-    const userWithLogin: User = { ...account.user, lastLogin: new Date() };
-    localStorage.setItem(this.TOKEN_KEY, 'mock_token_' + Date.now());
-    localStorage.setItem(this.USER_KEY, JSON.stringify(userWithLogin));
-    this.currentUser.set(userWithLogin);
-    this.isAuthenticated.set(true);
-    return true;
   }
 
   logout(): void {
@@ -144,33 +112,15 @@ export class AuthService {
     const user = this.currentUser();
     if (!user) return false;
 
-    if (USE_BACKEND) {
-      const rolePermissions = this.authorizationService.rolesSignal()[user.role]?.permissions;
-      if (Array.isArray(rolePermissions)) {
-        return rolePermissions.some(p => p?.toLowerCase() === permission.toLowerCase());
-      }
-
-      const rawPermissions = Array.isArray(user.permissions) ? user.permissions : [];
-      return rawPermissions
-        .filter((p): p is string => typeof p === 'string')
-        .some(p => p.trim().toLowerCase() === permission.toLowerCase());
+    const rolePermissions = this.authorizationService.rolesSignal()[user.role]?.permissions;
+    if (Array.isArray(rolePermissions)) {
+      return rolePermissions.some(p => p?.toLowerCase() === permission.toLowerCase());
     }
 
-    // Backward compatibility while migrating from site-based to stock-based permissions.
-    if (permission === 'view_stocks') {
-      if (user.permissions?.includes('view_stocks') || user.permissions?.includes('view_sites')) return true;
-      if (this.authorizationService.hasPermission(user.role, 'view_stocks')) return true;
-      return this.authorizationService.hasPermission(user.role, 'view_sites');
-    }
-
-    if (permission === 'manage_stocks') {
-      if (user.permissions?.includes('manage_stocks') || user.permissions?.includes('manage_sites')) return true;
-      if (this.authorizationService.hasPermission(user.role, 'manage_stocks')) return true;
-      return this.authorizationService.hasPermission(user.role, 'manage_sites');
-    }
-
-    if (user.permissions?.includes(permission)) return true;
-    return this.authorizationService.hasPermission(user.role, permission);
+    const rawPermissions = Array.isArray(user.permissions) ? user.permissions : [];
+    return rawPermissions
+      .filter((p): p is string => typeof p === 'string')
+      .some(p => p.trim().toLowerCase() === permission.toLowerCase());
   }
 
   /** Returns the first route the current user can access to avoid redirect loops. */

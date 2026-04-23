@@ -24,7 +24,7 @@
   @if (saved()) {
     <div class="st-toast">
       <span class="material-symbols-rounded">check_circle</span>
-      Permissions mises à jour avec succès
+      Modifications enregistrées avec succès
     </div>
   }
 
@@ -41,9 +41,14 @@
             <span class="st-role-desc">{{ role.description || 'Rôle personnalisé' }}</span>
           </div>
           @if (!isProtectedRole(role)) {
-            <button class="st-role-delete" title="Supprimer ce rôle" (click)="openDeleteRoleModal(role)">
-              <span class="material-symbols-rounded">close</span>
-            </button>
+            <div class="st-role-actions">
+              <button class="st-role-edit" title="Modifier ce rôle" (click)="openEditRoleModal(role)">
+                <span class="material-symbols-rounded">edit</span>
+              </button>
+              <button class="st-role-delete" title="Supprimer ce rôle" (click)="openDeleteRoleModal(role)">
+                <span class="material-symbols-rounded">close</span>
+              </button>
+            </div>
           }
         </div>
         <div class="st-role-footer">
@@ -160,6 +165,59 @@
           <button class="st-btn primary" (click)="saveNewRole()" [disabled]="savingRole()">
             @if (savingRole()) { <span class="material-symbols-rounded spin">progress_activity</span> }
             Créer le rôle
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Edit Role Modal -->
+  @if (showEditRoleModal()) {
+    <div class="st-overlay" (click)="closeEditRoleModal()">
+      <div class="st-modal" (click)="$event.stopPropagation()">
+        <div class="st-modal-header">
+          <div class="st-modal-title">
+            <div class="st-modal-icon edit">
+              <span class="material-symbols-rounded">edit_note</span>
+            </div>
+            <div>
+              <h2>Modifier le rôle</h2>
+              <p>Modifier le nom et la description du rôle</p>
+            </div>
+          </div>
+          <button class="st-modal-close" (click)="closeEditRoleModal()">
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        </div>
+
+        <div class="st-modal-body">
+          @if (editRoleError()) {
+            <div class="st-form-error">
+              <span class="material-symbols-rounded">error</span>
+              <span>{{ editRoleError() }}</span>
+            </div>
+          }
+          <div class="st-field">
+            <label>Nom du rôle <span class="req">*</span></label>
+            <div class="st-input-wrap">
+              <span class="material-symbols-rounded">badge</span>
+              <input type="text" placeholder="Nom du rôle" [value]="editRoleName()" (input)="editRoleName.set($any($event.target).value)">
+            </div>
+          </div>
+          <div class="st-field">
+            <label>Description</label>
+            <div class="st-input-wrap">
+              <span class="material-symbols-rounded">notes</span>
+              <input type="text" placeholder="Description du rôle (optionnel)" [value]="editRoleDescription()" (input)="editRoleDescription.set($any($event.target).value)">
+            </div>
+          </div>
+        </div>
+
+        <div class="st-modal-footer">
+          <button class="st-btn cancel" (click)="closeEditRoleModal()">Annuler</button>
+          <button class="st-btn primary" (click)="saveEditRole()" [disabled]="savingEditRole()">
+            @if (savingEditRole()) { <span class="material-symbols-rounded spin">progress_activity</span> }
+            Enregistrer
           </button>
         </div>
       </div>

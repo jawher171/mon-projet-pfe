@@ -12,11 +12,8 @@ import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 
-/** API base URL - set when backend is ready */
+/** API base URL for the backend */
 export const API_BASE_URL = '/backend';
-
-/** When false, app uses mock data and works without backend */
-export const USE_BACKEND = true;
 
 /** 
  * Application configuration object that contains all providers.

@@ -8,7 +8,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { MouvementStock, MouvementFilter, MovementSummary, MovementReason, MOVEMENT_REASONS } from '../models/movement.model';
-import { API_BASE_URL, USE_BACKEND } from '../../app.config';
+import { API_BASE_URL } from '../../app.config';
 
 interface MovementDto {
   id_sm?: string;
@@ -60,8 +60,6 @@ export class MovementService {
   }
 
   private async fetchCustomReasonsFromBackend(): Promise<void> {
-    if (!USE_BACKEND) return;
-
     const reasons = await firstValueFrom(
       this.http.get<MovementReasonDto[]>(`${API_BASE_URL}/api/StockMovements/GetMovementReasons`)
     );
@@ -100,10 +98,6 @@ export class MovementService {
   }
 
   async fetchMovements(): Promise<MouvementStock[]> {
-    if (!USE_BACKEND) {
-      return this.movementsSignal();
-    }
-
     const [dtos] = await Promise.all([
       firstValueFrom(this.http.get<MovementDto[]>(`${API_BASE_URL}/api/StockMovements/GetStockMovements`)),
       this.fetchCustomReasonsFromBackend().catch(() => {
@@ -117,10 +111,9 @@ export class MovementService {
   }
 
   /**
-   * Get movements filtered by multiple criteria
-   * Sorts by most recent date first
-   * @param filter Movement filter criteria
-   * @returns Computed signal of filtered and sorted movements
+   * Filtre les mouvements de stock selon plusieurs critères (recherche texte, type, date).
+   * Retourne un "computed" Angular pour que la grille UI se mette à jour toute seule.
+   * Trie toujours du plus récent au plus ancien.
    */
   getFilteredMovements(filter: MouvementFilter) {
     return computed(() => {
@@ -165,49 +158,28 @@ export class MovementService {
   }
 
   /**
-   * Get a specific movement by ID
-   * @param id Movement identifier
-   * @returns Movement object or undefined if not found
-   */
-  getMovementById(id: string): MouvementStock | undefined {
-    return this.movementsSignal().find(m => m.id === id);
-  }
-
-  /**
-   * Record a new stock movement
-   * @param movement Movement data without auto-generated fields
-   * @returns Created movement object
+   * Crée un nouveau mouvement de stock (Entrée, Sortie, Transfert)
+   * Formate la date et convertit les IDs en chaîne de caractères pour l'API C#.
    */
   async addMovement(movement: Omit<MouvementStock, 'id'>): Promise<MouvementStock> {
-    if (USE_BACKEND) {
-      const dto: Partial<MovementDto> = {
-        dateMouvement: movement.dateMouvement instanceof Date ? movement.dateMouvement.toISOString() as unknown as Date : movement.dateMouvement,
-        raison: movement.raison,
-        quantite: movement.quantite,
-        type: movement.type ?? 'entry',
-        note: movement.note,
-        Id_s: movement.stockId ? String(movement.stockId) : undefined,
-        Id_u: movement.userId ? String(movement.userId) : undefined,
-        productId: movement.productId ? String(movement.productId) : undefined,
-        siteId: movement.siteId ? String(movement.siteId) : undefined,
-        destination: movement.destination
-      };
-      const result = await firstValueFrom(
-        this.http.post<MovementDto>(`${API_BASE_URL}/api/StockMovements/AddStockMovement`, dto)
-      );
-      const created = this.dtoToMovement(result);
-      this.movementsSignal.update(movements => [created, ...movements]);
-      return created;
-    }
-
-    const newMovement: MouvementStock = {
-      ...movement,
-      id: this.generateId(),
-      type: movement.type ?? 'entry'
+    const dto: Partial<MovementDto> = {
+      dateMouvement: movement.dateMouvement instanceof Date ? movement.dateMouvement.toISOString() as unknown as Date : movement.dateMouvement,
+      raison: movement.raison,
+      quantite: movement.quantite,
+      type: movement.type ?? 'entry',
+      note: movement.note,
+      Id_s: movement.stockId ? String(movement.stockId) : undefined,
+      Id_u: movement.userId ? String(movement.userId) : undefined,
+      productId: movement.productId ? String(movement.productId) : undefined,
+      siteId: movement.siteId ? String(movement.siteId) : undefined,
+      destination: movement.destination
     };
-
-    this.movementsSignal.update(movements => [newMovement, ...movements]);
-    return newMovement;
+    const result = await firstValueFrom(
+      this.http.post<MovementDto>(`${API_BASE_URL}/api/StockMovements/AddStockMovement`, dto)
+    );
+    const created = this.dtoToMovement(result);
+    this.movementsSignal.update(movements => [created, ...movements]);
+    return created;
   }
 
   /**
@@ -217,73 +189,52 @@ export class MovementService {
    * @returns true if successful, false if movement not found
    */
   async updateMovement(id: string, updates: Partial<MouvementStock>): Promise<boolean> {
-    if (USE_BACKEND) {
-      const current = this.movementsSignal().find(m => m.id === id);
-      if (!current) return false;
-      const merged = { ...current, ...updates };
-      const dto: Partial<MovementDto> = {
-        id_sm: String(id),
-        dateMouvement: merged.dateMouvement instanceof Date ? merged.dateMouvement.toISOString() as unknown as Date : merged.dateMouvement,
-        raison: merged.raison,
-        quantite: merged.quantite,
-        type: merged.type ?? 'entry',
-        note: merged.note,
-        Id_u: merged.userId ? String(merged.userId) : undefined
-      };
-      const result = await firstValueFrom(
-        this.http.put<MovementDto>(`${API_BASE_URL}/api/StockMovements/UpdateStockMovement`, dto)
-      );
-      const updated = this.dtoToMovement(result);
-      this.movementsSignal.update(movements => {
-        const idx = movements.findIndex(m => m.id === id);
-        if (idx === -1) return movements;
-        const copy = [...movements];
-        copy[idx] = updated;
-        return copy;
-      });
-      return true;
-    }
-
-    const index = this.movementsSignal().findIndex(m => m.id === id);
-    if (index === -1) return false;
-
+    const current = this.movementsSignal().find(m => m.id === id);
+    if (!current) return false;
+    const merged = { ...current, ...updates };
+    const dto: Partial<MovementDto> = {
+      id_sm: String(id),
+      dateMouvement: merged.dateMouvement instanceof Date ? merged.dateMouvement.toISOString() as unknown as Date : merged.dateMouvement,
+      raison: merged.raison,
+      quantite: merged.quantite,
+      type: merged.type ?? 'entry',
+      note: merged.note,
+      Id_u: merged.userId ? String(merged.userId) : undefined
+    };
+    const result = await firstValueFrom(
+      this.http.put<MovementDto>(`${API_BASE_URL}/api/StockMovements/UpdateStockMovement`, dto)
+    );
+    const updated = this.dtoToMovement(result);
     this.movementsSignal.update(movements => {
-      const updated = [...movements];
-  /**
-   * Delete a movement record
-   * @param id Movement identifier
-   * @returns true if successful, false if movement not found
-   */
-      updated[index] = { ...updated[index], ...updates };
-      return updated;
+      const idx = movements.findIndex(m => m.id === id);
+      if (idx === -1) return movements;
+      const copy = [...movements];
+      copy[idx] = updated;
+      return copy;
     });
     return true;
   }
 
+  /**
+   * Delete a movement record
+   * @param id Movement identifier
+   * @returns true if successful
+   */
   async deleteMovement(id: string): Promise<boolean> {
-    if (USE_BACKEND) {
-      await firstValueFrom(
-        this.http.delete(`${API_BASE_URL}/api/StockMovements/DeleteStockMovement/${id}`)
-      );
-      this.movementsSignal.update(movements => movements.filter(m => m.id !== id));
-      return true;
-    }
+    await firstValueFrom(
+      this.http.delete(`${API_BASE_URL}/api/StockMovements/DeleteStockMovement/${id}`)
+    );
+    this.movementsSignal.update(movements => movements.filter(m => m.id !== id));
+    return true;
+  }
 
-    const index = this.movementsSignal().findIndex(m => m.id === id);
-    if (index === -1) return false;
-/**
+  /**
    * Get movement summary statistics
-   * Includes entries/exits counts and top moving products
    * @param siteId Optional site filter
    * @param startDate Optional start date filter
    * @param endDate Optional end date filter
    * @returns Movement summary object
    */
-  
-    this.movementsSignal.update(movements => movements.filter(m => m.id !== id));
-    return true;
-  }
-
   getMovementSummary(siteId?: string, startDate?: Date, endDate?: Date): MovementSummary {
     let movements = this.movementsSignal();
 
@@ -371,45 +322,37 @@ export class MovementService {
    * @returns Generated reason value
    */
   async addCustomReason(label: string, type: 'entry' | 'exit' | 'transfer'): Promise<string> {
-    if (USE_BACKEND) {
-      const created = await firstValueFrom(
-        this.http.post<MovementReasonDto>(`${API_BASE_URL}/api/StockMovements/AddMovementReason`, {
-          label,
-          type
-        })
-      );
+    const created = await firstValueFrom(
+      this.http.post<MovementReasonDto>(`${API_BASE_URL}/api/StockMovements/AddMovementReason`, {
+        label,
+        type
+      })
+    );
 
-      const normalized = {
-        value: created.value,
-        label: created.label,
-        type: this.normalizeReasonType(created.type)
-      };
+    const normalized = {
+      value: created.value,
+      label: created.label,
+      type: this.normalizeReasonType(created.type)
+    };
 
-      this.customReasonsSignal.update(reasons => {
-        const idx = reasons.findIndex(r => r.value === normalized.value);
-        if (idx === -1) return [...reasons, normalized];
-        const copy = [...reasons];
-        copy[idx] = normalized;
-        return copy;
-      });
+    this.customReasonsSignal.update(reasons => {
+      const idx = reasons.findIndex(r => r.value === normalized.value);
+      if (idx === -1) return [...reasons, normalized];
+      const copy = [...reasons];
+      copy[idx] = normalized;
+      return copy;
+    });
 
-      return normalized.value;
-    }
-
-    const value = `custom_${type}_${Date.now()}`;
-    this.customReasonsSignal.update(reasons => [...reasons, { value, label, type }]);
-    return value;
+    return normalized.value;
   }
 
   /**
    * Delete a custom reason by value
    */
   async deleteCustomReason(value: string): Promise<void> {
-    if (USE_BACKEND) {
-      await firstValueFrom(
-        this.http.delete(`${API_BASE_URL}/api/StockMovements/DeleteMovementReason/${encodeURIComponent(value)}`)
-      );
-    }
+    await firstValueFrom(
+      this.http.delete(`${API_BASE_URL}/api/StockMovements/DeleteMovementReason/${encodeURIComponent(value)}`)
+    );
 
     this.customReasonsSignal.update(reasons => reasons.filter(r => r.value !== value));
   }
@@ -418,32 +361,25 @@ export class MovementService {
    * Update a custom reason's label
    */
   async updateCustomReason(value: string, newLabel: string): Promise<void> {
-    if (USE_BACKEND) {
-      const existing = this.customReasonsSignal().find(r => r.value === value);
-      if (!existing) return;
+    const existing = this.customReasonsSignal().find(r => r.value === value);
+    if (!existing) return;
 
-      const updated = await firstValueFrom(
-        this.http.put<MovementReasonDto>(`${API_BASE_URL}/api/StockMovements/UpdateMovementReason/${encodeURIComponent(value)}`, {
-          value,
-          label: newLabel,
-          type: existing.type
-        })
-      );
+    const updated = await firstValueFrom(
+      this.http.put<MovementReasonDto>(`${API_BASE_URL}/api/StockMovements/UpdateMovementReason/${encodeURIComponent(value)}`, {
+        value,
+        label: newLabel,
+        type: existing.type
+      })
+    );
 
-      const normalized = {
-        value: updated.value,
-        label: updated.label,
-        type: this.normalizeReasonType(updated.type)
-      };
-
-      this.customReasonsSignal.update(reasons =>
-        reasons.map(r => (r.value === value ? normalized : r))
-      );
-      return;
-    }
+    const normalized = {
+      value: updated.value,
+      label: updated.label,
+      type: this.normalizeReasonType(updated.type)
+    };
 
     this.customReasonsSignal.update(reasons =>
-      reasons.map(r => (r.value === value ? { ...r, label: newLabel } : r))
+      reasons.map(r => (r.value === value ? normalized : r))
     );
   }
 
@@ -485,55 +421,5 @@ export class MovementService {
       const qty = movement.quantite ?? 0;
       return (movement.type ?? 'entry') === 'entry' ? total + qty : total - qty;
     }, 0);
-  }
-
-  /**
-   * Calculate total stock quantity for a product across all sites
-   * @param productId Product identifier
-   * @returns Total stock quantity
-   */
-  getTotalStock(productId: string): number {
-    const movements = this.movementsSignal().filter(m => String(m.productId) === String(productId));
-
-    return movements.reduce((total, movement) => {
-      const qty = movement.quantite ?? 0;
-      return (movement.type ?? 'entry') === 'entry' ? total + qty : total - qty;
-    }, 0);
-  }
-
-  /**
-   * Get stock breakdown by site for a product
-   * @param productId Product identifier
-   * @returns Array of stock by site
-   */
-  getStockBySite(productId: string): { siteId: string; siteName: string; quantity: number }[] {
-    const movements = this.movementsSignal().filter(m => String(m.productId) === String(productId));
-    const siteMap = new Map<string, { siteName: string; quantity: number }>();
-
-    movements.forEach(movement => {
-      const sid = String(movement.siteId ?? '');
-      const existing = siteMap.get(sid) || { siteName: movement.siteNom ?? '', quantity: 0 };
-      const qty = movement.quantite ?? 0;
-      existing.quantity = (movement.type ?? 'entry') === 'entry' ? existing.quantity + qty : existing.quantity - qty;
-      siteMap.set(sid, existing);
-    });
-
-    return Array.from(siteMap.entries()).map(([siteId, data]) => ({
-      siteId,
-      siteName: data.siteName,
-      quantity: data.quantity
-    }));
-  }
-
-  private generateId(): string {
-    return 'mov_' + Math.random().toString(36).substring(2, 11);
-  }
-
-  private generateMovementNumber(type: 'entry' | 'exit'): string {
-    const prefix = type === 'entry' ? 'ENT' : 'SOR';
-    const date = new Date();
-    const dateStr = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}`;
-    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    return `${prefix}-${dateStr}-${random}`;
   }
 }

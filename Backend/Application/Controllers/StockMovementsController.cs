@@ -21,7 +21,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Controllers
 {
-    /// <summary>Thin controller: delegates business logic to dedicated CQRS handlers via MediatR.</summary>
+    /// <summary>
+    /// Contrôleur des mouvements de stock.
+    /// Utilise le design pattern CQRS (MediatR) : délègue la logique lourde à des requêtes et commandes indépendantes.
+    /// Supervise aussi l'historique des scans et les raisons de mouvements.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
@@ -46,6 +50,8 @@ namespace Application.Controllers
             _environment = environment;
         }
 
+        // Récupère l'historique des mouvements.
+        // Sécurité : Un Manager peut tout voir, un Opérateur ne voit que SES propres mouvements.
         [HttpGet("GetStockMovements")]
         [PermissionAuthorize("view_movements")]
         public async Task<ActionResult<IEnumerable<StockMovementDto>>> GetNotDeleted()
@@ -130,7 +136,8 @@ namespace Application.Controllers
             if (!currentUserId.HasValue)
                 return Unauthorized(new { message = "Utilisateur non authentifié." });
 
-            // Enforce actor from JWT; client cannot spoof movement owner.
+            // Force l'ID de l'utilisateur à partir du token JWT
+            // Cela empêche un utilisateur malveillant d'associer un mouvement à quelqu'un d'autre.
             dto.Id_u = currentUserId.Value;
 
             var result = await _mediator.Send(new CreateStockMovementCommand(dto));
@@ -425,6 +432,10 @@ namespace Application.Controllers
                 ReasonCatalogLock.Release();
             }
         }
+
+        // === LOGIQUE DE SAUVEGARDE LOCALE ===
+        // Le catalogue des raisons de mouvements et l'historique des douchette (scan)
+        // sont sauvegardés dans des fichiers JSON (App_Data) pour alléger la BDD principale.
 
         private string GetReasonCatalogPath()
         {

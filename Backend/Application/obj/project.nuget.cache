@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "6AINR3ndypQ=",
+  "dgSpecHash": "ilMCp00u0Jk=",
   "success": true,
-  "projectFilePath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Application\\Application.csproj",
+  "projectFilePath": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Application\\Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\jawher\\.nuget\\packages\\automapper\\9.0.0\\automapper.9.0.0.nupkg.sha512",
     "C:\\Users\\jawher\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\7.0.0\\automapper.extensions.microsoft.dependencyinjection.7.0.0.nupkg.sha512",

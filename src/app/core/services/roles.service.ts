@@ -1,11 +1,12 @@
 /**
- * Roles Service - Roles and permissions management.
- * Uses backend API when USE_BACKEND=true, otherwise local ROLES only.
+ * Service de gestion des Rôles.
+ * Il sert de pont entre le Front-end Angular et le Backend (API C#).
+ * Utilise les "Signals" Angular pour une réactivité optimale et synchronisée.
  */
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { API_BASE_URL, USE_BACKEND } from '../../app.config';
+import { API_BASE_URL } from '../../app.config';
 import { Permission, RoleWithLabel, ROLES } from '../models/role.model';
 
 interface RoleDto {
@@ -22,32 +23,31 @@ export interface PermissionCatalogItem {
 @Injectable({ providedIn: 'root' })
 export class RolesService {
   private readonly http = inject(HttpClient);
-  private readonly rolesSignal = signal<Record<string, RoleWithLabel>>(
-    USE_BACKEND
-      ? {}
-      : (JSON.parse(JSON.stringify(ROLES)) as Record<string, RoleWithLabel>)
-  );
+  
+  // Signals : variables réactives contenant l'état centralisé (rôles, permissions, état de chargement)
+  private readonly rolesSignal = signal<Record<string, RoleWithLabel>>({});
   private readonly permissionCatalogSignal = signal<PermissionCatalogItem[]>([]);
   private readonly loadingSignal = signal(false);
 
+  // Versions en lecture seule exposées aux composants
   roles = this.rolesSignal.asReadonly();
   permissionCatalog = this.permissionCatalogSignal.asReadonly();
   loading = this.loadingSignal.asReadonly();
 
-  /** Fetch roles - from backend when USE_BACKEND, else use local */
+  /** 
+   * Récupère la liste de tous les rôles depuis le backend. 
+   */
   async fetchRoles(): Promise<void> {
-    if (!USE_BACKEND) {
-      this.rolesSignal.set(JSON.parse(JSON.stringify(ROLES)) as Record<string, RoleWithLabel>);
-      return;
-    }
-    this.loadingSignal.set(true);
+    this.loadingSignal.set(true); // Active le spinner
     try {
       const dtos = await firstValueFrom(this.http.get<RoleDto[]>(`${API_BASE_URL}/api/Roles`));
-      console.log('[RolesService] GET /api/Roles response:', dtos);
+      
       const merged: Record<string, RoleWithLabel> = {};
       for (const dto of dtos ?? []) {
         const key = dto.nom?.toLowerCase() || '';
         if (!key) continue;
+        
+        // On récupère les couleurs/icones si c'est un rôle connu du front, sinon design par défaut
         const local = ROLES[key as keyof typeof ROLES];
         merged[key] = {
           idRole: local?.idRole ?? 0,
@@ -60,33 +60,25 @@ export class RolesService {
         };
       }
 
-      this.rolesSignal.set(merged);
+      this.rolesSignal.set(merged); // Sauvegarde globale
     } catch (err) {
       console.error('[RolesService] fetchRoles FAILED:', err);
-      // In backend mode, never fall back to static role permissions.
       this.rolesSignal.set({});
     } finally {
-      this.loadingSignal.set(false);
+      this.loadingSignal.set(false); // Coupe le spinner
     }
   }
 
-  /** Fetch permission catalog dynamically from backend (or derive from local roles in offline mode). */
+  /** 
+   * Récupère le catalogue officiel de toutes les permissions possibles. 
+   */
   async fetchPermissionCatalog(): Promise<void> {
-    if (!USE_BACKEND) {
-      const derived = Array.from(
-        new Set(Object.values(ROLES).flatMap(r => r.permissions))
-      )
-        .sort((a, b) => a.localeCompare(b))
-        .map(code => ({ code, description: code }));
-      this.permissionCatalogSignal.set(derived);
-      return;
-    }
-
     try {
       const items = await firstValueFrom(
         this.http.get<PermissionCatalogItem[]>(`${API_BASE_URL}/api/Roles/permissions`)
       );
 
+      // On nettoie et on trie alphabétiquement par code
       const normalized = (items ?? [])
         .filter(x => !!x?.code)
         .map(x => ({
@@ -98,31 +90,21 @@ export class RolesService {
       this.permissionCatalogSignal.set(normalized);
     } catch (err) {
       console.error('[RolesService] fetchPermissionCatalog FAILED:', err);
-      // Keep previous catalog on failure.
     }
   }
 
-  /** Update role permissions - local when USE_BACKEND=false */
+  /** 
+   * Active ou désactive des permissions pour un rôle.
+   */
   async updateRolePermissions(roleName: string, permissions: Permission[]): Promise<boolean> {
-    if (!USE_BACKEND) {
-      this.rolesSignal.update(roles => {
-        const updated = { ...roles };
-        const key = roleName.toLowerCase();
-        if (updated[key]) {
-          updated[key] = { ...updated[key], permissions: [...permissions] };
-        }
-        return updated;
-      });
-      return true;
-    }
     try {
-      console.log('[RolesService] PUT /api/Roles/' + roleName + '/permissions', permissions);
       const response = await firstValueFrom(this.http.put<RoleDto>(`${API_BASE_URL}/api/Roles/${encodeURIComponent(roleName)}/permissions`, {
         permissions
       }));
-      console.log('[RolesService] PUT response:', response);
-      // Use the response from the backend to ensure we're in sync
+      
       const backendPermissions = (response?.permissions ?? permissions) as Permission[];
+      
+      // On met à jour le Signal manuellement pour que l'interface UI réagisse instantanément
       this.rolesSignal.update(roles => {
         const updated = { ...roles };
         const key = roleName.toLowerCase();
@@ -138,61 +120,102 @@ export class RolesService {
     }
   }
 
-  /** Create a new role via backend API */
+  /** 
+   * Demande au backend de créer un nouveau rôle. 
+   */
   async createRole(nom: string, description?: string): Promise<{ success: boolean; message?: string }> {
-    if (!USE_BACKEND) {
-      const key = nom.trim().toLowerCase();
-      const roles = this.rolesSignal();
-      if (roles[key]) return { success: false, message: 'Ce rôle existe déjà.' };
-      this.rolesSignal.update(r => ({
-        ...r,
-        [key]: {
-          idRole: Date.now(),
-          nom: key,
-          label: nom.trim(),
-          description: description ?? '',
-          permissions: [] as Permission[],
-          color: '#9e9e9e',
-          icon: 'badge'
-        }
-      }));
-      return { success: true };
+    const key = nom.trim().toLowerCase().replace(/\s+/g, '_');
+
+    // Sécurité Frontend: On empêche un double appel si on a déjà le rôle (Check d'unicité)
+    const existing = this.rolesSignal();
+    if (existing[key]) {
+      return { success: false, message: `Le rôle "${nom.trim()}" existe déjà.` };
     }
+
     try {
       const dto = await firstValueFrom(this.http.post<RoleDto>(`${API_BASE_URL}/api/Roles`, { nom: nom.trim(), description }));
-      const key = dto.nom?.toLowerCase() || nom.trim().toLowerCase();
+      const respKey = dto.nom?.toLowerCase() || key;
+      
+      // Ajout dans le Signal local pour affichage UI direct
       this.rolesSignal.update(r => ({
         ...r,
-        [key]: {
+        [respKey]: {
           idRole: Date.now(),
           nom: dto.nom,
-          label: dto.nom,
+          label: dto.nom, // Le label par défaut est le nom saisi
           description: dto.description,
           permissions: (dto.permissions ?? []) as Permission[],
-          color: '#9e9e9e',
+          color: '#9e9e9e', // Gris générique pour les rôles custom
           icon: 'badge'
         }
       }));
       return { success: true };
     } catch (err: any) {
-      const msg = err?.error?.message ?? 'Erreur lors de la création du rôle.';
-      return { success: false, message: msg };
+      const msg = err?.error?.message ?? err?.error ?? 'Erreur lors de la création du rôle.';
+      return { success: false, message: typeof msg === 'string' ? msg : 'Erreur lors de la création du rôle.' };
     }
   }
 
-  /** Delete a role via backend API */
-  async deleteRole(roleName: string): Promise<{ success: boolean; message?: string }> {
-    const key = roleName.trim().toLowerCase();
-    if (!USE_BACKEND) {
+  /** 
+   * Renommer ou modifier un rôle existant (Nom et Description). 
+   */
+  async updateRole(currentNom: string, newNom: string, description?: string): Promise<{ success: boolean; message?: string }> {
+    const currentKey = currentNom.trim().toLowerCase();
+    const newKey = newNom.trim().toLowerCase().replace(/\s+/g, '_');
+
+    // Sécurité Frontend: Unicité lors du renommage
+    if (currentKey !== newKey) {
+      const existing = this.rolesSignal();
+      if (existing[newKey]) {
+        return { success: false, message: `Le rôle "${newNom.trim()}" existe déjà.` };
+      }
+    }
+
+    try {
+      const dto = await firstValueFrom(
+        this.http.put<RoleDto>(`${API_BASE_URL}/api/Roles/${encodeURIComponent(currentKey)}`, {
+          nom: newNom.trim(),
+          description: description ?? ''
+        })
+      );
+
+      const respKey = dto.nom?.toLowerCase() || newKey;
+
+      // Logique pour remplacer l'ancienne clé (nom du rôle) par la nouvelle dans le Signal AngularJS
       this.rolesSignal.update(r => {
         const updated = { ...r };
-        delete updated[key];
+        const old = updated[currentKey];
+        if (currentKey !== respKey) {
+          delete updated[currentKey]; // C'est un renommage, on supprime l'ancien
+        }
+        updated[respKey] = {
+          idRole: old?.idRole ?? Date.now(),
+          nom: dto.nom,
+          label: dto.nom,
+          description: dto.description,
+          permissions: (dto.permissions ?? old?.permissions ?? []) as Permission[],
+          color: old?.color ?? '#9e9e9e',
+          icon: old?.icon ?? 'badge'
+        };
         return updated;
       });
       return { success: true };
+    } catch (err: any) {
+       // On récupère précisément le message d'erreur (ex: conflit 409) retourné par C#
+      const msg = err?.error?.message ?? err?.error ?? 'Erreur lors de la modification du rôle.';
+      return { success: false, message: typeof msg === 'string' ? msg : 'Erreur lors de la modification du rôle.' };
     }
+  }
+
+  /** 
+   * Supprimer définitivement un rôle. 
+   */
+  async deleteRole(roleName: string): Promise<{ success: boolean; message?: string }> {
+    const key = roleName.trim().toLowerCase();
     try {
       await firstValueFrom(this.http.delete(`${API_BASE_URL}/api/Roles/${encodeURIComponent(key)}`));
+      
+      // Suppression du Signal frontend
       this.rolesSignal.update(r => {
         const updated = { ...r };
         delete updated[key];

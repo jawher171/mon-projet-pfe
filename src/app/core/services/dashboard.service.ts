@@ -16,7 +16,7 @@ import { CategoryService } from './category.service';
 import { UserService } from './user.service';
 import { DashboardData, ReplenishmentItem, DashboardFilter, ChartData } from '../models/dashboard.model';
 import { Stock } from '../models/stock.model';
-import { API_BASE_URL, USE_BACKEND } from '../../app.config';
+import { API_BASE_URL } from '../../app.config';
 
 const POLL_INTERVAL_MS = 30_000;
 
@@ -80,12 +80,10 @@ export class DashboardService {
   }
 
   private async fetchAllAndCompute(filter: DashboardFilter): Promise<DashboardData> {
-    if (USE_BACKEND) {
-      // VISUALIZATION source (preferred): consume backend ETL snapshot.
-      const etlData = await this.fetchFromEtl(filter);
-      if (etlData) {
-        return etlData;
-      }
+    // VISUALIZATION source (preferred): consume backend ETL snapshot.
+    const etlData = await this.fetchFromEtl(filter);
+    if (etlData) {
+      return etlData;
     }
 
     const [rawStocks, rawProducts, rawAlerts, rawMovements, rawSites, rawUsers, categories] = await Promise.all([

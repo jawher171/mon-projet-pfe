@@ -7,7 +7,7 @@ import { inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Alert, AlertFilter, AlertStats, AlertSeverity, ALERT_TYPES, SEVERITY_CONFIG } from '../models/alert.model';
-import { API_BASE_URL, USE_BACKEND } from '../../app.config';
+import { API_BASE_URL } from '../../app.config';
 
 interface AlertDto {
   id_a?: string;
@@ -65,10 +65,6 @@ export class AlertService {
   }
 
   async fetchAlerts(): Promise<Alert[]> {
-    if (!USE_BACKEND) {
-      return this.alertsSignal();
-    }
-
     const dtos = await firstValueFrom(this.http.get<AlertDto[]>(`${API_BASE_URL}/api/Alerts/GetAlerts`));
     const mapped = (dtos ?? []).map(d => this.dtoToAlert(d));
     this.alertsSignal.set(mapped);
@@ -117,10 +113,6 @@ export class AlertService {
     });
   }
 
-  getAlertById(id: string | number): Alert | undefined {
-    return this.alertsSignal().find(a => String(a.id) === String(id));
-  }
-
   getAlertStats(): AlertStats {
     const allAlerts = this.alertsSignal();
     const unresolved = allAlerts.filter(a => !a.resolue);
@@ -133,74 +125,52 @@ export class AlertService {
     return { total: unresolved.length, unread: unread.length, critical, high, medium, byType };
   }
 
-  createAlert(alert: Omit<Alert, 'id'>): Alert {
-    const newAlert: Alert = { ...alert, id: 'alert_' + Date.now(), resolue: false, isRead: false };
-    this.alertsSignal.update(alerts => [newAlert, ...alerts]);
-    return newAlert;
-  }
-
   async createAlertApi(alert: Omit<Alert, 'id'>): Promise<Alert> {
-    if (USE_BACKEND) {
-      const dto: Partial<AlertDto> = {
-        type: alert.type,
-        message: alert.message,
-        dateCreation: alert.dateCreation instanceof Date ? alert.dateCreation.toISOString() : alert.dateCreation,
-        resolue: alert.resolue ?? false,
-        id_s: alert.stockId ? String(alert.stockId) : undefined
-      };
-      const result = await firstValueFrom(
-        this.http.post<AlertDto>(`${API_BASE_URL}/api/Alerts/AddAlert`, dto)
-      );
-      const created = this.dtoToAlert(result);
-      this.alertsSignal.update(alerts => [created, ...alerts]);
-      return created;
-    }
-    return this.createAlert(alert);
-  }
-
-  resolveAlert(id: string | number, _user?: string, _notes?: string): boolean {
-    const index = this.alertsSignal().findIndex(a => String(a.id) === String(id));
-    if (index === -1) return false;
-    this.alertsSignal.update(alerts => {
-      const updated = [...alerts];
-      updated[index] = { ...updated[index], resolue: true };
-      return updated;
-    });
-    return true;
+    const dto: Partial<AlertDto> = {
+      type: alert.type,
+      message: alert.message,
+      dateCreation: alert.dateCreation instanceof Date ? alert.dateCreation.toISOString() : alert.dateCreation,
+      resolue: alert.resolue ?? false,
+      id_s: alert.stockId ? String(alert.stockId) : undefined
+    };
+    const result = await firstValueFrom(
+      this.http.post<AlertDto>(`${API_BASE_URL}/api/Alerts/AddAlert`, dto)
+    );
+    const created = this.dtoToAlert(result);
+    this.alertsSignal.update(alerts => [created, ...alerts]);
+    return created;
   }
 
   async resolveAlertApi(id: string | number): Promise<boolean> {
-    if (USE_BACKEND) {
-      const alert = this.alertsSignal().find(a => String(a.id) === String(id));
-      if (!alert) return false;
-      const dto: Partial<AlertDto> = {
-        id_a: String(id),
-        type: alert.type,
-        message: alert.message,
-        dateCreation: alert.dateCreation instanceof Date ? alert.dateCreation.toISOString() : alert.dateCreation,
-        resolue: true,
-        id_s: alert.stockId ? String(alert.stockId) : undefined
-      };
-      await firstValueFrom(
-        this.http.put<AlertDto>(`${API_BASE_URL}/api/Alerts/UpdateAlert`, dto)
-      );
-      this.resolveAlert(id);
-      return true;
+    const alert = this.alertsSignal().find(a => String(a.id) === String(id));
+    if (!alert) return false;
+    const dto: Partial<AlertDto> = {
+      id_a: String(id),
+      type: alert.type,
+      message: alert.message,
+      dateCreation: alert.dateCreation instanceof Date ? alert.dateCreation.toISOString() : alert.dateCreation,
+      resolue: true,
+      id_s: alert.stockId ? String(alert.stockId) : undefined
+    };
+    await firstValueFrom(
+      this.http.put<AlertDto>(`${API_BASE_URL}/api/Alerts/UpdateAlert`, dto)
+    );
+    // Update local state
+    const index = this.alertsSignal().findIndex(a => String(a.id) === String(id));
+    if (index !== -1) {
+      this.alertsSignal.update(alerts => {
+        const updated = [...alerts];
+        updated[index] = { ...updated[index], resolue: true };
+        return updated;
+      });
     }
-    return this.resolveAlert(id);
-  }
-
-  deleteAlert(id: string | number): boolean {
-    this.alertsSignal.update(alerts => alerts.filter(a => String(a.id) !== String(id)));
     return true;
   }
 
   async deleteAlertApi(id: string | number): Promise<boolean> {
-    if (USE_BACKEND) {
-      await firstValueFrom(
-        this.http.delete(`${API_BASE_URL}/api/Alerts/DeleteAlert/${id}`)
-      );
-    }
+    await firstValueFrom(
+      this.http.delete(`${API_BASE_URL}/api/Alerts/DeleteAlert/${id}`)
+    );
     this.alertsSignal.update(alerts => alerts.filter(a => String(a.id) !== String(id)));
     return true;
   }
@@ -235,11 +205,4 @@ export class AlertService {
     );
   }
 
-  getRules(): { id: string; name: string; type: string; isEnabled: boolean; conditions: unknown[]; actions: unknown[]; appliesTo: string }[] {
-    return [];
-  }
-
-  toggleRule(ruleId: string): void {
-    void ruleId;
-  }
 }

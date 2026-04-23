@@ -1,13 +1,13 @@
 /**
  * Stock Service - Diagram: quantiteDisponible, seuilAlerte
  * Bridge between Product and Site (multi-magasin).
- * Backend manages Stock entity; frontend calculates from movements in local mode.
+ * Backend manages Stock entity.
  */
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Stock } from '../models/stock.model';
-import { API_BASE_URL, USE_BACKEND } from '../../app.config';
+import { API_BASE_URL } from '../../app.config';
 
 interface StockDto {
   id_s?: string;
@@ -50,9 +50,6 @@ export class StockService {
   }
 
   async fetchStocks(): Promise<Stock[]> {
-    if (!USE_BACKEND) {
-      return this.stocksSignal();
-    }
     const dtos = await firstValueFrom(
       this.http.get<StockDto[]>(`${API_BASE_URL}/api/Stocks/GetStocks`)
     );
@@ -62,9 +59,6 @@ export class StockService {
   }
 
   async fetchStocksBySite(siteId: string): Promise<Stock[]> {
-    if (!USE_BACKEND) {
-      return this.stocksSignal().filter(s => String(s.siteId) === siteId);
-    }
     const dtos = await firstValueFrom(
       this.http.get<StockDto[]>(`${API_BASE_URL}/api/Stocks/GetStocksBySite/${siteId}`)
     );
@@ -72,31 +66,11 @@ export class StockService {
     return mapped;
   }
 
-  async fetchStock(id: string): Promise<Stock | undefined> {
-    if (!USE_BACKEND) {
-      return this.stocksSignal().find(s => String(s.id) === id);
-    }
-    const dto = await firstValueFrom(
-      this.http.get<StockDto>(`${API_BASE_URL}/api/Stocks/GetStock/${id}`)
-    );
-    return dto ? this.dtoToStock(dto) : undefined;
-  }
 
   /** Update a stock entry (seuils, etc.) via PUT */
   async updateStock(stock: Stock): Promise<Stock> {
     const computedSeuilAlerte = (stock.seuilMinimum ?? 0) + (stock.seuilSecurite ?? 0);
     const normalizedStock: Stock = { ...stock, seuilAlerte: computedSeuilAlerte };
-    if (!USE_BACKEND) {
-      // Update local signal
-      const current = this.stocksSignal();
-      const idx = current.findIndex(s => String(s.id) === String(stock.id));
-      if (idx >= 0) {
-        const updated = [...current];
-        updated[idx] = normalizedStock;
-        this.stocksSignal.set(updated);
-      }
-      return normalizedStock;
-    }
     const body = {
       id_s: String(normalizedStock.id),
       quantiteDisponible: normalizedStock.quantiteDisponible,
@@ -126,11 +100,6 @@ export class StockService {
   async addStock(stock: Omit<Stock, 'id'>): Promise<Stock> {
     const computedSeuilAlerte = (stock.seuilMinimum ?? 0) + (stock.seuilSecurite ?? 0);
     const normalizedStock = { ...stock, seuilAlerte: computedSeuilAlerte };
-    if (!USE_BACKEND) {
-      const newStock: Stock = { ...normalizedStock, id: 'stk_' + Date.now() } as Stock;
-      this.stocksSignal.update(list => [newStock, ...list]);
-      return newStock;
-    }
     const body = {
       quantiteDisponible: normalizedStock.quantiteDisponible,
       seuilAlerte: normalizedStock.seuilAlerte,
@@ -150,10 +119,6 @@ export class StockService {
 
   /** Delete a stock entry via DELETE */
   async deleteStock(id: string): Promise<boolean> {
-    if (!USE_BACKEND) {
-      this.stocksSignal.update(list => list.filter(s => String(s.id) !== id));
-      return true;
-    }
     await firstValueFrom(
       this.http.delete(`${API_BASE_URL}/api/Stocks/DeleteStock/${id}`)
     );
