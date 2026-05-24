@@ -10,7 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
-const ALLOWED_DOMAINS = ['@pgh.com', '@inventaire.ma'];
+const ALLOWED_DOMAINS = ['@pgh.com'];
 const MIN_PASSWORD_LENGTH = 6;
 
 @Component({

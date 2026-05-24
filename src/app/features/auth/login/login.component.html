@@ -16,10 +16,10 @@
     <!-- Form -->
     <form (ngSubmit)="onSubmit()" class="login-form">
       @if (errorMessage()) {
-        <div class="form-error">
-          <span class="material-symbols-rounded">error</span>
-          <span>{{ errorMessage() }}</span>
-        </div>
+      <div class="form-error">
+        <span class="material-symbols-rounded">error</span>
+        <span>{{ errorMessage() }}</span>
+      </div>
       }
 
       <!-- Email -->
@@ -27,21 +27,14 @@
         <label for="login-email">Adresse e-mail</label>
         <div class="input-shell">
           <span class="material-symbols-rounded inp-icon">alternate_email</span>
-          <input
-            id="login-email"
-            type="email"
-            placeholder="nom@inventaire.ma"
-            [(ngModel)]="emailValue"
-            name="email"
-            required
-            autocomplete="email"
-          />
+          <input id="login-email" type="email" placeholder="nom@pgh.com" [(ngModel)]="emailValue" name="email" required
+            autocomplete="email" />
         </div>
         @if (emailError()) {
-          <span class="field-error">
-            <span class="material-symbols-rounded">warning</span>
-            {{ emailError() }}
-          </span>
+        <span class="field-error">
+          <span class="material-symbols-rounded">warning</span>
+          {{ emailError() }}
+        </span>
         }
       </div>
 
@@ -50,16 +43,8 @@
         <label for="login-pw">Mot de passe</label>
         <div class="input-shell">
           <span class="material-symbols-rounded inp-icon">passkey</span>
-          <input
-            id="login-pw"
-            [type]="showPassword() ? 'text' : 'password'"
-            placeholder="Entrez votre mot de passe"
-            [(ngModel)]="passwordValue"
-            name="password"
-            required
-            minlength="6"
-            autocomplete="current-password"
-          />
+          <input id="login-pw" [type]="showPassword() ? 'text' : 'password'" placeholder="Entrez votre mot de passe"
+            [(ngModel)]="passwordValue" name="password" required minlength="6" autocomplete="current-password" />
           <button type="button" class="eye-toggle" (click)="togglePasswordVisibility()">
             <span class="material-symbols-rounded">
               {{ showPassword() ? 'visibility_off' : 'visibility' }}
@@ -67,27 +52,20 @@
           </button>
         </div>
         @if (passwordError()) {
-          <span class="field-error">
-            <span class="material-symbols-rounded">warning</span>
-            {{ passwordError() }}
-          </span>
+        <span class="field-error">
+          <span class="material-symbols-rounded">warning</span>
+          {{ passwordError() }}
+        </span>
         }
       </div>
-
-      <!-- Remember -->
-      <label class="remember-row">
-        <input type="checkbox" />
-        <span>Se souvenir de moi</span>
-      </label>
-
       <!-- Submit -->
       <button type="submit" class="login-submit" [disabled]="isLoading()">
         @if (isLoading()) {
-          <span class="spin-ring"></span>
-          Connexion en cours...
+        <span class="spin-ring"></span>
+        Connexion en cours...
         } @else {
-          Se connecter
-          <span class="material-symbols-rounded submit-icon">login</span>
+        Se connecter
+        <span class="material-symbols-rounded submit-icon">login</span>
         }
       </button>
     </form>
