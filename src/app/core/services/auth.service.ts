@@ -33,8 +33,6 @@ export class AuthService {
 
   constructor() {
     if (this.hasToken()) {
-      // Delay role preload until after AuthService construction to avoid DI cycle
-      // with Http interceptor injecting AuthService during the first HTTP call.
       queueMicrotask(() => {
         void this.rolesService.fetchRoles();
       });

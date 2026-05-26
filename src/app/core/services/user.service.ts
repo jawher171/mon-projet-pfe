@@ -122,7 +122,7 @@ export class UserService {
     }
   }
 
-  /** Extract API error message from HTTP error */
+  
   private getErrorMessage(e: unknown): string {
     if (e && typeof e === 'object' && 'error' in e) {
       const err = (e as { error?: { message?: string } }).error;
