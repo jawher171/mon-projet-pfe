@@ -113,6 +113,12 @@
           </button>
         </div>
         <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="pd-form">
+          @if (submitError()) {
+            <div class="cat-msg error">
+              <span class="material-symbols-rounded">error</span>
+              {{ submitError() }}
+            </div>
+          }
           <!-- Image upload -->
           <div class="pd-form-row full">
             <div class="pd-field">
