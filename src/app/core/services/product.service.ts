@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Product, ProductFilter } from '../models/product.model';
+import { StockService } from './stock.service';
 import { API_BASE_URL } from '../../app.config';
 
 interface ProductDto {
@@ -20,8 +21,22 @@ interface ProductDto {
 @Injectable({ providedIn: 'root' })
 export class ProductService {
   private readonly http = inject(HttpClient);
+  private readonly stockService = inject(StockService);
   // Signal Angular réactif : contient tous les produits mis en cache localement
   private products = signal<Product[]>([]);
+
+  /**
+   * Check if a product currently has any available stock (across all sites).
+   * Uses the locally cached stocks from StockService (does not call the API).
+   *
+   * Note: this function is not wired to any UI by default.
+   */
+  CheckProductHasStock(productId: string | number): boolean {
+    if (productId == null) return false;
+
+    const stocks = this.stockService.getStocksByProduct(productId);
+    return stocks.some(s => (s.quantiteDisponible ?? 0) > 0);
+  }
 
   private dtoToProduct(d: ProductDto): Product {
     const categoryId = d.categorieId ?? d.id_c ?? '';
