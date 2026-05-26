@@ -32,8 +32,8 @@ export class AuthorizationService {
    * @param roleName Role to update
    * @param permissions New permissions array
    */
-  async updateRolePermissions(roleName: UserRole, permissions: Permission[]): Promise<void> {
-    const ok = await this.rolesService.updateRolePermissions(roleName, permissions);
+  async assignPermissions(roleName: UserRole, permissions: Permission[]): Promise<void> {
+    const ok = await this.rolesService.assignPermissions(roleName, permissions);
     if (!ok) {
       throw new Error('Failed to update role permissions');
     }

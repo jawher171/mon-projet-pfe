@@ -96,7 +96,7 @@ export class RolesService {
   /** 
    * Active ou désactive des permissions pour un rôle.
    */
-  async updateRolePermissions(roleName: string, permissions: Permission[]): Promise<boolean> {
+  async assignPermissions(roleName: string, permissions: Permission[]): Promise<boolean> {
     try {
       const response = await firstValueFrom(this.http.put<RoleDto>(`${API_BASE_URL}/api/Roles/${encodeURIComponent(roleName)}/permissions`, {
         permissions
@@ -115,7 +115,7 @@ export class RolesService {
       });
       return true;
     } catch (err) {
-      console.error('[RolesService] updateRolePermissions FAILED:', err);
+      console.error('[RolesService] assignPermissions FAILED:', err);
       return false;
     }
   }

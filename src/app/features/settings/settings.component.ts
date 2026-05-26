@@ -172,7 +172,7 @@ export class SettingsComponent implements OnInit {
       : [...role.permissions, permission];
 
     try {
-      await this.authorizationService.updateRolePermissions(key, newPermissions);
+      await this.authorizationService.assignPermissions(key, newPermissions);
       this.saved.set(true);
       setTimeout(() => this.saved.set(false), 2000);
     } catch (err) {
@@ -192,7 +192,7 @@ export class SettingsComponent implements OnInit {
 
     try {
       for (const [roleName, permissions] of Object.entries(defaults)) {
-        await this.authorizationService.updateRolePermissions(roleName, permissions);
+        await this.authorizationService.assignPermissions(roleName, permissions);
       }
       this.saved.set(true);
       setTimeout(() => this.saved.set(false), 2000);

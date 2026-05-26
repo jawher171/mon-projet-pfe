@@ -98,7 +98,7 @@ namespace Application.Controllers
 
         // Mettre à jour les permissions d'un rôle
         [HttpPut("{roleName}/permissions")]
-        public async Task<IActionResult> UpdateRolePermissions(string roleName, [FromBody] UpdateRolePermissionsRequest request)
+        public async Task<IActionResult> AssignPermissions(string roleName, [FromBody] AssignPermissionsRequest request)
         {
             if (string.IsNullOrWhiteSpace(roleName))
                 return BadRequest(new { message = "Role name is required." });
@@ -423,7 +423,7 @@ namespace Application.Controllers
         public string? Description { get; set; }
     }
 
-    public class UpdateRolePermissionsRequest
+    public class AssignPermissionsRequest
     {
         public List<string> Permissions { get; set; } = new List<string>();
     }
