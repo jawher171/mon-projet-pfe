@@ -459,7 +459,7 @@ getproducts() {
       return;
     }
 
-    const category = await this.categoryService.addCategoryApi(libelle);
+    const category = await this.categoryService.createCategory(libelle);
     this.productForm.patchValue({ id_c: category.id_c });
     this.productForm.get('id_c')?.markAsTouched();
     this.getCategories();
@@ -637,10 +637,10 @@ getproducts() {
     this.categorySaving.set(true);
     try {
       if (this.categoryModalMode() === 'add') {
-        await this.categoryService.addCategoryApi(name);
+        await this.categoryService.createCategory(name);
         this.categorySuccess.set('Catégorie créée avec succès.');
       } else if (this.categoryModalMode() === 'edit' && this.editingCategory()) {
-        await this.categoryService.updateCategoryApi(this.editingCategory()!.id_c, name);
+        await this.categoryService.updateCategory(this.editingCategory()!.id_c, name);
         this.categorySuccess.set('Catégorie mise à jour avec succès.');
       }
       this.getCategories();
@@ -668,7 +668,7 @@ getproducts() {
 
     this.categoryDeleting.set(cat.id_c);
     try {
-      await this.categoryService.deleteCategoryApi(cat.id_c);
+      await this.categoryService.deleteCategory(cat.id_c);
       this.getCategories();
       this.categorySuccess.set('Catégorie supprimée.');
     } catch (err) {
@@ -719,7 +719,7 @@ getproducts() {
         await this.productService.deleteProduct(product.id_p);
         this.getproducts();
       } else if (category) {
-        await this.categoryService.deleteCategoryApi(category.id);
+        await this.categoryService.deleteCategory(category.id);
         this.productForm.patchValue({ id_c: null });
         this.getCategories();
       }

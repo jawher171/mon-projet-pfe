@@ -45,7 +45,7 @@ export class CategoryService {
     return dto ? this.dtoToCategory(dto) : undefined;
   }
 
-  async addCategoryApi(libelle: string): Promise<Category> {
+  async createCategory(libelle: string): Promise<Category> {
     const normalized = libelle.trim();
     const existing = this.categories().find(
       c => c.categorieLibelle.toLowerCase() === normalized.toLowerCase()
@@ -62,7 +62,7 @@ export class CategoryService {
   }
 
   /** Update an existing category */
-  async updateCategoryApi(id: string | number, libelle: string): Promise<Category> {
+  async updateCategory(id: string | number, libelle: string): Promise<Category> {
     const normalized = libelle.trim();
     const dto = { id: String(id), libelle: normalized };
     const result = await firstValueFrom(
@@ -74,7 +74,7 @@ export class CategoryService {
   }
 
   /** Delete a category */
-  async deleteCategoryApi(id: string | number): Promise<boolean> {
+  async deleteCategory(id: string | number): Promise<boolean> {
     await firstValueFrom(
       this.http.delete(`${API_BASE_URL}/api/Categories/DeleteCategory/${id}`)
     );
