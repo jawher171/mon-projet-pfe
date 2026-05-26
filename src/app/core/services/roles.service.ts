@@ -37,7 +37,7 @@ export class RolesService {
   /** 
    * Récupère la liste de tous les rôles depuis le backend. 
    */
-  async fetchRoles(): Promise<void> {
+  async getAllRoles(): Promise<void> {
     this.loadingSignal.set(true); // Active le spinner
     try {
       const dtos = await firstValueFrom(this.http.get<RoleDto[]>(`${API_BASE_URL}/api/Roles`));
@@ -62,7 +62,7 @@ export class RolesService {
 
       this.rolesSignal.set(merged); // Sauvegarde globale
     } catch (err) {
-      console.error('[RolesService] fetchRoles FAILED:', err);
+      console.error('[RolesService] getAllRoles FAILED:', err);
       this.rolesSignal.set({});
     } finally {
       this.loadingSignal.set(false); // Coupe le spinner
@@ -72,7 +72,7 @@ export class RolesService {
   /** 
    * Récupère le catalogue officiel de toutes les permissions possibles. 
    */
-  async fetchPermissionCatalog(): Promise<void> {
+  async getPermissionsMatrix(): Promise<void> {
     try {
       const items = await firstValueFrom(
         this.http.get<PermissionCatalogItem[]>(`${API_BASE_URL}/api/Roles/permissions`)
@@ -89,7 +89,7 @@ export class RolesService {
 
       this.permissionCatalogSignal.set(normalized);
     } catch (err) {
-      console.error('[RolesService] fetchPermissionCatalog FAILED:', err);
+      console.error('[RolesService] getPermissionsMatrix FAILED:', err);
     }
   }
 

@@ -1,7 +1,7 @@
 {
-  "version": 3,
+  "version": 4,
   "targets": {
-    ".NETCoreApp,Version=v3.1": {
+    "netcoreapp3.1": {
       "MediatR/9.0.0": {
         "type": "package",
         "compile": {
@@ -5375,7 +5375,7 @@
     }
   },
   "projectFileDependencyGroups": {
-    ".NETCoreApp,Version=v3.1": [
+    "netcoreapp3.1": [
       "Domain >= 1.0.0",
       "Microsoft.AspNetCore.Mvc.NewtonsoftJson >= 3.1.1",
       "Microsoft.EntityFrameworkCore >= 3.1.1",
@@ -5390,11 +5390,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Data\\Data.csproj",
+      "projectUniqueName": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Data\\Data.csproj",
       "projectName": "Data",
-      "projectPath": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Data\\Data.csproj",
+      "projectPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Data\\Data.csproj",
       "packagesPath": "C:\\Users\\jawher\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Data\\obj\\",
+      "outputPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Data\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -5413,10 +5413,11 @@
       },
       "frameworks": {
         "netcoreapp3.1": {
+          "framework": "netcoreapp3.1",
           "targetAlias": "netcoreapp3.1",
           "projectReferences": {
-            "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj": {
-              "projectPath": "C:\\Users\\jawher\\mon-projet-pfe\\Backend\\Domain\\Domain.csproj"
+            "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Domain\\Domain.csproj": {
+              "projectPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Domain\\Domain.csproj"
             }
           }
         }
@@ -5431,10 +5432,11 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "10.0.200"
+      "SdkAnalysisLevel": "10.0.300"
     },
     "frameworks": {
       "netcoreapp3.1": {
+        "framework": "netcoreapp3.1",
         "targetAlias": "netcoreapp3.1",
         "dependencies": {
           "Microsoft.AspNetCore.Mvc.NewtonsoftJson": {
@@ -5472,7 +5474,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.202\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300\\RuntimeIdentifierGraph.json"
       }
     }
   }

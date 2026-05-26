@@ -137,8 +137,8 @@ export class SettingsComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await Promise.all([
-      this.rolesService.fetchRoles(),
-      this.rolesService.fetchPermissionCatalog()
+      this.rolesService.getAllRoles(),
+      this.rolesService.getPermissionsMatrix()
     ]);
 
     const snapshot: Record<string, Permission[]> = {};
