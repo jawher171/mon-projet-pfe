@@ -34,7 +34,7 @@ export class AuthService {
   constructor() {
     if (this.hasToken()) {
       queueMicrotask(() => {
-        void this.rolesService.fetchRoles();
+        void this.rolesService.getAllRoles();
       });
     }
   }
@@ -72,7 +72,7 @@ export class AuthService {
       localStorage.setItem(this.USER_KEY, JSON.stringify(user));
       this.currentUser.set(user);
       this.isAuthenticated.set(true);
-      await this.rolesService.fetchRoles();
+      await this.rolesService.getAllRoles();
       return true;
     } catch {
       return false;

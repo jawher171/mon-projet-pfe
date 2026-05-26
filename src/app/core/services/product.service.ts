@@ -129,4 +129,47 @@ export class ProductService {
       return null;
     }
   }
+
+  /**
+   * Vérifie si un code-barres est unique (n'existe pas déjà).
+   * - Retourne true si unique ou vide
+   * - Retourne false si déjà utilisé par un autre produit
+   *
+   * Note: utilise d'abord le cache local, puis l'API `GET /api/Products/by-barcode/{code}`.
+   */
+  async checkCodeBarreUnique(codeBarre: string, excludeProductId?: string | number): Promise<boolean> {
+    const normalized = (codeBarre ?? '').trim();
+    if (!normalized) return true;
+
+    const normalizedLower = normalized.toLowerCase();
+    const localHit = this.products().find(p => (p.codeBarre ?? '').trim().toLowerCase() === normalizedLower);
+    if (localHit) {
+      if (excludeProductId != null && String(localHit.id_p) === String(excludeProductId)) {
+        return true;
+      }
+      return false;
+    }
+
+    try {
+      const dto = await firstValueFrom(
+        this.http.get<ProductDto>(`${API_BASE_URL}/api/Products/by-barcode/${encodeURIComponent(normalized)}`)
+      );
+
+      const foundId = dto?.id ?? dto?.id_p;
+      if (excludeProductId != null && foundId != null && String(foundId) === String(excludeProductId)) {
+        return true;
+      }
+
+      return false;
+    } catch (err: any) {
+      if (err?.status === 404) return true;
+      // If the check fails for network/auth reasons, don't block UX here.
+      return true;
+    }
+  }
+
+  /** Alias conservant le nom demandé (case-sensitive). */
+  async checkcodebarreunique(codebarre: string, excludeProductId?: string | number): Promise<boolean> {
+    return this.checkCodeBarreUnique(codebarre, excludeProductId);
+  }
 }

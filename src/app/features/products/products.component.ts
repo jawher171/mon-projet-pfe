@@ -495,6 +495,15 @@ getproducts() {
     }
 
     const formValue = this.productForm.value;
+    const codeBarre = String(formValue.codeBarre ?? '').trim();
+    const excludeId = this.isEditMode() ? formValue.id_p : undefined;
+
+    const isUnique = await this.productService.checkCodeBarreUnique(codeBarre, excludeId);
+    if (!isUnique) {
+      this.submitError.set('Ce code-barres est déjà utilisé par un autre produit.');
+      return;
+    }
+
     const category = this.categories().find(c => String(c.id_c) === String(formValue.id_c));
     const categorieLibelle = category?.categorieLibelle ?? 'Unknown';
 
@@ -529,6 +538,8 @@ getproducts() {
       const status = (error as { status?: number })?.status;
       if (status === 403) {
         this.submitError.set('Operation refusee par le serveur (403). Connectez-vous avec un role autorise.');
+      } else if (status === 409) {
+        this.submitError.set('Ce code-barres existe deja. Veuillez en saisir un autre.');
       } else {
         this.submitError.set('Erreur lors de l enregistrement du produit.');
       }

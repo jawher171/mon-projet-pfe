@@ -20,8 +20,14 @@ namespace Application.Handlers
 
         public async Task<Product> Handle(GetProductByBarcodeQuery request, CancellationToken cancellationToken)
         {
+            var barcode = (request.Barcode ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(barcode))
+                return null;
+
+            var normalized = barcode.ToLower();
+
             return await _repository.GetAsync(
-                condition: p => p.CodeBarre == request.Barcode,
+                condition: p => p.CodeBarre != null && p.CodeBarre.Trim().ToLower() == normalized,
                 includes: q => q.Include(p => p.Categorie),
                 cancellationToken: cancellationToken);
         }

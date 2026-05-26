@@ -60,6 +60,14 @@ namespace Application.Controllers
         [PermissionAuthorize("manage_products")]
         public async Task<IActionResult> Add([FromBody] ProductDto dto)
         {
+            if (!string.IsNullOrWhiteSpace(dto.CodeBarre))
+            {
+                dto.CodeBarre = dto.CodeBarre.Trim();
+                var existingByBarcode = await _mediator.Send(new GetProductByBarcodeQuery(dto.CodeBarre));
+                if (existingByBarcode != null)
+                    return Conflict(new { message = "Code barre deja utilise." });
+            }
+
             var product = _mapper.Map<Product>(dto);
             product.id_p = Guid.NewGuid();
             var result = await _mediator.Send(new AddGenericCommand<Product>(product));
@@ -72,6 +80,14 @@ namespace Application.Controllers
         {
             if (dto.id_p == Guid.Empty)
                 return BadRequest(new { message = "id_p is required." });
+
+            if (!string.IsNullOrWhiteSpace(dto.CodeBarre))
+            {
+                dto.CodeBarre = dto.CodeBarre.Trim();
+                var existingByBarcode = await _mediator.Send(new GetProductByBarcodeQuery(dto.CodeBarre));
+                if (existingByBarcode != null && existingByBarcode.id_p != dto.id_p)
+                    return Conflict(new { message = "Code barre deja utilise." });
+            }
 
             var existing = await _mediator.Send(
                 new GetGenericQuery<Product>(condition: x => x.id_p == dto.id_p, includes: null));
