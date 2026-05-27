@@ -227,4 +227,19 @@ export class RolesService {
       return { success: false, message: msg };
     }
   }
+
+  // ─── Diagram aliases (Fig 3.5) ───
+
+  /** Fig 3.5 — saveRole(): combined create/update — matches diagram «saveRole(roleData)» */
+  async saveRole(roleData: { nom: string; description?: string; isNew?: boolean; currentNom?: string }): Promise<{ success: boolean; message?: string }> {
+    if (roleData.isNew || !roleData.currentNom) {
+      return this.createRole(roleData.nom, roleData.description);
+    }
+    return this.updateRole(roleData.currentNom, roleData.nom, roleData.description);
+  }
+
+  /** Fig 3.5 — Alias for getPermissionsMatrix() — matches diagram «getPermissions()» */
+  getPermissions(): Promise<void> {
+    return this.getPermissionsMatrix();
+  }
 }

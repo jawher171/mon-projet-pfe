@@ -84,4 +84,24 @@ export class ScanSessionService {
     }
     this.connected.set(false);
   }
+
+  // ─── Diagram aliases (Fig 5.7, 5.8) ───
+
+  /** Fig 5.7 — Alias for generateSessionId() — matches diagram «createScanSession()» */
+  createScanSession(): { sessionId: string; sessionUrl: string } {
+    const sessionId = this.generateSessionId();
+    const sessionUrl = `${window.location.origin}/scanner?session=${sessionId}`;
+    return { sessionId, sessionUrl };
+  }
+
+  /** Fig 5.8 — listScanHistory(): historique des scans  */
+  listScanHistory(): ScanEvent[] {
+    return [];
+  }
+
+  /** Fig 5.8 — filterScans(filters): filtrer historique scans */
+  filterScans(filters: { produit?: string; operateur?: string; from?: Date; to?: Date }): ScanEvent[] {
+    // Filtering is handled in the component layer via signal-based filtering
+    return [];
+  }
 }

@@ -153,4 +153,11 @@ export class AuthService {
     localStorage.setItem(this.USER_KEY, JSON.stringify(merged));
     this.currentUser.set(merged);
   }
+
+  // ─── Diagram aliases (Fig 3.2, 3.3) ───
+
+  /** Fig 3.3 — Alias for logout() — matches diagram «deconnexion()» */
+  deconnexion(): void {
+    this.logout();
+  }
 }

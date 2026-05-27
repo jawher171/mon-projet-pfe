@@ -6,5 +6,8 @@ namespace Application.Services
     public interface IJwtService
     {
         string GenerateToken(string userId, string email, string role, IList<string> permissions);
+        
+        // ─── Diagram alias (Fig 3.3) ───
+        bool ValiderToken(string token);
     }
 }

@@ -15,15 +15,15 @@ namespace Application.Controllers
 {
     // Contrôleur de gestion des Sites géographiques.
     // Délégué via MediatR (CQRS) pour garder le contrôleur léger.
-    [Route("api/[controller]")]
+    [Route("api/Sites")]
     [ApiController]
     [Authorize]
-    public class SitesController : ControllerBase
+    public class SiteController : ControllerBase
     {
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
-        public SitesController(IMediator mediator, IMapper mapper)
+        public SiteController(IMediator mediator, IMapper mapper)
         {
             _mediator = mediator;
             _mapper = mapper;

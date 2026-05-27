@@ -415,7 +415,7 @@ getproducts() {
     for (const siteId of selectedIds) {
       if (!warehouseIds.has(siteId) || existingBySite.has(siteId)) continue;
 
-      await this.stockService.addStock({
+      await this.stockService.createStock({
         quantiteDisponible: 0,
         seuilAlerte: 0,
         seuilSecurite: 0,
@@ -531,7 +531,7 @@ getproducts() {
           categorieLibelle
         };
         if (imageUrl) (newProduct as { imageUrl?: string }).imageUrl = imageUrl;
-        const created = await this.productService.addProduct(newProduct);
+        const created = await this.productService.createProduct(newProduct);
         await this.createMissingStocksForSelectedWarehouses(created.id_p);
       }
     } catch (error: unknown) {

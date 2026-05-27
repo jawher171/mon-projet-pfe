@@ -18,7 +18,7 @@ namespace Application.Controllers
 {
     // Contrôleur des Alertes (seuils de sécurité, stock zéro, etc.)
     // Centralise la logique complexe pour savoir qui a le droit de voir quelle alerte (Propriétaire vs Admin).
-    [Route("api/[controller]")]
+    [Route("api/Alerts")]
     [ApiController]
     [Authorize]
     public class AlertsController : ControllerBase

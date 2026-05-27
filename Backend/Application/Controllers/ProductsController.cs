@@ -17,15 +17,15 @@ namespace Application.Controllers
 {
     // Contrôleur de gestion des produits (Catalogue)
     // Utilise MediatR pour envoyer des requêtes et commandes génériques sans surcharger le contrôleur.
-    [Route("api/[controller]")]
+    [Route("api/Products")]
     [ApiController]
     [Authorize]
-    public class ProductsController : ControllerBase
+    public class ProduitController : ControllerBase
     {
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
-        public ProductsController(IMediator mediator, IMapper mapper)
+        public ProduitController(IMediator mediator, IMapper mapper)
         {
             _mediator = mediator;
             _mapper = mapper;
@@ -58,7 +58,7 @@ namespace Application.Controllers
 
         [HttpPost("AddProduct")]
         [PermissionAuthorize("manage_products")]
-        public async Task<IActionResult> Add([FromBody] ProductDto dto)
+        public async Task<IActionResult> CreateProduct([FromBody] ProductDto dto)
         {
             if (!string.IsNullOrWhiteSpace(dto.CodeBarre))
             {

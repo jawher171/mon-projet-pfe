@@ -73,7 +73,7 @@ export class SiteStocksComponent implements OnInit {
 
     // Load stocks for this site
     try {
-      const stocks = await this.stockService.fetchStocksBySite(siteId);
+      const stocks = await this.stockService.getStockBySite(siteId);
       this.stocks.set(stocks);
     } catch (err) {
       console.error('Failed to load stocks for site', siteId, err);
@@ -151,7 +151,7 @@ export class SiteStocksComponent implements OnInit {
     this.deleting.set(true);
     try {
       await this.stockService.deleteStock(String(stock.id));
-      const freshStocks = await this.stockService.fetchStocksBySite(this.siteId());
+      const freshStocks = await this.stockService.getStockBySite(this.siteId());
       this.stocks.set(freshStocks);
     } catch (err) {
       console.error('Failed to delete stock', err);
@@ -227,7 +227,7 @@ export class SiteStocksComponent implements OnInit {
       // Refresh alerts (threshold change may trigger new alerts)
       await this.alertService.fetchAlerts();
       // Refresh list
-      const freshStocks = await this.stockService.fetchStocksBySite(this.siteId());
+      const freshStocks = await this.stockService.getStockBySite(this.siteId());
       this.stocks.set(freshStocks);
       this.closeEdit();
     } catch (err) {

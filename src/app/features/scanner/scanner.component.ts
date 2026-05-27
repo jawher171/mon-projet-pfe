@@ -645,7 +645,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     // Calculate current stock from movement history
     const previousStock = this.movementService.getCurrentStock(String(scan.product.id_p), String(site.id));
     
-    this.movementService.addMovement({
+    this.movementService.createMovement({
       dateMouvement: new Date(),
       raison: this.selectedReason() as MovementReason,
       quantite: this.quantity(),

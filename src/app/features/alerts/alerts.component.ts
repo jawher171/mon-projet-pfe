@@ -181,7 +181,7 @@ export class AlertsComponent implements OnInit, OnDestroy {
 
     const alert = this.selectedAlert();
     if (alert) {
-      await this.alertService.resolveAlertApi(alert.id);
+      await this.alertService.resolveAlert(alert.id);
       this.closeModal();
     }
   }
@@ -205,7 +205,7 @@ export class AlertsComponent implements OnInit, OnDestroy {
     if (!alert) return;
     this.deleting.set(true);
     try {
-      await this.alertService.deleteAlertApi(alert.id);
+      await this.alertService.deleteAlert(alert.id);
     } finally {
       this.deleting.set(false);
       this.cancelDeleteAlert();

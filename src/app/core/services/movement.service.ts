@@ -161,7 +161,7 @@ export class MovementService {
    * Crée un nouveau mouvement de stock (Entrée, Sortie, Transfert)
    * Formate la date et convertit les IDs en chaîne de caractères pour l'API C#.
    */
-  async addMovement(movement: Omit<MouvementStock, 'id'>): Promise<MouvementStock> {
+  async createMovement(movement: Omit<MouvementStock, 'id'>): Promise<MouvementStock> {
     const dto: Partial<MovementDto> = {
       dateMouvement: movement.dateMouvement instanceof Date ? movement.dateMouvement.toISOString() as unknown as Date : movement.dateMouvement,
       raison: movement.raison,
@@ -321,7 +321,7 @@ export class MovementService {
    * @param type Movement type (entry or exit)
    * @returns Generated reason value
    */
-  async addCustomReason(label: string, type: 'entry' | 'exit' | 'transfer'): Promise<string> {
+  async addReason(label: string, type: 'entry' | 'exit' | 'transfer'): Promise<string> {
     const created = await firstValueFrom(
       this.http.post<MovementReasonDto>(`${API_BASE_URL}/api/StockMovements/AddMovementReason`, {
         label,
@@ -349,7 +349,7 @@ export class MovementService {
   /**
    * Delete a custom reason by value
    */
-  async deleteCustomReason(value: string): Promise<void> {
+  async deleteReason(value: string): Promise<void> {
     await firstValueFrom(
       this.http.delete(`${API_BASE_URL}/api/StockMovements/DeleteMovementReason/${encodeURIComponent(value)}`)
     );
@@ -360,7 +360,7 @@ export class MovementService {
   /**
    * Update a custom reason's label
    */
-  async updateCustomReason(value: string, newLabel: string): Promise<void> {
+  async updateReason(value: string, newLabel: string): Promise<void> {
     const existing = this.customReasonsSignal().find(r => r.value === value);
     if (!existing) return;
 
@@ -421,5 +421,32 @@ export class MovementService {
       const qty = movement.quantite ?? 0;
       return (movement.type ?? 'entry') === 'entry' ? total + qty : total - qty;
     }, 0);
+  }
+
+  // ─── Diagram aliases (Fig 5.2, 5.3, 5.4, 5.5, 5.6) ───
+
+  /** Fig 5.4 — Alias for fetchMovements() — matches diagram «listMovements()» */
+  listMovements(): Promise<MouvementStock[]> {
+    return this.fetchMovements();
+  }
+
+  /** Fig 5.4 — Alias for getFilteredMovements() — matches diagram «filterMovements()» */
+  filterMovements(filter: MouvementFilter) {
+    return this.getFilteredMovements(filter);
+  }
+
+  /** Fig 5.5 — createTransfer(data): mouvement de type transfert */
+  createTransfer(data: Omit<MouvementStock, 'id'>): Promise<MouvementStock> {
+    return this.createMovement({ ...data, type: 'transfer' });
+  }
+
+  /** Fig 5.6 — Alias for getReasonsByType() — matches diagram «listRaisons()» */
+  listRaisons(type: 'entry' | 'exit' | 'transfer') {
+    return this.getReasonsByType(type);
+  }
+
+  /** Fig 5.6 — Alias for addReason() — matches diagram «createRaison()» */
+  createRaison(label: string, type: 'entry' | 'exit' | 'transfer'): Promise<string> {
+    return this.addReason(label, type);
   }
 }

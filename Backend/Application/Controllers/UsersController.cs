@@ -16,15 +16,15 @@ using System.Security.Claims;
 
 namespace Application.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Users")]
     [ApiController]
     [PermissionAuthorize("manage_users")]
-    public class UsersController : ControllerBase
+    public class UserController : ControllerBase
     {
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
-        public UsersController(IMediator mediator, IMapper mapper)
+        public UserController(IMediator mediator, IMapper mapper)
         {
             _mediator = mediator;
             _mapper = mapper;

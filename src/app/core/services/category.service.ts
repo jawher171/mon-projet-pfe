@@ -90,4 +90,11 @@ export class CategoryService {
 
     return maxId + 1;
   }
+
+  // ─── Diagram aliases (Fig 4.4) ───
+
+  /** Alias for fetchCategories() — matches diagram «listCategories()» */
+  listCategories(): Promise<Category[]> {
+    return this.fetchCategories();
+  }
 }

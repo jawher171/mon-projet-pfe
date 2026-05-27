@@ -8,7 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Application.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/DashboardEtl")]
+    [Route("api/dashboard")]
     [ApiController]
     [Authorize]
     public class DashboardEtlController : ControllerBase

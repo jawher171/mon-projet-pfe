@@ -768,7 +768,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
       const product = this.transferSelectedProduct()!;
       const currentUser = this.authService.currentUser();
 
-      await this.movementService.addMovement({
+      await this.movementService.createMovement({
         dateMouvement: new Date(),
         raison: (form.reason || 'transfer_magasin') as MovementReason,
         quantite: form.quantity,
@@ -793,7 +793,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
         const qty = sourceStock.quantiteDisponible;
         const stockId = String(sourceStock.id);
         if (qty <= 0) {
-          await this.alertService.createAlertApi({
+          await this.alertService.createAlert({
             type: 'OUT_OF_STOCK',
             message: `Rupture de stock: "${product.nom}" au magasin "${sourceSite?.nom}" suite à un transfert`,
             dateCreation: new Date(),
@@ -804,7 +804,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
             siteNom: sourceSite?.nom
           });
         } else if (sourceStock.seuilMinimum && qty <= sourceStock.seuilMinimum) {
-          await this.alertService.createAlertApi({
+          await this.alertService.createAlert({
             type: 'MIN_STOCK',
             message: `Stock minimum atteint: "${product.nom}" au magasin "${sourceSite?.nom}" (${qty} unités) suite à un transfert`,
             dateCreation: new Date(),
@@ -815,7 +815,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
             siteNom: sourceSite?.nom
           });
         } else if (sourceStock.seuilAlerte && qty <= sourceStock.seuilAlerte) {
-          await this.alertService.createAlertApi({
+          await this.alertService.createAlert({
             type: 'STOCK_ALERTE',
             message: `Seuil d'alerte atteint: "${product.nom}" au magasin "${sourceSite?.nom}" (${qty} unités) suite à un transfert`,
             dateCreation: new Date(),
@@ -913,7 +913,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
     }
     
     try {
-      await this.movementService.addCustomReason(reason, this.reasonType());
+      await this.movementService.addReason(reason, this.reasonType());
       this.newCustomReason.set('');
       this.reasonError.set('');
       this.displayToast('Raison ajoutée avec succès', 'success');
@@ -949,7 +949,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
     }
 
     try {
-      await this.movementService.updateCustomReason(value, newLabel);
+      await this.movementService.updateReason(value, newLabel);
       this.editingReasonValue.set(null);
       this.editingReasonLabel.set('');
       this.reasonError.set('');
@@ -960,11 +960,11 @@ export class MovementsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async deleteCustomReason(value: string) {
+  async deleteReason(value: string) {
     if (!this.canManageMovements()) return;
 
     try {
-      await this.movementService.deleteCustomReason(value);
+      await this.movementService.deleteReason(value);
       this.displayToast('Raison supprimée', 'success');
     } catch (err: any) {
       const backendMessage = err?.error?.message;
@@ -995,7 +995,7 @@ export class MovementsComponent implements OnInit, OnDestroy {
       const productId = String(product.id_p);
       const currentUser = this.authService.currentUser();
 
-      await this.movementService.addMovement({
+      await this.movementService.createMovement({
         dateMouvement: new Date(),
         raison: form.reason as MovementReason,
         quantite: form.quantity,

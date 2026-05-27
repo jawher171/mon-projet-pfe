@@ -203,9 +203,9 @@ export class SitesComponent implements OnInit {
     };
 
     if (this.modalMode() === 'add') {
-      await this.siteService.addSiteApi(siteData);
+      await this.siteService.createSite(siteData);
     } else if (this.modalMode() === 'edit' && this.selectedSite()) {
-      await this.siteService.updateSiteApi(this.selectedSite()!.id, siteData);
+      await this.siteService.updateSite(this.selectedSite()!.id, siteData);
     }
     this.closeModal();
     await this.siteService.fetchSites();
@@ -241,7 +241,7 @@ export class SitesComponent implements OnInit {
     if (!site) return;
     this.deleting.set(true);
     try {
-      await this.siteService.deleteSiteApi(site.id);
+      await this.siteService.deleteSite(site.id);
       await this.siteService.fetchSites();
     } finally {
       this.deleting.set(false);

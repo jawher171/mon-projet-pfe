@@ -15,15 +15,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Stocks")]
     [ApiController]
     [Authorize]
-    public class StocksController : ControllerBase
+    public class StockController : ControllerBase
     {
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
-        public StocksController(IMediator mediator, IMapper mapper)
+        public StockController(IMediator mediator, IMapper mapper)
         {
             _mediator = mediator;
             _mapper = mapper;

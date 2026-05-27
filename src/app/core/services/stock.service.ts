@@ -58,7 +58,7 @@ export class StockService {
     return mapped;
   }
 
-  async fetchStocksBySite(siteId: string): Promise<Stock[]> {
+  async getStockBySite(siteId: string): Promise<Stock[]> {
     const dtos = await firstValueFrom(
       this.http.get<StockDto[]>(`${API_BASE_URL}/api/Stocks/GetStocksBySite/${siteId}`)
     );
@@ -97,7 +97,7 @@ export class StockService {
   }
 
   /** Add a new stock entry via POST */
-  async addStock(stock: Omit<Stock, 'id'>): Promise<Stock> {
+  async createStock(stock: Omit<Stock, 'id'>): Promise<Stock> {
     const computedSeuilAlerte = (stock.seuilMinimum ?? 0) + (stock.seuilSecurite ?? 0);
     const normalizedStock = { ...stock, seuilAlerte: computedSeuilAlerte };
     const body = {
@@ -165,4 +165,58 @@ export class StockService {
       outOfStockCount: outOfStock.length
     };
   });
+
+  // ─── Diagram aliases (Fig 4.6, 5.2, 5.3, 6.2, 6.4) ───
+
+  /** Fig 5.2/5.3 — getEntrepot(): stocks de l'entrepôt principal */
+  getEntrepot(): Stock[] {
+    return this.stocksSignal();
+  }
+
+  /** Fig 4.6 — consolidateStock(): vue consolidée multi-sites */
+  consolidateStock(): { produitId: string; produitNom: string; totalQuantite: number }[] {
+    const map = new Map<string, { produitId: string; produitNom: string; totalQuantite: number }>();
+    for (const s of this.stocksSignal()) {
+      const key = String(s.produitId);
+      const existing = map.get(key);
+      if (existing) {
+        existing.totalQuantite += s.quantiteDisponible;
+      } else {
+        map.set(key, { produitId: key, produitNom: s.produitNom ?? '', totalQuantite: s.quantiteDisponible });
+      }
+    }
+    return Array.from(map.values());
+  }
+
+  /** Fig 6.2 — «getStocksWithSeuils()» */
+  getStocksWithSeuils(): Promise<Stock[]> {
+    return this.fetchStocks();
+  }
+
+  /** Fig 6.2 — «updateSeuils()» */
+  updateSeuils(stock: Stock): Promise<Stock> {
+    return this.updateStock(stock);
+  }
+
+  /** Fig 6.4 — getStocksAnormaux(): stocks sous seuil */
+  getStocksAnormaux(): Stock[] {
+    return this.stocksSignal().filter(s =>
+      s.quantiteDisponible === 0 ||
+      s.quantiteDisponible <= (s.seuilMinimum ?? 0) ||
+      s.quantiteDisponible <= (s.seuilAlerte ?? 0)
+    );
+  }
+
+  /** Fig 6.4 — filterStocksAnormaux(filters) */
+  filterStocksAnormaux(filters: { siteId?: string; categoryId?: string; productId?: string }): Stock[] {
+    let stocks = this.getStocksAnormaux();
+    if (filters.siteId) stocks = stocks.filter(s => String(s.siteId) === filters.siteId);
+    if (filters.productId) stocks = stocks.filter(s => String(s.produitId) === filters.productId);
+    return stocks;
+  }
+
+  /** Fig 4.6 — listStockBySite() alias */
+  listStockBySite(siteId: string): Promise<Stock[]> {
+    return this.getStockBySite(siteId);
+  }
 }

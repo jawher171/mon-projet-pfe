@@ -90,7 +90,7 @@ export class SiteService {
     return this.sitesSignal().find(s => String(s.id) === String(id));
   }
 
-  async addSiteApi(site: Omit<Site, 'id'>): Promise<Site> {
+  async createSite(site: Omit<Site, 'id'>): Promise<Site> {
     const dto: Partial<SiteDto> = {
       nom: site.nom,
       adresse: site.adresse,
@@ -109,7 +109,7 @@ export class SiteService {
     return created;
   }
 
-  async updateSiteApi(id: string | number, updates: Partial<Site>): Promise<boolean> {
+  async updateSite(id: string | number, updates: Partial<Site>): Promise<boolean> {
     const current = this.sitesSignal().find(s => String(s.id) === String(id));
     if (!current) return false;
     const merged = { ...current, ...updates };
@@ -132,7 +132,7 @@ export class SiteService {
     return true;
   }
 
-  async deleteSiteApi(id: string | number): Promise<boolean> {
+  async deleteSite(id: string | number): Promise<boolean> {
     await firstValueFrom(this.http.delete(`${API_BASE_URL}/api/Sites/DeleteSite/${id}`));
     this.sitesSignal.update(sites => sites.filter(s => String(s.id) !== String(id)));
     return true;
@@ -156,5 +156,17 @@ export class SiteService {
         stores: sites.filter(s => s.type === 'store').length
       };
     });
+  }
+
+  // ─── Diagram aliases (Fig 4.5, 5.5) ───
+
+  /** Alias for fetchSites() — matches diagram «listSites()» */
+  listSites(): Promise<Site[]> {
+    return this.fetchSites();
+  }
+
+  /** Fig 5.5 — getMagasins() retourne les sites non-entrepôt */
+  getMagasins(): Site[] {
+    return this.sitesSignal().filter(s => !s.estEntrepotPrincipal);
   }
 }

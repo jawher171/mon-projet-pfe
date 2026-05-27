@@ -224,4 +224,19 @@ export class UserService {
   getRoleIcon(role: UserRole): string {
     return ROLES[role]?.icon ?? 'person';
   }
+
+  // ─── Diagram aliases (Fig 3.4) ───
+
+  /** Alias for fetchUsers() — matches sequence diagram «listUsers()» */
+  listUsers(): Promise<User[]> {
+    return this.fetchUsers();
+  }
+
+  /** Fig 3.4 — vérifie unicité email */
+  checkEmailUnique(email: string, excludeUserId?: string): boolean {
+    const trimmed = email.trim().toLowerCase();
+    return !this.usersSignal().some(
+      u => u.email.toLowerCase() === trimmed && String(u.id) !== excludeUserId
+    );
+  }
 }

@@ -26,7 +26,7 @@ namespace Application.Controllers
     /// Utilise le design pattern CQRS (MediatR) : délègue la logique lourde à des requêtes et commandes indépendantes.
     /// Supervise aussi l'historique des scans et les raisons de mouvements.
     /// </summary>
-    [Route("api/[controller]")]
+    [Route("api/StockMovements")]
     [ApiController]
     [Authorize]
     public class StockMovementsController : ControllerBase

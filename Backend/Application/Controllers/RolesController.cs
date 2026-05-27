@@ -14,10 +14,10 @@ using Domain.Models;
 namespace Application.Controllers
 {
     // Contrôleur de gestion des rôles, accessible uniquement avec la permission "manage_roles"
-    [Route("api/[controller]")]
+    [Route("api/Roles")]
     [ApiController]
     [PermissionAuthorize("manage_roles")]
-    public class RolesController : ControllerBase
+    public class RoleController : ControllerBase
     {
         private readonly AppDbContext _context;
 
@@ -49,7 +49,7 @@ namespace Application.Controllers
             "basic_entry_exit"
         };
 
-        public RolesController(AppDbContext context)
+        public RoleController(AppDbContext context)
         {
             _context = context;
         }

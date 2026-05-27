@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Infra\\Infra.csproj": {}
+    "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Infra\\Infra.csproj": {}
   },
   "projects": {
-    "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Data\\Data.csproj": {
+    "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Data\\Data.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Data\\Data.csproj",
+        "projectUniqueName": "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Data\\Data.csproj",
         "projectName": "Data",
-        "projectPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Data\\Data.csproj",
+        "projectPath": "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Data\\Data.csproj",
         "packagesPath": "C:\\Users\\jawher\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Data\\obj\\",
+        "outputPath": "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Data\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -33,8 +33,8 @@
             "framework": "netcoreapp3.1",
             "targetAlias": "netcoreapp3.1",
             "projectReferences": {
-              "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Domain\\Domain.csproj": {
-                "projectPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Domain\\Domain.csproj"
+              "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Domain\\Domain.csproj": {
+                "projectPath": "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Domain\\Domain.csproj"
               }
             }
           }
@@ -95,14 +95,14 @@
         }
       }
     },
-    "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Domain\\Domain.csproj": {
+    "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Domain\\Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Domain\\Domain.csproj",
+        "projectUniqueName": "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Domain\\Domain.csproj",
         "projectName": "Domain",
-        "projectPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Domain\\Domain.csproj",
+        "projectPath": "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Domain\\Domain.csproj",
         "packagesPath": "C:\\Users\\jawher\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Domain\\obj\\",
+        "outputPath": "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -178,14 +178,14 @@
         }
       }
     },
-    "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Infra\\Infra.csproj": {
+    "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Infra\\Infra.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Infra\\Infra.csproj",
+        "projectUniqueName": "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Infra\\Infra.csproj",
         "projectName": "Infra",
-        "projectPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Infra\\Infra.csproj",
+        "projectPath": "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Infra\\Infra.csproj",
         "packagesPath": "C:\\Users\\jawher\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Infra\\obj\\",
+        "outputPath": "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Infra\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -207,11 +207,11 @@
             "framework": "netcoreapp3.1",
             "targetAlias": "netcoreapp3.1",
             "projectReferences": {
-              "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Data\\Data.csproj": {
-                "projectPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Data\\Data.csproj"
+              "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Data\\Data.csproj": {
+                "projectPath": "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Data\\Data.csproj"
               },
-              "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Domain\\Domain.csproj": {
-                "projectPath": "C:\\Users\\jawher\\Documents\\inventaire\\pfe-inventaire\\Backend\\Domain\\Domain.csproj"
+              "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Domain\\Domain.csproj": {
+                "projectPath": "C:\\Users\\jawher\\mon-projet-pfe-1\\Backend\\Domain\\Domain.csproj"
               }
             }
           }

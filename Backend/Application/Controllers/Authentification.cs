@@ -15,16 +15,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Authentification")]
     [ApiController]
     [AllowAnonymous]
-    public class AuthentificationController : ControllerBase
+    public class AuthController : ControllerBase
     {
         private readonly IMediator _mediator;
         private readonly AppDbContext _context;
         private readonly IJwtService _jwtService;
 
-        public AuthentificationController(IMediator mediator, AppDbContext context, IJwtService jwtService)
+        public AuthController(IMediator mediator, AppDbContext context, IJwtService jwtService)
         {
             _mediator = mediator;
             _context = context;
@@ -95,6 +95,28 @@ namespace Application.Controllers
             };
 
             return Ok(new LoginResponse { Token = token, User = userDto });
+        }
+        [HttpPost("deconnexion")]
+        [Authorize]
+        public IActionResult Deconnexion()
+        {
+            // Fig 3.3 : deconnexion(token)
+            // L'application actuelle utilise des JWT statiques sans DB sessions.
+            // On valide le token (via [Authorize] implicitement ou en vérifiant le header),
+            // puis on renvoie Succès("Déconnexion OK").
+            var authHeader = Request.Headers["Authorization"].ToString();
+            var token = string.IsNullOrEmpty(authHeader) ? string.Empty : authHeader.Replace("Bearer ", "");
+
+            bool isValid = _jwtService.ValiderToken(token);
+            if (!isValid)
+            {
+                return BadRequest(new { message = "Session déjà expirée" });
+            }
+
+            // Dans une vraie implémentation avec gestion de session en base de données :
+            // UPDATE session SET valid=false WHERE token=?
+            
+            return Ok(new { message = "Déconnexion OK" });
         }
     }
 

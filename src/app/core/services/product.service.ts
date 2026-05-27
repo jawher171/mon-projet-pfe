@@ -98,7 +98,7 @@ export class ProductService {
     return dto ? this.dtoToProduct(dto) : undefined;
   }
 
-  async addProduct(product: Omit<Product, 'id_p'>): Promise<Product> {
+  async createProduct(product: Omit<Product, 'id_p'>): Promise<Product> {
     const dto = this.productToDto(product as Product);
     const result = await firstValueFrom(this.http.post<ProductDto>(`${API_BASE_URL}/api/Products/AddProduct`, dto));
     const created = this.dtoToProduct(result);
@@ -186,5 +186,17 @@ export class ProductService {
   /** Alias conservant le nom demandé (case-sensitive). */
   async checkcodebarreunique(codebarre: string, excludeProductId?: string | number): Promise<boolean> {
     return this.checkCodeBarreUnique(codebarre, excludeProductId);
+  }
+
+  // ─── Diagram aliases (Fig 4.2, 4.3) ───
+
+  /** Alias for fetchProducts() — matches diagram «listProducts()» */
+  listProducts(filter?: ProductFilter): Promise<Product[]> {
+    return this.fetchProducts(filter);
+  }
+
+  /** Fig 4.3 — Rechercher / Filtrer produits */
+  filterProducts(keyword: string, filters?: ProductFilter): Promise<Product[]> {
+    return this.fetchProducts({ ...filters, search: keyword });
   }
 }

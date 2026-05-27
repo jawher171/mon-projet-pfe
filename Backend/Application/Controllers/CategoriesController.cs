@@ -13,15 +13,15 @@ using System.Collections.Generic;
 
 namespace Application.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Categories")]
     [ApiController]
     [Authorize]
-    public class CategoriesController : ControllerBase
+    public class CategorieController : ControllerBase
     {
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
-        public CategoriesController(IMediator mediator, IMapper mapper)
+        public CategorieController(IMediator mediator, IMapper mapper)
         {
             _mediator = mediator;
             _mapper = mapper;

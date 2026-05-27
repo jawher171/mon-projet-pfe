@@ -129,6 +129,7 @@ namespace Application
             services.AddScoped<IAlertService, AlertService>();
             services.AddScoped<IAlertTriggerService, AlertService>();
             services.AddScoped<IDashboardEtlService, DashboardEtlService>();
+            services.AddScoped<IValidationService, ValidationService>();
 
             // StockChangedEvent notification handler (alert engine)
             services.AddTransient<INotificationHandler<StockChangedEvent>, StockChangedEventHandler>();

@@ -49,5 +49,32 @@ namespace Application.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+        public bool ValiderToken(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token)) return false;
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
+                _configuration["Jwt:Key"] ?? "DefaultSecretKeyForJwtTokenGenerationMinimum32Chars"));
+
+            try
+            {
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = key,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    // set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes later)
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

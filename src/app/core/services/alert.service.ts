@@ -125,7 +125,7 @@ export class AlertService {
     return { total: unresolved.length, unread: unread.length, critical, high, medium, byType };
   }
 
-  async createAlertApi(alert: Omit<Alert, 'id'>): Promise<Alert> {
+  async createAlert(alert: Omit<Alert, 'id'>): Promise<Alert> {
     const dto: Partial<AlertDto> = {
       type: alert.type,
       message: alert.message,
@@ -141,7 +141,7 @@ export class AlertService {
     return created;
   }
 
-  async resolveAlertApi(id: string | number): Promise<boolean> {
+  async resolveAlert(id: string | number): Promise<boolean> {
     const alert = this.alertsSignal().find(a => String(a.id) === String(id));
     if (!alert) return false;
     const dto: Partial<AlertDto> = {
@@ -167,7 +167,7 @@ export class AlertService {
     return true;
   }
 
-  async deleteAlertApi(id: string | number): Promise<boolean> {
+  async deleteAlert(id: string | number): Promise<boolean> {
     await firstValueFrom(
       this.http.delete(`${API_BASE_URL}/api/Alerts/DeleteAlert/${id}`)
     );
@@ -203,6 +203,13 @@ export class AlertService {
     this.alertsSignal.update(alerts =>
       alerts.map(a => ({ ...a, isRead: true }))
     );
+  }
+
+  // ─── Diagram aliases (Fig 6.3) ───
+
+  /** Fig 6.3 —» */
+  listActiveAlerts() {
+    return this.getActiveAlerts();
   }
 
 }

@@ -1,0 +1,322 @@
+﻿--- PAGE 1 ---
+R╔PUBLIQUE TUNISIENNE
+MinistΦre de lÆEnseignement SupΘrieur et de la Recherche Scientifique
+UniversitΘ de Sousse
+Institut SupΘrieur de Gestion de Sousse
+PROJET DE FIN DÆ╔TUDE
+Pour lÆobtention du dipl⌠me de
+Licence en Informatique de Gestion
+SpΘcialitΘBusiness Intelligence
+INVENTORY PRO :
+Plateforme de Gestion des OpΘrations
+dÆInventaire
+╔laborΘ par : EncadrΘ par :
+Dhouihri Jawher Dr.Cherif Sahar
+El Gharbi Adem Mme.BenJeddi Souha
+EntitΘ dÆaccueil : Poulina Group Holding
+AnnΘe acadΘmique 2025 / 2026
+
+--- PAGE 2 ---
+DΘdicaces
+AprΦs avoir exprimΘ ma profonde gratitude envers Dieu, je dΘdie humblement ce mΘ-
+moire final de mon parcours acadΘmique :
+└ mes parents bien-aimΘs, Naoufel et Hamida, indΘfectibles de mon existence.
+Votre amour inΘbranlable, vos renoncements silencieux, votre foi absolue en mes capacitΘs
+et vos invocations permanentes ont constituΘ le socle de ma persΘvΘrance tout au long de
+cette formation exigeante.
+└ mes frΦres Hamdi, Wissem et Houssem, ainsi quÆα mes s£urs Hadhemi
+et Sirine, prΘcieux soutiens fraternels. Votre prΘsence constante, tant dans les heures
+dÆincertitude que dans les instants de cΘlΘbration, a illuminΘ mon chemin dÆune solidaritΘ
+authentique et irremplaτable.
+└ mon fidΦle ami Youssef, dont la gΘnΘrositΘ spontanΘe et lÆassistance dΘcisive ont
+marquΘ indeliblement cette Θtape. Ton appui au moment opportun demeure gravΘ dans
+ma reconnaissance Θternelle.
+└ mon bin⌠me Jawher, partenaire exemplaire de cette entreprise acadΘmique. Ta
+patience mΘthodique, ton exigence intellectuelle et la richesse de notre synergie humaine
+ont sublimΘ cette rΘalisation commune.
+└ mes compagnons Aziz, Rayen et Moutia, sources de vitalitΘ et de solidaritΘ.
+Votre optimisme communicatif, votre encouragement constant et votre concours effectif
+ont considΘrablement allΘgΘ les exigences de ce parcours exigeant.
+Adem el Gharbi
+1
+
+--- PAGE 3 ---
+DΘdicaces
+AprΦsavoirrendugrΓcesαDieuTout-PuissantpourSaguidanceinfinieetSesbienfaits
+constants qui ont illuminΘ mon chemin acadΘmique, je consacre avec ferveur ce fruit de
+mes labeurs :
+└mesparentschΘris,LotfietEmna,pharesΘternelsdemadestinΘe.Vossacrifices
+muets, votre tendresse indΘfectible et votre confiance absolue ont forgΘ en moi la rΘsilience
+nΘcessaire pour transcender les emb√ches de cette quΩte savante.
+└ mes frΦres bien-aimΘs, Achref et Hamza, Votre solidaritΘ inΘbranlable, mΩlΘe
+de complicitΘ joyeuse, a illuminΘ les heures sombres et magnifiΘ les victoires de ce pΘriple
+intellectuel.
+└ mon distinguΘ bin⌠me, Adem el Gharbi, compagnon dÆexcellence dans cette
+odyssΘe acadΘmique. Ta rigueur analytique, ta gΘnΘrositΘ intellectuelle et notre alchimie
+crΘative ont ΘlevΘ notre £uvre commune vers des sommets inespΘrΘs.
+└ mes fidΦles camarades Rayen Harbi et Aziz Chraief, Pour votre amitiΘ
+authentique, vos orientations avisΘes et votre disponibilitΘ bienveillante. Vos paroles mo-
+tivantes et les instants de complicitΘ partagΘs ont empreint ce chemin acadΘmique dÆune
+mΘmoire impΘrissable.
+Et enfin,α lÆensemble de mes proches amis, tissu vivant de mes ambitions. Votre
+prΘsence discrΦte mais essentielle a constellΘ ce parcours de lumiΦre et de fraternitΘ au-
+thentique.
+Jawher Dhouihri
+2
+
+--- PAGE 4 ---
+Remerciements
+Ce mΘmoire tΘmoigne dÆune collaboration humaine enrichissante, rendue possible par
+lÆappui prΘcieux de multiples contributeurs. Nous souhaitons leur adresser ici notre recon-
+naissance la plus sincΦre.
+└ notre directrice acadΘmique, Dr.Sahar Cherif,
+VotreaccompagnementatranscendΘlecadrepΘdagogiqueclassique.Parvotreexigence
+mΘthodique, votre disponibilitΘ constante et la profondeur de vos orientations, vous avez
+sunousinsufflerrigueuretambition.VotreconfianceetvotrepΘdagogieΘclairΘedemeurent
+pour nous un modΦle inspirant.
+└ notre tutrice professionnelle, Madame Souha Ben Jeddi,
+Nous vous exprimons notre gratitude pour votre guidance attentive, vos perspectives
+professionnelles avisΘes et la libertΘ confΘrΘe dΦs nos premiers pas en entreprise. Votre
+expertise partagΘe a constituΘ un levier dΘcisif de notre maturation technique.
+└ la sociΘtΘ Poulina Groupe Holding,
+Nous adressons nos chaleureux remerciements α cette institution qui nous a accueillis
+et offert un environnement professionnel exemplaire. Nos pensΘes reconnaissantes vont
+particuliΦrement α lÆensemble des collaborateurs pour leur convivialitΘ, et plus spΘcifique-
+ment α Monsieur Hatem dont lÆassistance constante a jalonnΘ notre progression.
+Aux Θminents membres du jury,
+Nous vous sommes reconnaissants pour lÆattention portΘe α notre travail . Vos ex-
+pertises complΘmentaires et vos retours analytiques reprΘsentent une opportunitΘ rare
+dÆenrichissement intellectuel.
+└ lÆensemble des contributeurs,
+Chacun dÆentre vous a dΘposΘ une pierre dans lÆΘdifice de ce projet. Chaque conseil,
+chaque encouragement, chaque soutien discret porte la signature de votre implication.
+Vous avez collectivement transformΘ cette dΘmarche en une expΘrience mΘmorable.
+3
+
+--- PAGE 5 ---
+Table des matiΦres
+DΘdicaces 1
+DΘdicaces 2
+Remerciements 3
+Table des matiΦres 4
+Table des figures 9
+Liste des tableaux 12
+Introduction GΘnΘrale 14
+1 Phase dÆinitialisation et planification 16
+1.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+1.2 PrΘsentation de lÆentitΘ h⌠te . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+1.2.1 PrΘsentation dePOULINA GROUP HOLDING. . . . . . . . 16
+1.2.2 Dossier Technique . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+1.2.3 Services dePOULINA GROUP HOLDING. . . . . . . . . . . 17
+1.3 Cadre du projet . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+1.3.1 PrΘsentation des concepts . . . . . . . . . . . . . . . . . . . . . . . 18
+1.3.2 ProblΘmatique . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+1.3.3 Etude du logiciel existant dans la sociΘtΘ . . . . . . . . . . . . . . . 20
+1.3.4 Critique de lÆexistant . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+1.3.5 Solution proposΘe . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+1.3.6 Objectifs du projet . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+1.4 MΘthodologie de travail . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 22
+1.4.1 Choix de la mΘthode . . . . . . . . . . . . . . . . . . . . . . . . . . 22
+1.4.2 PrΘsentation de la mΘthodologie SCRUM . . . . . . . . . . . . . . 23
+1.5 GIMSI . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25
+1.6 Langage de modΘlisation utilisΘ . . . . . . . . . . . . . . . . . . . . . . . . 25
+1.7 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 26
+4
+
+--- PAGE 6 ---
+python : Traceback (most recent call last):
+At line:1 char:1
++ python -c "
++ ~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "<string>", line 8, in <module>
+  File "C:\Program 
+Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 
+19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2194' in position 2531: character maps to <undefined>
+TABLE DES MATI╚RES
+2 Sprint 0 : ╔laboration des besoins et analyse technique. 27
+2.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 27
+2.2 Analyse des besoins . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 27
+2.2.1 Identification des acteurs : . . . . . . . . . . . . . . . . . . . . . . . 27
+2.2.2 Besoins fonctionnels . . . . . . . . . . . . . . . . . . . . . . . . . . 28
+2.2.3 Besoins non fonctionnels . . . . . . . . . . . . . . . . . . . . . . . . 28
+2.2.4 Besoins dΘcisionnel(KPI) . . . . . . . . . . . . . . . . . . . . . . . . 29
+2.3 Pilotage du projet avec Scrum . . . . . . . . . . . . . . . . . . . . . . . . . 30
+2.3.1 Product Backlog . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30
+2.3.2 Sprint Planning : . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33
+2.3.3 ╔quipe Scrum : . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+2.4 Diagramme de cas dÆutilisation global : . . . . . . . . . . . . . . . . . . . . 35
+2.5 Processus de planification des employΘs : . . . . . . . . . . . . . . . . . . . 36
+2.6 Architecture adoptΘe . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 38
+2.6.1 LÆutilisateur (c⌠tΘ client) . . . . . . . . . . . . . . . . . . . . . . . . 38
+2.6.2 LÆinfrastructure de dΘploiement . . . . . . . . . . . . . . . . . . . . 38
+2.6.3 Le serveur applicatif (backend :Clean Architecture) . . . . . . . . . 39
+2.6.4 ModΦle dÆarchitecture . . . . . . . . . . . . . . . . . . . . . . . . . . 40
+2.6.5 Backend ù Clean Architecture + CQRS . . . . . . . . . . . . . . . 40
+2.6.6 Frontend ù Architecture par composants autonomes . . . . . . . . 41
+2.7 Environnement de travail . . . . . . . . . . . . . . . . . . . . . . . . . . . . 42
+2.7.1 Environnement matΘriel : . . . . . . . . . . . . . . . . . . . . . . . 42
+2.7.2 Environnement Logiciel . . . . . . . . . . . . . . . . . . . . . . . . 42
+2.8 Diagramme de dΘploiement . . . . . . . . . . . . . . . . . . . . . . . . . . . 47
+2.9 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 48
+3 Sprint 1 : SpΘcification, conception et mise en £uvre 49
+3.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 49
+3.2 Backlog du Sprint . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 49
+3.3 SpΘcification des besoins du sprint 1 . . . . . . . . . . . . . . . . . . . . . . 51
+3.3.1 Diagramme de cas dÆutilisation dΘtaillΘ de sprint 1 . . . . . . . . . 51
+3.3.2 Cas dÆutilisation SÆauthentifier : description textuelle et diagramme
+de sΘquence . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 52
+3.3.3 CasdÆutilisationSedΘconnecter:descriptiontextuelleetdiagramme
+de sΘquence . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 54
+3.3.4 Cas dÆutilisation GΘrer comptes utilisateurs : description textuelle
+et diagramme de sΘquence . . . . . . . . . . . . . . . . . . . . . . . 55
+3.3.5 Cas dÆutilisation GΘrer r⌠les et permissions : descript
+
+--- PAGE 7 ---
+TABLE DES MATI╚RES
+3.3.6 Description textuelle du Cas dÆutilisation Visualiser matrice des
+permissions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 60
+3.4 Diagramme de Classes et schΘma de bases de donnΘes . . . . . . . . . . . . 61
+3.4.1 Diagramme de classe du Sprint 1 . . . . . . . . . . . . . . . . . . . 61
+3.4.2 ModΦle de donnΘes de base . . . . . . . . . . . . . . . . . . . . . . . 62
+3.5 RΘalisation et tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 62
+3.5.1 RΘalisation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 63
+3.5.2 Espace Admin û Utilisateurs . . . . . . . . . . . . . . . . . . . . . 64
+3.5.3 Test . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 67
+3.6 Utilisation des outils de suivi de Scrum du Sprint1 . . . . . . . . . . . . . . 67
+3.6.1 Scrum Board . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 67
+3.6.2 Burn Down Chart . . . . . . . . . . . . . . . . . . . . . . . . . . . . 68
+3.7 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 69
+4 Sprint 2 : SpΘcification, conception et mise en £uvre 70
+4.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 70
+4.2 Backlog du Sprint . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 70
+4.3 SpΘcification des besoins du sprint 2 . . . . . . . . . . . . . . . . . . . . . . 72
+4.3.1 Diagramme de cas dÆutilisation dΘtaillΘ de sprint 2 . . . . . . . . . . 72
+4.3.2 CasdÆutilisationGΘrerproduits:descriptiontextuelleetdiagramme
+de sΘquence . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 73
+4.3.3 CasdÆutilisationRechercher/Filtrerproduits:descriptiontextuelle
+et diagramme de sΘquenc . . . . . . . . . . . . . . . . . . . . . . . . 76
+4.3.4 Cas dÆutilisation GΘrer catΘgories : description textuelle et dia-
+gramme de sΘquence . . . . . . . . . . . . . . . . . . . . . . . . . . 77
+4.3.5 Cas dÆutilisation GΘrer multi-sites : description textuelle et dia-
+gramme de sΘquence . . . . . . . . . . . . . . . . . . . . . . . . . . 80
+4.3.6 Cas dÆutilisation Consulter stock par site : description textuelle et
+diagramme de sΘquence . . . . . . . . . . . . . . . . . . . . . . . . . 82
+4.4 Diagramme de Classes et schΘma de bases de donnΘes . . . . . . . . . . . . 84
+4.4.1 Diagramme de classe du Sprint 2 . . . . . . . . . . . . . . . . . . . 84
+4.4.2 ModΦle de donnΘes de base . . . . . . . . . . . . . . . . . . . . . . . 85
+4.5 RΘalisation et tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 86
+4.5.1 RΘalisation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 86
+4.5.2 Test . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 90
+4.6 Utilisation des outils de suivi de Scrum du Sprint 2 . . . . . . . . . . . . . 92
+4.6.1 Scrum Board . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 92
+4.6.2 Burn Down Chart . . . . . . . . . . . . . . . . . . . . . . . . . . . . 92
+4.7 Conclusion . . . . .
+
+--- PAGE 8 ---
+TABLE DES MATI╚RES
+5 Sprint 3 : SpΘcification, Conception et RΘalisation 94
+5.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 94
+5.2 Backlog du Sprint . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 94
+5.3 SpΘcification des besoins du sprint 3 . . . . . . . . . . . . . . . . . . . . . . 97
+5.3.1 Diagramme de cas dÆutilisation dΘtaillΘ de sprint 3 . . . . . . . . . . 97
+5.3.2 CasdÆutilisationEntrΘedestock:descriptiontextuelleetdiagramme
+de sΘquence . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 98
+5.3.3 CasdÆutilisationSortiedestock:descriptiontextuelleetdiagramme
+de sΘquence . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 100
+5.3.4 Cas dÆutilisation Consulter historique des mouvements : description
+textuelle et diagramme de sΘquence . . . . . . . . . . . . . . . . . . 103
+5.3.5 Cas dÆutilisation Transfert entre magasins : description textuelle et
+diagramme de sΘquence . . . . . . . . . . . . . . . . . . . . . . . . . 104
+5.3.6 Cas dÆutilisation GΘrer raisons entrΘe / sortie : description textuelle
+et diagramme de sΘquence . . . . . . . . . . . . . . . . . . . . . . . 107
+5.3.7 CasdÆutilisationScannerproduit:descriptiontextuelleetdiagramme
+de sΘquence . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 110
+5.3.8 Cas dÆutilisation Consulter historique des scans : description tex-
+tuelle et diagramme de sΘquence . . . . . . . . . . . . . . . . . . . . 113
+5.4 Diagramme de Classes et schΘma de bases de donnΘes . . . . . . . . . . . . 115
+5.4.1 Diagramme de classe du Sprint 3 . . . . . . . . . . . . . . . . . . . 116
+5.4.2 ModΦle de donnΘes de base . . . . . . . . . . . . . . . . . . . . . . . 117
+5.5 RΘalisation et tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 117
+5.5.1 RΘalisation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 117
+5.5.2 Test . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 124
+5.6 Utilisation des outils de suivi de Scrum du Sprint 3 . . . . . . . . . . . . . 126
+5.6.1 Scrum Board . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 127
+5.6.2 Burn Down Chart . . . . . . . . . . . . . . . . . . . . . . . . . . . . 127
+5.7 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 128
+6 Sprint 4 : SpΘcification, Conception et RΘalisation 129
+6.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 129
+6.2 Sprint Backlog . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 129
+6.2.1 Objectifs attendus . . . . . . . . . . . . . . . . . . . . . . . . . . . 129
+6.2.2 Backlog Sprint 4 . . . . . . . . . . . . . . . . . . . . . . . . . . . . 129
+6.3 SpΘcification des besoins du sprint 4 . . . . . . . . . . . . . . . . . . . . . . 132
+6.3.1 Diagramme de cas dÆutilisation dΘtaillΘ de sprint 4 . . . . . . . . . . 132
+6.3.2 Cas dÆutilisation Configurer seuils dÆalertes : description textuelle
+et diagramme de sΘquence . . . . .
+
+--- PAGE 9 ---
+TABLE DES MATI╚RES
+6.3.3 Cas dÆutilisation Alertes automatiques : description textuelle et dia-
+gramme de sΘquence . . . . . . . . . . . . . . . . . . . . . . . . . . 134
+6.3.4 Cas dÆutilisation Interface RΘapprovisionnement : description tex-
+tuelle et diagramme de sΘquence . . . . . . . . . . . . . . . . . . . . 138
+6.3.5 Cas dÆutilisation Consulter Dashboard : description textuelle et dia-
+gramme de sΘquence . . . . . . . . . . . . . . . . . . . . . . . . . . 140
+6.4 Diagramme de Classes et schΘma de bases de donnΘes . . . . . . . . . . . . 143
+6.4.1 Diagramme de classe global . . . . . . . . . . . . . . . . . . . . . . 143
+6.4.2 ModΦle de donnΘes de base . . . . . . . . . . . . . . . . . . . . . . . 145
+6.5 Choix des indicateurs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 145
+6.5.1 DΘfinition des Objectifs . . . . . . . . . . . . . . . . . . . . . . . . . 145
+6.6 Chaεne BI . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 148
+6.7 RΘalisation et tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 149
+6.7.1 RΘalisation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 149
+6.7.2 Tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 152
+6.8 Utilisation des outils de suivi de Scrum du Sprint 4 . . . . . . . . . . . . . 154
+6.8.1 Scrum Board . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 155
+6.8.2 Burn Down Chart . . . . . . . . . . . . . . . . . . . . . . . . . . . . 155
+6.9 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 156
+Conclusion GΘnΘrale 157
+Perspectives 159
+Bibliographie 161
+Webographie 161
+ISGS Page 8
+
+--- PAGE 10 ---
+Table des figures
+1.1 Logo de la sociΘtΘ Poulina Group Holding (PGH) . . . . . . . . . . . . . . 17
+1.2 Les services stratΘgiques du groupe Poulina . . . . . . . . . . . . . . . . . . 18
+1.3 Comparaison entre mΘthodologies classiques et agiles . . . . . . . . . . . . 23
+1.4 Cycle de vie de la mΘthode Scrum . . . . . . . . . . . . . . . . . . . . . . . 23
+2.1 LÆΘquipe Scrum . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+2.2 Diagramme de cas dÆutilisation global . . . . . . . . . . . . . . . . . . . . 36
+2.3 Diagramme BPMN du processus dÆInventory Pro . . . . . . . . . . . . . . 37
+2.4 Architecture physique . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 40
+2.5 Architecture physique . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 41
+2.6 ASP.NET Core (.NET) [10] . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+2.7 SignalR [19] . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+2.8 Entity Framework Core (EF Core) [20] . . . . . . . . . . . . . . . . . . . . 44
+2.9 MediatR [21] . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 44
+2.10 Ngrok [22] . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 45
+2.11 Angular [11] . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 45
+2.12 SQL Server [12] . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 46
+2.13 Visual Studio [13] . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 46
+2.14 Visual Studio code [14] . . . . . . . . . . . . . . . . . . . . . . . . . . . . 46
+2.15 Visual Paradigm [15] . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 46
+2.16 Trello [16] . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 47
+2.17 Github [17] . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 47
+2.18 Diagramme de dΘploiement . . . . . . . . . . . . . . . . . . . . . . . . . . . 48
+3.1 Diagramme de cas dÆutilisation du sprint1 . . . . . . . . . . . . . . . . . . 52
+3.2 Diagramme de sΘquence de la fonctionnalitΘ SÆauthentifier . . . . . . . . . 54
+3.3 Diagramme de sΘquence de la fonctionnalitΘ Se dΘconnecter . . . . . . . . 55
+3.4 Diagramme de sΘquence de la fonctionnaliΘ GΘrer comptes utilisateurs . . 57
+3.5 Diagramme de sΘquence du gΘrer les r⌠les et les permissions . . . . . . . . 60
+3.6 Diagramme de classe du Sprint 1 . . . . . . . . . . . . . . . . . . . . . . . 62
+3.7 Page sÆauthentifier . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 63
+9
+
+--- PAGE 11 ---
