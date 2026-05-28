@@ -166,7 +166,7 @@ export class StockService {
     };
   });
 
-  // ─── Diagram aliases (Fig 4.6, 5.2, 5.3, 6.2, 6.4) ───
+  // ─── Diagram (Fig 4.6, 5.2, 5.3, 6.2, 6.4) ───
 
   /** Fig 5.2/5.3 — getEntrepot(): stocks de l'entrepôt principal */
   getEntrepot(): Stock[] {

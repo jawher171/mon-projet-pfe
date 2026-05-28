@@ -19,6 +19,12 @@ export class CategoryService {
   getCategories() {
     return this.categories;
   }
+  // ─── Diagram(Fig 4.4) ───
+
+  /** «listCategories()» */
+  listCategories(): Promise<Category[]> {
+    return this.fetchCategories();
+  }
 
   private dtoToCategory(dto: CategoryDto): Category {
     return {
@@ -26,12 +32,7 @@ export class CategoryService {
       categorieLibelle: dto.libelle
     };
   }
-  getCtegories(): Observable<Category[]> {
-    return this.http.get<CategoryDto[]>(`${API_BASE_URL}/api/Categories/GetCategories`).pipe(
-      map(dtos => (dtos ?? []).map(dto => this.dtoToCategory(dto))),
-      tap(categories => this.categories.set(categories))
-    );
-  }
+
 
   async fetchCategories(): Promise<Category[]> {
     const dtos = await firstValueFrom(this.http.get<CategoryDto[]>(`${API_BASE_URL}/api/Categories/GetCategories`));
@@ -91,10 +92,5 @@ export class CategoryService {
     return maxId + 1;
   }
 
-  // ─── Diagram aliases (Fig 4.4) ───
 
-  /** Alias for fetchCategories() — matches diagram «listCategories()» */
-  listCategories(): Promise<Category[]> {
-    return this.fetchCategories();
-  }
 }

@@ -31,16 +31,16 @@ import { environment } from '../../../environments/environment';
 export class ProductsComponent implements OnInit, OnDestroy {
   /** Search input value */
   searchTerm = signal('');
-  
+
   /** Selected category filter */
   selectedCategory = signal('all');
-  
+
   /** Current view mode (grid or list) */
   viewMode = signal<'grid' | 'list'>('grid');
-  
+
   /** Modal state */
   showModal = signal(false);
-  
+
   /** Edit mode flag */
   isEditMode = signal(false);
 
@@ -85,7 +85,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   /** Product form */
   productForm!: FormGroup;
-  
+
   /** All categories */
   categories = computed(() => this.categoryService.getCategories()());
 
@@ -93,26 +93,26 @@ export class ProductsComponent implements OnInit, OnDestroy {
   warehouseSites = computed(() =>
     this.siteService.getSites()().filter((site: Site) => site.type === 'warehouse')
   );
-  
+
   /** All products from service */
   products = computed(() => this.productService.getProducts()());
-  
+
   /** Filtered and searched products */
   filteredProducts = computed(() => {
     let filtered = this.productsList();
-    
+
     const search = this.searchTerm().toLowerCase();
     if (search) {
-      filtered = filtered.filter(p => 
+      filtered = filtered.filter(p =>
         p.nom.toLowerCase().includes(search)
       );
     }
-    
+
     const category = this.selectedCategory();
     if (category !== 'all') {
       filtered = filtered.filter(p => String(p.id_c) === category);
     }
-    
+
     return filtered;
   });
 
@@ -136,7 +136,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initForm();
-    this.getCategories(); 
+    this.getCategories();
     this.getproducts();
     void this.siteService.fetchSites();
     void this.stockService.fetchStocks();
@@ -160,7 +160,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         }
       }
     });
-   }
+  }
 
   ngOnDestroy(): void {
     this.scanSub?.unsubscribe();
@@ -252,19 +252,18 @@ export class ProductsComponent implements OnInit, OnDestroy {
     return !!opened;
   }
 
-getCategories() {
-     this.categoryService.getCtegories().subscribe(categories => {
-      this.listCategories = categories as Category[];
-      this.cdr.detectChanges();
-     });
-}
-getproducts() {
-     this.productService.getProduit().subscribe(products => {
-      this.listProducts = products as Product[];
-      this.productsList.set(this.listProducts);
-      this.cdr.detectChanges();
-     });
-}
+  async getCategories() {
+    const categories = await this.categoryService.fetchCategories();
+    this.listCategories = categories;
+    this.cdr.detectChanges();
+  }
+  
+  async getproducts() {
+    const products = await this.productService.fetchProducts();
+    this.listProducts = products;
+    this.productsList.set(products);
+    this.cdr.detectChanges();
+  }
   /**
    * Initialize product form
    */
@@ -471,7 +470,7 @@ getproducts() {
     if (!id) return;
     const category = this.listCategories.find(c => String(c.id_c) === String(id));
     const name = category?.categorieLibelle ?? 'cette catégorie';
-    
+
     this.deleteError.set('');
     const linkedCount = this.getCategoryProductCount(id);
     if (linkedCount > 0) {
@@ -479,7 +478,7 @@ getproducts() {
         `Impossible de supprimer la catégorie "${name}" car elle est liée à ${linkedCount} produit(s).`
       );
     }
-    
+
     this.categoryToDelete.set({ id, name });
     this.showDeleteModal.set(true);
   }

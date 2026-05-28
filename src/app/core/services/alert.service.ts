@@ -166,6 +166,10 @@ export class AlertService {
     }
     return true;
   }
+  /** Fig 6.3 —» */
+  listActiveAlerts() {
+    return this.getActiveAlerts();
+  }
 
   async deleteAlert(id: string | number): Promise<boolean> {
     await firstValueFrom(
@@ -205,11 +209,7 @@ export class AlertService {
     );
   }
 
-  // ─── Diagram aliases (Fig 6.3) ───
 
-  /** Fig 6.3 —» */
-  listActiveAlerts() {
-    return this.getActiveAlerts();
-  }
+  
 
 }

@@ -69,9 +69,7 @@ export class ProductService {
   getProducts() {
     return this.products;
   }
-  getProduit() {
-    return this.http.get<Product[]>(`${API_BASE_URL}/api/Products/GetProducts`);
-  }
+
 
   // Importe les produits depuis l'API et met à jour le Signal local
   async fetchProducts(filter?: ProductFilter): Promise<Product[]> {
@@ -188,9 +186,9 @@ export class ProductService {
     return this.checkCodeBarreUnique(codebarre, excludeProductId);
   }
 
-  // ─── Diagram aliases (Fig 4.2, 4.3) ───
+  // ───  (Fig 4.2, 4.3) ───
 
-  /** Alias for fetchProducts() — matches diagram «listProducts()» */
+  /* fetchProducts() — */
   listProducts(filter?: ProductFilter): Promise<Product[]> {
     return this.fetchProducts(filter);
   }
