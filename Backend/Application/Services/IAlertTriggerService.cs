@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Domain.Models;
@@ -19,6 +20,15 @@ namespace Application.Services
 
         /// <summary>Close all open threshold alerts (OUT_OF_STOCK, MIN_STOCK, STOCK_SECURITE, STOCK_ALERTE) for a stock.</summary>
         Task CloseThresholdAlertsAsync(Guid stockId, CancellationToken ct = default);
+
+        /// <summary>Fig 6.3 — checkSeuils(id_s, newQuantite): evaluate all thresholds after a stock change and create/close alerts accordingly.</summary>
+        Task CheckSeuilsAsync(Guid stockId, int newQuantite, CancellationToken ct = default);
+
+        /// <summary>Fig 6.3 — listActiveAlerts(): returns all unresolved alerts ordered by date descending.</summary>
+        Task<List<Alert>> ListActiveAlertsAsync(CancellationToken ct = default);
+
+        /// <summary>Fig 6.3 — resolveAlert(id): manually resolve an alert, broadcasts BroadcastAlertResolved via SignalR.</summary>
+        Task<Alert> ResolveAlertAsync(Guid alertId, CancellationToken ct = default);
     }
 
     /// <summary>Kept for backward compatibility. Delegates to IAlertService internally.</summary>

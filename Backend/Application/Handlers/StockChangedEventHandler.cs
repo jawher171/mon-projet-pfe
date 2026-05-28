@@ -90,9 +90,9 @@ namespace Application.Handlers
             }
 
             // ═══════════════════════════════════════════════════
-            // B) THRESHOLD ALERTS — hierarchical, only ONE open
+            // B) THRESHOLD ALERTS — Fig 6.3: checkSeuils(id_s, newQuantite)
             // ═══════════════════════════════════════════════════
-            await EvaluateThresholdAlerts(stock, qty, produitNom, siteNom, cancellationToken);
+            await _alertService.CheckSeuilsAsync(stock.id_s, qty, cancellationToken);
 
             // ═══════════════════════════════════════════════════
             // C) MAXIMUM ALERT — independent
@@ -105,66 +105,8 @@ namespace Application.Handlers
             await EvaluateSiteCapacityAlerts(stock, siteNom, cancellationToken);
         }
 
-        private async Task EvaluateThresholdAlerts(Stock stock, int qty, string produitNom, string siteNom, CancellationToken ct)
-        {
-            string activeType = null;
-            string severity = null;
-            string message = null;
 
-            if (qty == 0)
-            {
-                activeType = nameof(AlertType.OUT_OF_STOCK);
-                severity = "Critical";
-                message = $"RUPTURE DE STOCK: {produitNom} au site {siteNom}. Quantité disponible: 0. Réapprovisionnement urgent nécessaire.";
-            }
-            else if (stock.SeuilMinimum > 0 && qty <= stock.SeuilMinimum)
-            {
-                activeType = nameof(AlertType.MIN_STOCK);
-                severity = "Critical";
-                message = $"Stock minimum atteint pour {produitNom} au site {siteNom}. " +
-                          $"Quantité: {qty}, Seuil minimum: {stock.SeuilMinimum}. Réapprovisionnement nécessaire.";
-            }
-            else if (stock.SeuilSecurite > 0 && qty <= stock.SeuilSecurite)
-            {
-                activeType = nameof(AlertType.STOCK_SECURITE);
-                severity = "Warning";
-                message = $"Seuil de sécurité atteint pour {produitNom} au site {siteNom}. " +
-                          $"Quantité: {qty}, Seuil sécurité: {stock.SeuilSecurite}.";
-            }
-            else if (stock.SeuilAlerte > 0 && qty <= stock.SeuilAlerte)
-            {
-                activeType = nameof(AlertType.STOCK_ALERTE);
-                severity = "Warning";
-                message = $"Seuil d'alerte atteint pour {produitNom} au site {siteNom}. " +
-                          $"Quantité: {qty}, Seuil alerte: {stock.SeuilAlerte}.";
-            }
 
-            if (activeType != null)
-            {
-                // Close all OTHER threshold alerts that are not the active type
-                var allThresholdTypes = new[]
-                {
-                    nameof(AlertType.OUT_OF_STOCK),
-                    nameof(AlertType.MIN_STOCK),
-                    nameof(AlertType.STOCK_SECURITE),
-                    nameof(AlertType.STOCK_ALERTE)
-                };
-
-                foreach (var t in allThresholdTypes)
-                {
-                    if (t != activeType)
-                        await _alertService.CloseAlertAsync(stock.id_s, t, ct);
-                }
-
-                // Upsert the active alert
-                await _alertService.UpsertOpenAlertAsync(stock.id_s, activeType, severity, message, ct);
-            }
-            else
-            {
-                // Quantity is above all thresholds → close all threshold alerts
-                await _alertService.CloseThresholdAlertsAsync(stock.id_s, ct);
-            }
-        }
 
         private async Task EvaluateMaximumAlert(Stock stock, int qty, string produitNom, string siteNom, CancellationToken ct)
         {

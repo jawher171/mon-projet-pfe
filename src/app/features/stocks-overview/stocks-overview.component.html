@@ -29,7 +29,7 @@
     <div class="so-stat warning">
       <span class="material-symbols-rounded so-stat-icon warn">production_quantity_limits</span>
       <div>
-        <span class="so-stat-value">{{ stats().warning + stats().critical }}</span>
+        <span class="so-stat-value">{{ stats().warning + stats().low + stats().critical }}</span>
         <span class="so-stat-label">Stock bas</span>
       </div>
     </div>
@@ -43,7 +43,7 @@
     <div class="so-stat overstock">
       <span class="material-symbols-rounded so-stat-icon over">deployed_code_alert</span>
       <div>
-        <span class="so-stat-value">{{ stats().overstock }}</span>
+        <span class="so-stat-value">{{ stats().overstock + stats().nearMax }}</span>
         <span class="so-stat-label">Surstock</span>
       </div>
     </div>
@@ -107,8 +107,14 @@
       <button class="so-pill status ok" [class.active]="selectedStatus() === 'ok'" (click)="onStatusChange('ok')">
         <span class="dot ok"></span> Normal
       </button>
+      <button class="so-pill status near-max" [class.active]="selectedStatus() === 'near-max'" (click)="onStatusChange('near-max')">
+        <span class="dot near-max"></span> Proche max
+      </button>
       <button class="so-pill status warning" [class.active]="selectedStatus() === 'warning'" (click)="onStatusChange('warning')">
         <span class="dot warning"></span> Alerte
+      </button>
+      <button class="so-pill status low" [class.active]="selectedStatus() === 'low'" (click)="onStatusChange('low')">
+        <span class="dot low"></span> Sécurité
       </button>
       <button class="so-pill status critical" [class.active]="selectedStatus() === 'critical'" (click)="onStatusChange('critical')">
         <span class="dot critical"></span> Critique

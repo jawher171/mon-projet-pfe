@@ -101,13 +101,14 @@ export class SiteStocksComponent implements OnInit {
     });
   }
 
-  getStockStatus(stock: Stock): 'rupture' | 'critical' | 'low' | 'warning' | 'overstock' | 'ok' {
+  getStockStatus(stock: Stock): 'rupture' | 'critical' | 'low' | 'warning' | 'overstock' | 'near-max' | 'ok' {
     const qty = stock.quantiteDisponible;
     if (qty === 0) return 'rupture';
     if (stock.seuilMinimum > 0 && qty <= stock.seuilMinimum) return 'critical';
     if (stock.seuilSecurite > 0 && qty <= stock.seuilSecurite) return 'low';
     if (stock.seuilAlerte > 0 && qty <= stock.seuilAlerte) return 'warning';
-    if (stock.seuilMaximum > 0 && qty > stock.seuilMaximum) return 'overstock';
+    if (stock.seuilMaximum > 0 && qty >= stock.seuilMaximum) return 'overstock';
+    if (stock.seuilMaximum > 0 && qty >= Math.floor(stock.seuilMaximum * 0.9)) return 'near-max';
     return 'ok';
   }
 
@@ -119,6 +120,7 @@ export class SiteStocksComponent implements OnInit {
       case 'low': return 'Sécurité';
       case 'warning': return 'Alerte';
       case 'overstock': return 'Surstock';
+      case 'near-max': return 'Proche max';
       default: return 'Normal';
     }
   }

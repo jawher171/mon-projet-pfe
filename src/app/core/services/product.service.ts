@@ -181,7 +181,6 @@ export class ProductService {
     }
   }
 
-  /** Alias conservant le nom demandé (case-sensitive). */
   async checkcodebarreunique(codebarre: string, excludeProductId?: string | number): Promise<boolean> {
     return this.checkCodeBarreUnique(codebarre, excludeProductId);
   }

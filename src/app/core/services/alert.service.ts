@@ -142,25 +142,16 @@ export class AlertService {
   }
 
   async resolveAlert(id: string | number): Promise<boolean> {
-    const alert = this.alertsSignal().find(a => String(a.id) === String(id));
-    if (!alert) return false;
-    const dto: Partial<AlertDto> = {
-      id_a: String(id),
-      type: alert.type,
-      message: alert.message,
-      dateCreation: alert.dateCreation instanceof Date ? alert.dateCreation.toISOString() : alert.dateCreation,
-      resolue: true,
-      id_s: alert.stockId ? String(alert.stockId) : undefined
-    };
+    // Fig 6.3 — PUT /api/alerts/{id}/resolve → resolveAlert(id)
     await firstValueFrom(
-      this.http.put<AlertDto>(`${API_BASE_URL}/api/Alerts/UpdateAlert`, dto)
+      this.http.put<AlertDto>(`${API_BASE_URL}/api/Alerts/${id}/resolve`, {})
     );
     // Update local state
     const index = this.alertsSignal().findIndex(a => String(a.id) === String(id));
     if (index !== -1) {
       this.alertsSignal.update(alerts => {
         const updated = [...alerts];
-        updated[index] = { ...updated[index], resolue: true };
+        updated[index] = { ...updated[index], resolue: true, status: 'Closed' };
         return updated;
       });
     }
@@ -206,6 +197,29 @@ export class AlertService {
     this.saveReadIds(readIds);
     this.alertsSignal.update(alerts =>
       alerts.map(a => ({ ...a, isRead: true }))
+    );
+  }
+
+  /** Fig 6.3 — Called by InventorySignalRService when BroadcastAlert is received */
+  pushRealtimeAlert(data: { type: string; severity: string; message: string; stockId: string; dateCreation: string }): void {
+    const alert: Alert = {
+      id: '',
+      type: data.type,
+      message: data.message,
+      dateCreation: new Date(data.dateCreation),
+      resolue: false,
+      severity: (data.severity ?? 'Info').toLowerCase(),
+      status: 'Open',
+      stockId: data.stockId,
+      isRead: false
+    };
+    this.alertsSignal.update(alerts => [alert, ...alerts]);
+  }
+
+  /** Fig 6.3 — Called by InventorySignalRService when BroadcastAlertResolved is received */
+  markAlertResolved(alertId: string): void {
+    this.alertsSignal.update(alerts =>
+      alerts.map(a => String(a.id) === alertId ? { ...a, resolue: true, status: 'Closed' } : a)
     );
   }
 

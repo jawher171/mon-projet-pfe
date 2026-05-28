@@ -198,12 +198,13 @@ export class StockService {
     return this.updateStock(stock);
   }
 
-  /** Fig 6.4 — getStocksAnormaux(): stocks sous seuil */
+  /** Fig 6.4 — getStocksAnormaux(): stocks sous seuil ou en surstock */
   getStocksAnormaux(): Stock[] {
     return this.stocksSignal().filter(s =>
       s.quantiteDisponible === 0 ||
       s.quantiteDisponible <= (s.seuilMinimum ?? 0) ||
-      s.quantiteDisponible <= (s.seuilAlerte ?? 0)
+      s.quantiteDisponible <= (s.seuilAlerte ?? 0) ||
+      (s.seuilMaximum > 0 && s.quantiteDisponible >= s.seuilMaximum)
     );
   }
 

@@ -17,7 +17,7 @@ import { Site, SITE_TYPES, SiteType } from '../../core/models/site.model';
 import { Product } from '../../core/models/product.model';
 import { Category } from '../../core/models/category.model';
 
-type StockStatus = 'all' | 'ok' | 'warning' | 'critical' | 'rupture' | 'overstock';
+type StockStatus = 'all' | 'ok' | 'warning' | 'low' | 'critical' | 'rupture' | 'overstock' | 'near-max';
 
 @Component({
   selector: 'app-stocks-overview',
@@ -133,9 +133,11 @@ export class StocksOverviewComponent implements OnInit {
     const totalQty = stocks.reduce((sum, s) => sum + s.quantiteDisponible, 0);
     const rupture = stocks.filter(s => this.getStockStatus(s) === 'rupture').length;
     const critical = stocks.filter(s => this.getStockStatus(s) === 'critical').length;
+    const low = stocks.filter(s => this.getStockStatus(s) === 'low').length;
     const warning = stocks.filter(s => this.getStockStatus(s) === 'warning').length;
+    const nearMax = stocks.filter(s => this.getStockStatus(s) === 'near-max').length;
     const overstock = stocks.filter(s => this.getStockStatus(s) === 'overstock').length;
-    return { total: stocks.length, totalQty, rupture, critical, warning, overstock };
+    return { total: stocks.length, totalQty, rupture, critical, low, warning, nearMax, overstock };
   });
 
   // Edit modal state
@@ -226,13 +228,15 @@ export class StocksOverviewComponent implements OnInit {
       this.selectedStatus() !== 'all';
   }
 
-  // Stock status logic
-  getStockStatus(stock: Stock): 'rupture' | 'critical' | 'warning' | 'overstock' | 'ok' {
+  // Stock status logic — must match backend alert thresholds exactly
+  getStockStatus(stock: Stock): 'rupture' | 'critical' | 'low' | 'warning' | 'overstock' | 'near-max' | 'ok' {
     const qty = stock.quantiteDisponible;
     if (qty === 0) return 'rupture';
     if (stock.seuilMinimum > 0 && qty <= stock.seuilMinimum) return 'critical';
+    if (stock.seuilSecurite > 0 && qty <= stock.seuilSecurite) return 'low';
     if (stock.seuilAlerte > 0 && qty <= stock.seuilAlerte) return 'warning';
-    if (stock.seuilMaximum > 0 && qty > stock.seuilMaximum) return 'overstock';
+    if (stock.seuilMaximum > 0 && qty >= stock.seuilMaximum) return 'overstock';
+    if (stock.seuilMaximum > 0 && qty >= Math.floor(stock.seuilMaximum * 0.9)) return 'near-max';
     return 'ok';
   }
 
@@ -240,8 +244,10 @@ export class StocksOverviewComponent implements OnInit {
     switch (this.getStockStatus(stock)) {
       case 'rupture': return 'Rupture';
       case 'critical': return 'Critique';
+      case 'low': return 'Sécurité';
       case 'warning': return 'Alerte';
       case 'overstock': return 'Surstock';
+      case 'near-max': return 'Proche max';
       default: return 'Normal';
     }
   }

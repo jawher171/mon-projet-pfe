@@ -133,8 +133,9 @@ $accent: #764ba2;
 
     &[data-status="rupture"] { background: rgba(239, 68, 68, 0.06); &:hover { background: rgba(239, 68, 68, 0.1); } }
     &[data-status="critical"] { background: rgba(239, 68, 68, 0.04); &:hover { background: rgba(239, 68, 68, 0.08); } }
-    &[data-status="low"] { background: rgba(249, 115, 22, 0.04); &:hover { background: rgba(249, 115, 22, 0.08); } }
+    &[data-status="low"] { background: rgba(234, 179, 8, 0.04); &:hover { background: rgba(234, 179, 8, 0.08); } }
     &[data-status="warning"] { background: rgba(245, 158, 11, 0.04); &:hover { background: rgba(245, 158, 11, 0.08); } }
+    &[data-status="near-max"] { background: rgba(6, 182, 212, 0.04); &:hover { background: rgba(6, 182, 212, 0.08); } }
     &[data-status="overstock"] { background: rgba(99, 102, 241, 0.04); &:hover { background: rgba(99, 102, 241, 0.08); } }
   }
 
@@ -172,8 +173,9 @@ $accent: #764ba2;
 
   &[data-status="rupture"] { background: rgba(127, 29, 29, 0.15); color: #991b1b; }
   &[data-status="critical"] { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
-  &[data-status="low"] { background: rgba(249, 115, 22, 0.12); color: #ea580c; }
+  &[data-status="low"] { background: rgba(234, 179, 8, 0.15); color: #ca8a04; }
   &[data-status="warning"] { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+  &[data-status="near-max"] { background: rgba(6, 182, 212, 0.12); color: #0891b2; }
   &[data-status="overstock"] { background: rgba(99, 102, 241, 0.12); color: #4f46e5; }
   &[data-status="ok"] { background: rgba(16, 185, 129, 0.12); color: #059669; }
 }
@@ -188,8 +190,9 @@ $accent: #764ba2;
 
   &[data-status="rupture"] { background: rgba(127, 29, 29, 0.15); color: #991b1b; }
   &[data-status="critical"] { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
-  &[data-status="low"] { background: rgba(249, 115, 22, 0.12); color: #ea580c; }
+  &[data-status="low"] { background: rgba(234, 179, 8, 0.15); color: #ca8a04; }
   &[data-status="warning"] { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+  &[data-status="near-max"] { background: rgba(6, 182, 212, 0.12); color: #0891b2; }
   &[data-status="overstock"] { background: rgba(99, 102, 241, 0.12); color: #4f46e5; }
   &[data-status="ok"] { background: rgba(16, 185, 129, 0.12); color: #059669; }
 }

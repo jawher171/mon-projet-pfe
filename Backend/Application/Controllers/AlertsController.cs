@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using Application.Dtos;
 using Application.Security;
+using Application.Services;
 using AutoMapper;
 using Domain.Commands;
 using Domain.Models;
@@ -25,16 +27,18 @@ namespace Application.Controllers
     {
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
+        private readonly IAlertService _alertService;
 
-        public AlertsController(IMediator mediator, IMapper mapper)
+        public AlertsController(IMediator mediator, IMapper mapper, IAlertService alertService)
         {
             _mediator = mediator;
             _mapper = mapper;
+            _alertService = alertService;
         }
 
         [HttpGet("GetAlerts")]
         [PermissionAuthorize("view_alerts")]
-        public async Task<ActionResult<IEnumerable<AlertDto>>> GetNotDeleted()
+        public async Task<ActionResult<IEnumerable<AlertDto>>> GetNotDeleted([FromQuery] bool? resolue = null)
         {
             var currentUserId = GetCurrentUserId();
             if (!currentUserId.HasValue)
@@ -52,7 +56,7 @@ namespace Application.Controllers
 
             var result = (await _mediator.Send(
                 new GetListGenericQuery<Alert>(
-                    condition: x => true,
+                    condition: x => !resolue.HasValue || x.Resolue == resolue.Value,
                     includes: i => i.Include(x => x.Stock).ThenInclude(s => s.Produit)
                                     .Include(x => x.Stock).ThenInclude(s => s.Site))))
                 .ToList();
@@ -182,6 +186,16 @@ namespace Application.Controllers
             var deleted = await _mediator.Send(new RemoveGenericCommand<Alert>(id));
             if (deleted == null) return NotFound();
             return NoContent();
+        }
+
+        /// <summary>Fig 6.3 — PUT /api/alerts/{id}/resolve → resolveAlert(id)</summary>
+        [HttpPut("{id}/resolve")]
+        [PermissionAuthorize("manage_alerts")]
+        public async Task<IActionResult> Resolve(Guid id)
+        {
+            var result = await _alertService.ResolveAlertAsync(id);
+            if (result == null) return NotFound(new { message = "Alert not found." });
+            return Ok(_mapper.Map<AlertDto>(result));
         }
 
         private Guid? GetCurrentUserId()
